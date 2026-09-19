@@ -46,6 +46,7 @@ import {
 import { getRoutingProfile, resolvePolicyProfileId, POLICY_NAMESPACE } from "./routing/profile";
 import { evaluatePolicyProfile, type PolicyRequestEvidence } from "./routing/evaluator";
 import { assemblePolicyCandidateEvidence } from "./routing/compatibility/assemble";
+import { forgetPolicyAffinity, lookupPolicyAffinity, policyAffinityKey } from "./routing/session-affinity";
 
 export class UnknownRoutingPolicyError extends Error {
   constructor(readonly profileId: string) {
@@ -620,6 +621,7 @@ function routeModelInternal(
   bypassCombos: boolean,
   policyEvidence?: PolicyRequestEvidence,
   allowCompactionNativeFallback = false,
+  affinityContext?: PolicyAffinityContext,
 ): RouteResult {
   const slash = modelId.indexOf("/");
   // Policy namespace is system-reserved: an explicit `policy/<id>` or a
@@ -640,7 +642,21 @@ function routeModelInternal(
     const candidateEvidence = assemblePolicyCandidateEvidence(config, profile, now, {
       routedProviderConfig,
     });
-    const evaluation = evaluatePolicyProfile(config, policyId, policyEvidence ?? {}, candidateEvidence, now);
+    const affinityKey = policyAffinityKey(affinityContext?.principal, policyId, affinityContext?.sessionLane);
+    const bound = affinityKey ? lookupPolicyAffinity(affinityKey, now) : undefined;
+    const evaluation = evaluatePolicyProfile(
+      config,
+      policyId,
+      policyEvidence ?? {},
+      candidateEvidence,
+      now,
+      bound,
+      bound ? "affinity-invalidated" : undefined,
+      affinityKey,
+    );
+    if (bound && evaluation.trace.selected.reason === "affinity-invalidated" && affinityKey) {
+      forgetPolicyAffinity(affinityKey);
+    }
     if (evaluation.selectedIndex === null) {
       throw new NoEligiblePolicyCandidateError(policyId, evaluation.trace);
     }
@@ -650,7 +666,7 @@ function routeModelInternal(
     return {
       ...routed,
       routeKind: "policy" as const,
-      routeReason: "policy-selected",
+      routeReason: evaluation.trace.selected.reason,
       routeDecision: evaluation.trace,
     };
   }
@@ -878,12 +894,18 @@ function routeWithDecisionTrace(config: OcxConfig, modelId: string, route: Route
   return route;
 }
 
+export interface PolicyAffinityContext {
+  principal?: string;
+  sessionLane?: string;
+}
+
 export function routeModel(
   config: OcxConfig,
   modelId: string,
   policyEvidence?: PolicyRequestEvidence,
+  affinityContext?: PolicyAffinityContext,
 ): RouteResult {
-  const route = routeModelInternal(config, modelId, false, policyEvidence);
+  const route = routeModelInternal(config, modelId, false, policyEvidence, false, affinityContext);
   return routeWithDecisionTrace(config, modelId, route);
 }
 

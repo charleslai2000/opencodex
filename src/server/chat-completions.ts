@@ -25,6 +25,8 @@ import { resolveClientRetryAfter } from "../lib/retry-after";
 import { estimateTokens } from "../lib/token-estimate";
 import { NoEligiblePolicyCandidateError, UnknownRoutingPolicyError, routeModel } from "../router";
 import { evidenceFromBody } from "../routing/request-evidence";
+import { contextPrincipalIdOf } from "./auth-cors";
+import { policyAffinityKey, rememberPolicyAffinity } from "../routing/session-affinity";
 import { resolveWireProtocolOverride } from "./adapter-resolve";
 import { resolveOpenCodeGoTransport } from "../providers/opencode-go-transport";
 import {
@@ -149,7 +151,18 @@ async function handleChatCompletionsWithBudget(
   let settledRoute: ReturnType<typeof routeModel> | null = null;
   let chatNativeRoute: ReturnType<typeof routeModel> | null = null;
   try {
-    const route = routeModel(config, chatBody.model as string, evidenceFromBody(chatBody));
+    const route = routeModel(
+      config,
+      chatBody.model as string,
+      evidenceFromBody(
+        chatBody,
+        effortRow?.effort ?? (typeof chatBody.reasoning_effort === "string" ? chatBody.reasoning_effort : undefined),
+      ),
+      {
+        principal: contextPrincipalIdOf(logIds?.admission),
+        sessionLane: getOrAllocateRequestSessionLane(req),
+      },
+    );
     // Preserve the routed destination for Go recognition, then settle the wire before
     // deriving protocol-scoped affinity. Recognition must not inspect the flipped adapter.
     const routedProvider = route.provider;
@@ -165,6 +178,18 @@ async function handleChatCompletionsWithBudget(
     if (route.routeReason === "model-alias" || route.modelId !== requestedModel && requestedModel.includes("/")) logCtx.requestedAlias = requestedModel;
     logCtx.provider = route.providerName;
     logCtx.routeDecision = route.routeDecision;
+    if (route.routeKind === "policy" && route.routeDecision?.profile) {
+      const key = policyAffinityKey(
+        contextPrincipalIdOf(logIds?.admission),
+        route.routeDecision.profile.id,
+        getOrAllocateRequestSessionLane(req),
+      );
+      if (key) {
+        logCtx.policyAffinityKey = key;
+        logCtx.policyAffinityProfileId = route.routeDecision.profile.id;
+        logCtx.policyAffinityTarget = { provider: route.providerName, model: route.modelId };
+      }
+    }
     settledRoute = route;
     routeMayChangeCredentialDomain = route.combo !== undefined || route.routeKind === "policy";
     callerAuthorizationRoute = !routeMayChangeCredentialDomain
@@ -203,6 +228,9 @@ async function handleChatCompletionsWithBudget(
       requestedModel,
       requestedStream: stream,
       translatorBudget,
+      ...(logCtx.policyAffinityKey && logCtx.policyAffinityTarget ? {
+        onSuccess: () => rememberPolicyAffinity(logCtx.policyAffinityKey!, logCtx.policyAffinityTarget!),
+      } : {}),
     });
   }
 
@@ -350,6 +378,9 @@ async function handleChatCompletionsWithBudget(
     abortSignal: req.signal,
     // Body is Responses-shaped by now, but the client spoke Chat Completions.
     inboundWire: "chat",
+    ...(logCtx.policyAffinityKey && logCtx.policyAffinityTarget ? {
+      onResponseComplete: () => rememberPolicyAffinity(logCtx.policyAffinityKey!, logCtx.policyAffinityTarget!),
+    } : {}),
     // Terminal vision-describe marker (roadmap 180): the bridge rebuilds
     // headers from the FORWARD_HEADERS allowlist, which would drop the raw
     // header — so the fact is detected here and carried as an option flag.

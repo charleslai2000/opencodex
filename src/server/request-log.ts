@@ -189,6 +189,10 @@ export interface RequestLogContext {
   affinity?: CodexAffinityMove;
   /** Why the binding was kept, moved, or released (#4546). */
   affinityReason?: CodexAffinityReason;
+  /** Internal process-local policy affinity metadata; never persisted. */
+  policyAffinityKey?: string;
+  policyAffinityProfileId?: string;
+  policyAffinityTarget?: { provider: string; model: string };
   /**
    * Set when this request dropped account-bound continuation because the serving
    * Codex pool account was not the issuer. Never an account identifier.

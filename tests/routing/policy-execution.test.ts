@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { NoEligiblePolicyCandidateError, UnknownRoutingPolicyError, routeCompactionModel, routeConcreteModel, routeModel } from "../../src/router";
 import { isValidProviderName } from "../../src/config";
-import { getRoutingProfile } from "../../src/routing/profile";
+import { getRoutingProfile, routingProfileIssues } from "../../src/routing/profile";
 import { closeRequestHistoryIndex } from "../../src/routing/history/indexer";
 import { evidenceFromBody } from "../../src/routing/request-evidence";
 import type { OcxConfig } from "../../src/types";
@@ -339,6 +339,66 @@ describe("policy execution (RI-05)", () => {
     expect(caught!.trace!.selected.reason).toBe("no-eligible-candidate");
     expect(caught!.trace!.candidates).toHaveLength(1);
     expect(caught!.trace!.candidates![0]!.exclusions[0]!.code).toBe("capability-unsatisfied");
+  });
+
+  test("candidate efforts normalize canonically, deduplicate, and affect profile revision", () => {
+    const config = baseConfig({
+      routingProfiles: {
+        effort: { candidates: [{ provider: "a", model: "m1", efforts: ["high", "low", "high"] }] },
+      },
+    });
+    const profile = getRoutingProfile(config, "effort")!;
+    expect(profile.candidates[0]!.efforts).toEqual(["low", "high"]);
+    const withoutEfforts = getRoutingProfile(baseConfig({
+      routingProfiles: { effort: { candidates: [{ provider: "a", model: "m1" }] } },
+    }), "effort")!;
+    expect(profile.revision).not.toBe(withoutEfforts.revision);
+  });
+
+  test("empty or invalid candidate effort arrays are rejected by profile validation", () => {
+    const config = baseConfig();
+    const emptyConfig = { ...config, routingProfiles: { bad: { candidates: [{ provider: "a", model: "m1", efforts: [] }] } } };
+    const empty = getRoutingProfile(emptyConfig, "bad");
+    expect(empty?.candidates[0]?.efforts).toEqual([]);
+    expect(routingProfileIssues("bad", emptyConfig.routingProfiles!.bad, emptyConfig)).toContainEqual({
+      path: ["candidates", 0, "efforts"],
+      message: "candidates[0].efforts must be a non-empty array",
+    });
+    const invalidConfig = { ...config, routingProfiles: { bad: { candidates: [{ provider: "a", model: "m1", efforts: ["bogus"] }] } } };
+    expect(routingProfileIssues("bad", invalidConfig.routingProfiles!.bad, invalidConfig)).toContainEqual({
+      path: ["candidates", 0, "efforts", 0],
+      message: "effort must be a canonical reasoning effort",
+    });
+  });
+
+  test("candidate effort is a hard filter while capability and health semantics remain", () => {
+    const config = baseConfig({
+        providers: {
+          ...baseConfig().providers,
+          a: { ...baseConfig().providers.a, reasoningEfforts: ["low"] },
+          b: { ...baseConfig().providers.b, reasoningEfforts: ["high"] },
+        },
+        routingProfiles: {
+        effort: {
+          candidates: [
+            { provider: "a", model: "m1", efforts: ["low"] },
+            { provider: "b", model: "m2", efforts: ["high"] },
+          ],
+        },
+      },
+    });
+    const route = routeModel(config, "policy/effort", { reasoningEffort: "high" });
+    expect(route.providerName).toBe("b");
+    expect(route.routeDecision!.candidates[0]!.eligible).toBe(false);
+    expect(route.routeDecision!.candidates[0]!.exclusions).toContainEqual({ code: "capability-unsatisfied", detail: "candidate-effort" });
+    expect(route.routeDecision!.candidates[1]!.eligible).toBe(true);
+  });
+
+  test("profiles without efforts remain backward-compatible and body evidence uses one parser", () => {
+    const config = baseConfig({ routingProfiles: { plain: { candidates: [{ provider: "a", model: "m1" }] } } });
+    expect(routeModel(config, "policy/plain")).toMatchObject({ providerName: "a", modelId: "m1" });
+    expect(evidenceFromBody({ reasoning: { effort: "high" } })).toEqual({ reasoningEffort: "high" });
+    expect(evidenceFromBody({ reasoning_effort: "low" }, "high")).toEqual({ reasoningEffort: "high" });
   });
 
   test("policy provider name is a reserved routing namespace (combo stays usable)", () => {

@@ -9,6 +9,7 @@ import { handleResponses as handleResponsesCore } from "./core";
 import { requestPacingOverloadResponse } from "./pacing-overload";
 import { captureExplicitOpenAiCallerAuth } from "../../providers/openai-sidecar";
 import { captureCallerDirectAuth } from "../../providers/caller-authorization";
+import { rememberPolicyAffinity } from "../../routing/session-affinity";
 
 type CoreHandler = typeof handleResponsesCore;
 type CoreOptions = Parameters<CoreHandler>[3];
@@ -182,12 +183,18 @@ export async function handleResponsesWithPolicyFallback(
     const next = rankPolicyFallbackCandidates(initialTrace, tried)[0];
     if (!next) return response;
     tried.add(candidateKey(next));
+    if (logCtx.policyAffinityKey) {
+      logCtx.policyAffinityTarget = { provider: next.provider, model: next.model };
+    }
 
     finishFailedPolicyAttempt(logCtx, response.status);
     const retryRequest = requestWithCandidate(req, rawBody, next);
     try {
       try {
         response = await runCore(retryRequest, config, logCtx, coreOptions);
+        if (response.status < 400 && logCtx.policyAffinityKey && logCtx.policyAffinityTarget) {
+          rememberPolicyAffinity(logCtx.policyAffinityKey, logCtx.policyAffinityTarget);
+        }
       } catch (error) {
         const overload = requestPacingOverloadResponse(error);
         if (overload) return overload;

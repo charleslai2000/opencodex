@@ -62,6 +62,9 @@ import {
   NoEligiblePolicyCandidateError,
 } from "../../router";
 import { evidenceFromBody } from "../../routing/request-evidence";
+import { contextPrincipalIdOf } from "../auth-cors";
+import { getOrAllocateRequestSessionLane } from "../request-log-conversation";
+import { policyAffinityKey, rememberPolicyAffinity } from "../../routing/session-affinity";
 import { OPENAI_CODEX_PROVIDER_ID, isCanonicalOpenAiForwardProvider } from "../../providers/openai-tiers";
 import { isThreadSpawnRequest } from "../effort-policy";
 import {
@@ -404,8 +407,16 @@ export async function prepareResponsesRequest(
     const resolveRoute = (modelId: string) => options.comboAttempt
       ? routeConcreteModel(config, modelId)
       : parsed._compactionRequest === true
-        ? routeCompactionModel(config, modelId, evidenceFromBody(parsed._rawBody))
-        : routeModel(config, modelId, evidenceFromBody(parsed._rawBody));
+        ? routeCompactionModel(config, modelId, evidenceFromBody(parsed._rawBody, parsed.options.reasoning))
+        : routeModel(
+          config,
+          modelId,
+          evidenceFromBody(parsed._rawBody, parsed.options.reasoning),
+          {
+            principal: contextPrincipalIdOf(options.admission),
+            sessionLane: getOrAllocateRequestSessionLane(req),
+          },
+        );
     const _sci = config.shadowCallIntercept;
     let shadowRoute: RouteResult | undefined;
     if (_sci?.enabled && _sci.model && isShadowSourceModel(parsed.modelId, _sci.sourceModels)) {
@@ -439,6 +450,25 @@ export async function prepareResponsesRequest(
     if (parsed._compactionRequest === true) parsed._cursorIsolateConversation = true;
     route = shadowRoute ?? resolveRoute(parsed.modelId);
     logCtx.routeDecision = route.routeDecision;
+    if (route.routeKind === "policy" && route.routeDecision?.profile) {
+      const key = policyAffinityKey(
+        contextPrincipalIdOf(options.admission),
+        route.routeDecision.profile.id,
+        getOrAllocateRequestSessionLane(req),
+      );
+      if (key) {
+        logCtx.policyAffinityKey = key;
+        logCtx.policyAffinityProfileId = route.routeDecision.profile.id;
+        logCtx.policyAffinityTarget = { provider: route.providerName, model: route.modelId };
+        const previous = options.onResponseComplete;
+        options.onResponseComplete = model => {
+          if (logCtx.policyAffinityKey && logCtx.policyAffinityTarget) {
+            rememberPolicyAffinity(logCtx.policyAffinityKey, logCtx.policyAffinityTarget);
+          }
+          previous?.(model);
+        };
+      }
+    }
   } catch (err) {
     if (err instanceof NoAvailableComboTargetsError) {
       return comboUnavailable(err.comboId);
@@ -633,7 +663,7 @@ export async function prepareResponsesRequest(
 
     if (fallback?.to && !slugsEquivalent(fallback.to, route.modelId)) {
       try {
-        route = routeModel(config, fallback.to, evidenceFromBody(parsed._rawBody));
+        route = routeModel(config, fallback.to, evidenceFromBody(parsed._rawBody, parsed.options.reasoning));
         credentialDomainWasRewritten = true;
         logCtx.routeDecision = route.routeDecision;
       } catch (err) {
@@ -831,7 +861,7 @@ export async function prepareResponsesRequest(
 
           if (fallback?.to && !slugsEquivalent(fallback.to, route.modelId)) {
             try {
-              route = routeModel(config, fallback.to, evidenceFromBody(parsed._rawBody));
+              route = routeModel(config, fallback.to, evidenceFromBody(parsed._rawBody, parsed.options.reasoning));
               credentialDomainWasRewritten = true;
               logCtx.routeDecision = route.routeDecision;
             } catch (err) {

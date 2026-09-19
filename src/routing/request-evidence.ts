@@ -33,13 +33,23 @@ function inputContainsImage(input: unknown): boolean {
   return input.some(containsImagePart);
 }
 
-export function evidenceFromBody(body: unknown): PolicyRequestEvidence {
-  if (!body || typeof body !== "object" || Array.isArray(body)) return {};
+export function evidenceFromBody(body: unknown, reasoningEffort?: string): PolicyRequestEvidence {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return reasoningEffort ? { reasoningEffort } : {};
+  }
   const record = body as Record<string, unknown>;
   const tools = Array.isArray(record.tools) && record.tools.length > 0;
   const image = inputContainsImage(record.input) || inputContainsImage(record.messages);
+  const bodyEffort = typeof record.reasoning_effort === "string"
+    ? record.reasoning_effort
+    : record.reasoning && typeof record.reasoning === "object"
+      && typeof (record.reasoning as Record<string, unknown>).effort === "string"
+      ? (record.reasoning as Record<string, unknown>).effort as string
+      : undefined;
+  const effort = reasoningEffort ?? bodyEffort;
   return {
     ...(tools ? { toolsRequired: true } : {}),
     ...(image ? { imageInputRequired: true } : {}),
+    ...(effort ? { reasoningEffort: effort } : {}),
   };
 }

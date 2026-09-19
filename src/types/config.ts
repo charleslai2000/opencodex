@@ -1137,6 +1137,10 @@ export type OcxRoutingUnknownEvidenceMode = "allow" | "penalize" | "exclude";
 export interface OcxRoutingProfileCandidate {
   provider: string;
   model: string;
+  /** Optional hard allowlist of logical reasoning efforts for this candidate. */
+  efforts?: string[];
+  /** Explicitly declares interchangeable replicas for deterministic initial placement. */
+  replicaGroup?: string;
 }
 
 export interface OcxRoutingProfileRequirements {

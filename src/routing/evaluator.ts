@@ -27,6 +27,7 @@ import { costScore } from "./cost";
 import { evaluateCompatibilityForCandidate } from "./compatibility/policy";
 import { COMPATIBILITY_WEIGHT, type CandidateCompatibilityEvidence } from "./compatibility/types";
 import type { RouteCompatibilityEvidence } from "./trace";
+import { chooseReplicaByHrw } from "./replica-placement";
 
 /** Unknown health under "penalize": a low-but-not-zero deterministic floor. */
 export const HEALTH_UNKNOWN_PENALTY_SCORE = 0.3;
@@ -46,6 +47,11 @@ export interface PolicyRequestEvidence {
   reasoningEffort?: string;
   serviceTier?: string;
   encryptedCodexTask?: boolean;
+}
+
+export interface PolicyAffinityPreference {
+  provider: string;
+  model: string;
 }
 
 export interface PolicyCandidateEvidence {
@@ -263,13 +269,18 @@ export function evaluatePolicyProfile(
   requestEvidence: PolicyRequestEvidence,
   candidateEvidence: PolicyCandidateEvidence[],
   now = Date.now(),
+  affinityPreference?: PolicyAffinityPreference,
+  affinitySelectionReason?: "affinity-hit" | "affinity-invalidated",
+  placementKey?: string,
 ): PolicyEvaluationResult {
   const profile = getRoutingProfile(config, profileId);
   if (!profile) throw new Error(`Unknown routing profile: ${profileId}`);
 
   const candidates: PolicyEvaluationCandidate[] = [];
   let selectedIndex: number | null = null;
+  let normalSelectedIndex: number | null = null;
   let bestScore = Number.NEGATIVE_INFINITY;
+  let affinityHit = false;
 
   profile.candidates.forEach((declared, index) => {
     const evidence = candidateEvidence.find(
@@ -279,6 +290,14 @@ export function evaluatePolicyProfile(
       ...requirementFor(profile.require, evidence.capability, evidence.quota),
       ...requestRequirementFor(requestEvidence, evidence.capability),
     ];
+    if (declared.efforts !== undefined && requestEvidence.reasoningEffort !== undefined) {
+      requirements.push({
+        id: "candidate-effort",
+        expected: requestEvidence.reasoningEffort,
+        actual: declared.efforts.join(","),
+        outcome: declared.efforts.includes(requestEvidence.reasoningEffort) ? "satisfied" : "unsatisfied",
+      });
+    }
     const exclusions: RouteExclusionReason[] = [];
     const routeUnavailable = evidence.routeResolutionFailed === true;
     if (routeUnavailable) exclusions.push({ code: "route-unavailable" });
@@ -461,6 +480,38 @@ export function evaluatePolicyProfile(
     }
   });
 
+  normalSelectedIndex = selectedIndex;
+  if (affinityPreference) {
+    const stickyIndex = candidates.findIndex(candidate =>
+      candidate.eligible
+      && candidate.provider === affinityPreference.provider
+      && candidate.model === affinityPreference.model,
+    );
+    if (stickyIndex >= 0) {
+      selectedIndex = stickyIndex;
+      affinityHit = true;
+    }
+  }
+
+  let replicaHrwSelected = false;
+  if (!affinityHit && (!affinityPreference || affinitySelectionReason === "affinity-invalidated") && placementKey) {
+    const winner = normalSelectedIndex === null ? undefined : profile.candidates[normalSelectedIndex];
+    if (winner?.replicaGroup) {
+      const siblings = profile.candidates
+        .map((declared, index) => ({ declared, index, evaluated: candidates[index]! }))
+        .filter(({ declared, evaluated }) => declared.replicaGroup === winner.replicaGroup && evaluated.eligible);
+      const placement = chooseReplicaByHrw(
+        placementKey,
+        siblings.map(({ evaluated }) => ({ provider: evaluated.provider, model: evaluated.model })),
+      );
+      const placed = siblings.find(({ evaluated }) => evaluated.provider === placement?.provider && evaluated.model === placement?.model);
+      if (placed) {
+        selectedIndex = placed.index;
+        replicaHrwSelected = true;
+      }
+    }
+  }
+
   const trace = buildRouteDecisionTrace({
     requestedModel: policyModelId(profileId),
     routeKind: "policy",
@@ -485,7 +536,8 @@ export function evaluatePolicyProfile(
         candidateIndex: selectedIndex,
         provider: candidates[selectedIndex]!.provider,
         model: candidates[selectedIndex]!.model,
-        reason: "policy-selected",
+        reason: affinityHit ? "affinity-hit" : affinitySelectionReason === "affinity-invalidated" ? "affinity-invalidated" : replicaHrwSelected ? "replica-hrw" : "policy-selected",
+        ...(replicaHrwSelected ? { tieBreak: "replica-hrw" } : {}),
       },
   });
 

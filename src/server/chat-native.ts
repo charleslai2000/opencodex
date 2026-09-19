@@ -198,6 +198,7 @@ interface HandleNativeChatOptions {
   requestedModel: string;
   requestedStream: boolean;
   translatorBudget: TranslatorBudget;
+  onSuccess?: () => void;
 }
 
 export async function handleNativeChatCompletions(options: HandleNativeChatOptions): Promise<Response> {
@@ -550,6 +551,7 @@ export async function handleNativeChatCompletions(options: HandleNativeChatOptio
         try {
           cleanupAbort();
           finishLog(status, message, "terminal");
+          if (status < 400) options.onSuccess?.();
           if (status >= 400) upstream.abort();
         } finally {
           releaseStreamTurn();
@@ -587,6 +589,7 @@ export async function handleNativeChatCompletions(options: HandleNativeChatOptio
         return fail(499, "Client cancelled request", "client_cancelled");
       }
       finishLog(200);
+      options.onSuccess?.();
       return Response.json(completion);
     } catch (error) {
       cleanupAbort();
@@ -644,6 +647,7 @@ export async function handleNativeChatCompletions(options: HandleNativeChatOptio
       : JSON.stringify(completion);
     if (!requestedStream) translatorBudget.chargeRetained(Buffer.byteLength(serialized) * 2, { kind: "live_transient" });
     finishLog(200);
+    options.onSuccess?.();
     return new Response(serialized, {
       status: 200,
       headers: requestedStream

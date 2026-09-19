@@ -16,6 +16,7 @@ import { listComboIds, resolveComboId } from "../combos";
 import { hasOwnProvider } from "../config/provider-name";
 import { MAX_COMPATIBILITY_REQUIRED_SUITES } from "./compatibility/types";
 import { POLICY_NAMESPACE } from "./profile-namespace";
+import { canonicalizeReasoningEfforts, isDeclaredReasoningEffort } from "../reasoning-effort";
 
 export { POLICY_NAMESPACE };
 
@@ -70,7 +71,7 @@ export interface NormalizedRoutingProfileRequirements {
 export interface NormalizedRoutingProfile {
   id: string;
   alias: string | null;
-  candidates: Array<{ provider: string; model: string }>;
+  candidates: Array<{ provider: string; model: string; efforts?: string[]; replicaGroup?: string }>;
   require: NormalizedRoutingProfileRequirements;
   optimize: { latency: number; health: number; cost: number; quota: number };
   limits: { maxEstimatedCostUsd?: number; onUnknownCost?: OcxRoutingUnknownCostCapMode };
@@ -247,6 +248,21 @@ export function routingProfileIssues(
       }
       if (!model) {
         issues.push({ path: ["candidates", index, "model"], message: `candidates[${index}].model is required` });
+      }
+      if (candidate.replicaGroup !== undefined
+        && (typeof candidate.replicaGroup !== "string" || candidate.replicaGroup.trim().length === 0)) {
+        issues.push({ path: ["candidates", index, "replicaGroup"], message: "replicaGroup must be a non-empty string" });
+      }
+      if (candidate.efforts !== undefined) {
+        if (!Array.isArray(candidate.efforts) || candidate.efforts.length === 0) {
+          issues.push({ path: ["candidates", index, "efforts"], message: `candidates[${index}].efforts must be a non-empty array` });
+        } else {
+          candidate.efforts.forEach((value, effortIndex) => {
+            if (typeof value !== "string" || !isDeclaredReasoningEffort(value.trim())) {
+              issues.push({ path: ["candidates", index, "efforts", effortIndex], message: "effort must be a canonical reasoning effort" });
+            }
+          });
+        }
       }
       if (provider && model) {
         const key = `${provider}/${model}`;
@@ -511,6 +527,12 @@ export function normalizeRoutingProfile(id: string, raw: OcxRoutingProfileConfig
     candidates: raw.candidates.map(candidate => ({
       provider: candidate.provider.trim(),
       model: candidate.model.trim(),
+      ...(candidate.efforts !== undefined
+        ? { efforts: canonicalizeReasoningEfforts([...new Set(candidate.efforts.map(effort => effort.trim()))]) }
+        : {}),
+      ...(candidate.replicaGroup !== undefined
+        ? { replicaGroup: candidate.replicaGroup.trim() }
+        : {}),
     })),
     require: normalizedRequirements(raw),
     optimize: {
