@@ -52,6 +52,14 @@ describe("Pi -> OpenCodex Responses compatibility gate", () => {
     expect(getOrAllocateRequestSessionLane(req)).toBe(normalizeLogConversationId("pi-session-abc"));
   });
 
+  test("minimal must be mapped or exposed explicitly; it is not implicitly low", () => {
+    const config = piConfig();
+    expect(() => routeModel(config, "policy/coder", { reasoningEffort: "minimal" }, {
+      principal: "pi-principal",
+      sessionLane: "minimal-session",
+    })).toThrow();
+  });
+
   test("same Pi session and profile reuses the committed concrete target", () => {
     const config = piConfig();
     const firstReq = new Request("http://localhost/v1/responses", { headers: { "session-id": "pi-session-abc" } });
