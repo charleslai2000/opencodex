@@ -643,6 +643,7 @@ function routeModelInternal(
       routedProviderConfig,
     });
     const affinityKey = policyAffinityKey(affinityContext?.principal, policyId, affinityContext?.sessionLane);
+    const placementKey = policyAffinityKey(affinityContext?.placementPrincipal ?? affinityContext?.principal, policyId, affinityContext?.sessionLane);
     const bound = affinityKey ? lookupPolicyAffinity(affinityKey, now) : undefined;
     const evaluation = evaluatePolicyProfile(
       config,
@@ -652,7 +653,7 @@ function routeModelInternal(
       now,
       bound,
       bound ? "affinity-invalidated" : undefined,
-      affinityKey,
+      placementKey,
     );
     if (bound && evaluation.trace.selected.reason === "affinity-invalidated" && affinityKey) {
       forgetPolicyAffinity(affinityKey);
@@ -896,6 +897,7 @@ function routeWithDecisionTrace(config: OcxConfig, modelId: string, route: Route
 
 export interface PolicyAffinityContext {
   principal?: string;
+  placementPrincipal?: string;
   sessionLane?: string;
 }
 

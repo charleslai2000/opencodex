@@ -94,6 +94,18 @@ describe("resolveDataPlaneAdmissionSecret", () => {
     expect(principal(key.key)).toBe(pending);
     expect(resolveDataPlaneAdmissionSecret(old, config)).toBeNull();
   });
+  test("keeps process-local and restart-stable routing identities separate", () => {
+    const config = remoteConfig();
+    const first = resolveDataPlaneAdmissionSecret("ocx_data_firstsecret", config)!;
+    const second = resolveDataPlaneAdmissionSecret("ocx_data_firstsecret", config)!;
+    expect(first.contextPrincipalId).toBe(second.contextPrincipalId);
+    expect(first.routingPlacementPrincipalId).toBe(second.routingPlacementPrincipalId);
+    expect(first.routingPlacementPrincipalId).not.toContain("ocx_data_firstsecret");
+    expect(first.routingPlacementPrincipalId).toMatch(/^[a-f0-9]{64}$/);
+    const other = resolveDataPlaneAdmissionSecret("ocx_data_secondsecret", config)!;
+    expect(other.routingPlacementPrincipalId).not.toBe(first.routingPlacementPrincipalId);
+  });
+
   test("names the configured key that actually matched", () => {
     const config = remoteConfig();
     expect(resolveDataPlaneAdmissionSecret("ocx_data_firstsecret", config)).toEqual({
@@ -101,6 +113,7 @@ describe("resolveDataPlaneAdmissionSecret", () => {
       keyId: "first-key",
       source: "dedicated",
       contextPrincipalId: expect.stringMatching(/^[a-f0-9]{64}$/),
+      routingPlacementPrincipalId: expect.stringMatching(/^[a-f0-9]{64}$/),
     });
   });
 
@@ -113,12 +126,13 @@ describe("resolveDataPlaneAdmissionSecret", () => {
       keyId: "second-key",
       source: "dedicated",
       contextPrincipalId: expect.stringMatching(/^[a-f0-9]{64}$/),
+      routingPlacementPrincipalId: expect.stringMatching(/^[a-f0-9]{64}$/),
     });
   });
 
   test("the environment token has no configured key to name", () => {
     process.env.OPENCODEX_API_AUTH_TOKEN = "env-secret";
-    expect(resolveDataPlaneAdmissionSecret("env-secret", remoteConfig())).toEqual({ kind: "environment", source: "dedicated", contextPrincipalId: expect.stringMatching(/^[a-f0-9]{64}$/) });
+    expect(resolveDataPlaneAdmissionSecret("env-secret", remoteConfig())).toEqual({ kind: "environment", source: "dedicated", contextPrincipalId: expect.stringMatching(/^[a-f0-9]{64}$/), routingPlacementPrincipalId: expect.stringMatching(/^[a-f0-9]{64}$/) });
   });
 
   test.each([
@@ -161,7 +175,7 @@ describe("the two wrappers still differ", () => {
     const bearer = request({ authorization: "Bearer ocx_data_firstsecret" });
 
     // /v1/models and /v1/messages take bearer...
-    expect(resolveApiAuth(bearer, config)).toEqual({ kind: "configured", keyId: "first-key", source: "bearer", contextPrincipalId: expect.stringMatching(/^[a-f0-9]{64}$/) });
+    expect(resolveApiAuth(bearer, config)).toEqual({ kind: "configured", keyId: "first-key", source: "bearer", contextPrincipalId: expect.stringMatching(/^[a-f0-9]{64}$/), routingPlacementPrincipalId: expect.stringMatching(/^[a-f0-9]{64}$/) });
     expect(hasValidApiAuth(bearer, config)).toBe(true);
 
     // ...and Responses now does too. Rejecting it meant a Codex client configured with
@@ -169,7 +183,7 @@ describe("the two wrappers still differ", () => {
     // credential is substituted rather than forwarded -- see materializeCodexUpstreamAuth.
     // The source is recorded so that substitution can be made conditional on it.
     expect(resolveResponsesApiAuth(request({ authorization: "Bearer ocx_data_firstsecret" }), config))
-      .toEqual({ kind: "configured", keyId: "first-key", source: "bearer", contextPrincipalId: expect.stringMatching(/^[a-f0-9]{64}$/) });
+      .toEqual({ kind: "configured", keyId: "first-key", source: "bearer", contextPrincipalId: expect.stringMatching(/^[a-f0-9]{64}$/), routingPlacementPrincipalId: expect.stringMatching(/^[a-f0-9]{64}$/) });
     expect(requireResponsesApiAuth(request({ authorization: "Bearer ocx_data_firstsecret" }), config)).toBeNull();
   });
 
@@ -189,7 +203,7 @@ describe("the two wrappers still differ", () => {
       authorization: "Bearer ocx_data_firstsecret",
     });
     expect(resolveResponsesApiAuth(both, config))
-      .toEqual({ kind: "configured", keyId: "second-key", source: "dedicated", contextPrincipalId: expect.stringMatching(/^[a-f0-9]{64}$/) });
+      .toEqual({ kind: "configured", keyId: "second-key", source: "dedicated", contextPrincipalId: expect.stringMatching(/^[a-f0-9]{64}$/), routingPlacementPrincipalId: expect.stringMatching(/^[a-f0-9]{64}$/) });
   });
 
   test("x-api-key is accepted only by the broad path", () => {
@@ -201,8 +215,8 @@ describe("the two wrappers still differ", () => {
   test("the dedicated header works on both", () => {
     const config = remoteConfig();
     const dedicated = () => request({ "x-opencodex-api-key": "ocx_data_secondsecret" });
-    expect(resolveApiAuth(dedicated(), config)).toEqual({ kind: "configured", keyId: "second-key", source: "dedicated", contextPrincipalId: expect.stringMatching(/^[a-f0-9]{64}$/) });
-    expect(resolveResponsesApiAuth(dedicated(), config)).toEqual({ kind: "configured", keyId: "second-key", source: "dedicated", contextPrincipalId: expect.stringMatching(/^[a-f0-9]{64}$/) });
+    expect(resolveApiAuth(dedicated(), config)).toEqual({ kind: "configured", keyId: "second-key", source: "dedicated", contextPrincipalId: expect.stringMatching(/^[a-f0-9]{64}$/), routingPlacementPrincipalId: expect.stringMatching(/^[a-f0-9]{64}$/) });
+    expect(resolveResponsesApiAuth(dedicated(), config)).toEqual({ kind: "configured", keyId: "second-key", source: "dedicated", contextPrincipalId: expect.stringMatching(/^[a-f0-9]{64}$/), routingPlacementPrincipalId: expect.stringMatching(/^[a-f0-9]{64}$/) });
     expect(requireResponsesApiAuth(dedicated(), config)).toBeNull();
   });
 });

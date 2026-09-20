@@ -414,6 +414,7 @@ export async function prepareResponsesRequest(
           evidenceFromBody(parsed._rawBody, parsed.options.reasoning),
           {
             principal: contextPrincipalIdOf(options.admission),
+            placementPrincipal: options.admission && "routingPlacementPrincipalId" in options.admission ? options.admission.routingPlacementPrincipalId : undefined,
             sessionLane: getOrAllocateRequestSessionLane(req),
           },
         );

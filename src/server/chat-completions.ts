@@ -160,6 +160,7 @@ async function handleChatCompletionsWithBudget(
       ),
       {
         principal: contextPrincipalIdOf(logIds?.admission),
+        placementPrincipal: logIds?.admission && "routingPlacementPrincipalId" in logIds.admission ? logIds.admission.routingPlacementPrincipalId : undefined,
         sessionLane: getOrAllocateRequestSessionLane(req),
       },
     );

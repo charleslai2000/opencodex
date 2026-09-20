@@ -1,6 +1,6 @@
 import { providerRelativeSendPathConfigError } from "../config/provider-relative-send-path";
 import { modelCapabilitiesConfigError } from "../config/provider-validation";
-import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { initialModelSelection } from "../providers/initial-model-selection";
 import { extractAccountId } from "../oauth/chatgpt";
 import { formatErrorResponse } from "../bridge";
@@ -378,9 +378,17 @@ function mintContextPrincipal(kind: string, keyId: string, credential: string): 
     .digest("hex");
 }
 
+/** Stable, routing-only pseudonym; never use this for context/session ownership. */
+function mintRoutingPlacementPrincipal(kind: string, keyId: string, credential: string): string {
+  return createHash("sha256")
+    .update("opencodex:routing-placement:v1\0")
+    .update(kind).update("\0").update(keyId).update("\0").update(credential)
+    .digest("hex");
+}
+
 export type DataPlaneAdmission =
-  | { kind: "configured"; keyId: string; source: DataPlaneAdmissionSource; contextPrincipalId?: string }
-  | { kind: "environment"; source: DataPlaneAdmissionSource; contextPrincipalId?: string }
+  | { kind: "configured"; keyId: string; source: DataPlaneAdmissionSource; contextPrincipalId?: string; routingPlacementPrincipalId?: string }
+  | { kind: "environment"; source: DataPlaneAdmissionSource; contextPrincipalId?: string; routingPlacementPrincipalId?: string }
   | { kind: "loopback"; source: "loopback" };
 
 /**
@@ -400,15 +408,15 @@ export function resolveDataPlaneAdmissionSecret(
   const actual = token.trim();
   if (!actual) return null;
   if (secretEquals(actual, configuredApiAuthToken(config))) {
-    return { kind: "environment", source, contextPrincipalId: mintContextPrincipal("environment", "", actual) };
+    return { kind: "environment", source, contextPrincipalId: mintContextPrincipal("environment", "", actual), routingPlacementPrincipalId: mintRoutingPlacementPrincipal("environment", "", actual) };
   }
   for (const k of config.apiKeys ?? []) {
     if (secretEquals(actual, k.key)) {
-      return { kind: "configured", keyId: k.id, source, contextPrincipalId: mintContextPrincipal("configured", k.id, actual) };
+      return { kind: "configured", keyId: k.id, source, contextPrincipalId: mintContextPrincipal("configured", k.id, actual), routingPlacementPrincipalId: mintRoutingPlacementPrincipal("configured", k.id, actual) };
     }
     const pending = k.pendingRotation;
     if (pending && Date.parse(pending.expiresAt) > Date.now() && secretEquals(actual, pending.key)) {
-      return { kind: "configured", keyId: k.id, source, contextPrincipalId: mintContextPrincipal("configured", k.id, pending.key) };
+      return { kind: "configured", keyId: k.id, source, contextPrincipalId: mintContextPrincipal("configured", k.id, pending.key), routingPlacementPrincipalId: mintRoutingPlacementPrincipal("configured", k.id, pending.key) };
     }
   }
   return null;
