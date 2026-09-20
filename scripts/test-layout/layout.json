@@ -77,7 +77,7 @@
     },
     "routing": {
       "match": [
-        "^(?:cl01|destination|fastwire|policy|router|router\\.test\\.ts|subagent)-"
+        "^(?:cl01|destination|fastwire|policy|preset-catalog|router|router\\.test\\.ts|subagent)-"
       ]
     },
     "gui": {
@@ -168,6 +168,11 @@
   },
   "explicit": {
     "server-combo-held-response.test.ts": "server",
+    "ordered-route.test.ts": "routing",
+    "preset-catalog.test.ts": "routing",
+    "preset-route-preauth.test.ts": "routing",
+    "preset-provider-fetch-e2e.test.ts": "routing",
+    "adaptive-routing-closure.test.ts": "routing",
     "key-attribution.test.ts": "usage",
     "provider-send-path-import.test.ts": "server",
     "socks5-fetch.test.ts": "lib",

@@ -9,7 +9,9 @@ import { handleResponses as handleResponsesCore } from "./core";
 import { requestPacingOverloadResponse } from "./pacing-overload";
 import { captureExplicitOpenAiCallerAuth } from "../../providers/openai-sidecar";
 import { captureCallerDirectAuth } from "../../providers/caller-authorization";
-import { rememberPolicyAffinity } from "../../routing/session-affinity";
+import { forgetOrderedAffinity, rememberOrderedAffinity, rememberPolicyAffinity } from "../../routing/session-affinity";
+import { orderedCandidateKey } from "../../routing/ordered-route";
+import { rankCandidatesByHrw } from "../../routing/replica-placement";
 
 type CoreHandler = typeof handleResponsesCore;
 type CoreOptions = Parameters<CoreHandler>[3];
@@ -20,6 +22,24 @@ export interface PolicyFallbackDeps {
 
 function candidateKey(candidate: Pick<RouteCandidateTrace, "provider" | "model">): string {
   return `${candidate.provider}\u0000${candidate.model}`;
+}
+
+function orderedKey(candidate: RouteCandidateTrace): string {
+  return candidate.stepIndex !== undefined && candidate.candidateIndex !== undefined
+    ? orderedCandidateKey(candidate as RouteCandidateTrace & { stepIndex: number; candidateIndex: number })
+    : candidateKey(candidate);
+}
+
+function orderedFallbackCandidates(trace: RouteDecisionTraceV1, tried: ReadonlySet<string>, placementKey?: string): RouteCandidateTrace[] {
+  const ordered = trace.candidates.filter(candidate => candidate.stepIndex !== undefined && candidate.candidateIndex !== undefined);
+  if (ordered.length === 0) return [];
+  const steps = [...new Set(ordered.map(candidate => candidate.stepIndex!))].sort((a, b) => a - b);
+  for (const stepIndex of steps) {
+    const remaining = ordered
+      .filter(candidate => candidate.stepIndex === stepIndex && candidate.eligible && candidate.exclusions.length === 0 && !tried.has(orderedKey(candidate)));
+    if (remaining.length > 0) return placementKey ? rankCandidatesByHrw(placementKey, remaining) : remaining;
+  }
+  return [];
 }
 
 /**
@@ -48,7 +68,7 @@ export function rankPolicyFallbackCandidates(
 function requestWithCandidate(
   req: Request,
   rawBody: Record<string, unknown>,
-  candidate: Pick<RouteCandidateTrace, "provider" | "model">,
+  candidate: Pick<RouteCandidateTrace, "provider" | "model" | "upstreamEffort">,
 ): Request {
   const headers = new Headers(req.headers);
   // The next candidate owns a different physical credential domain. Typed
@@ -58,10 +78,15 @@ function requestWithCandidate(
   headers.delete("content-encoding");
   headers.delete("content-length");
   headers.set("content-type", "application/json");
+  const retryBody = { ...rawBody, model: `${candidate.provider}/${candidate.model}` } as Record<string, unknown>;
+  if (candidate.upstreamEffort && retryBody.reasoning && typeof retryBody.reasoning === "object") {
+    retryBody.reasoning = { ...(retryBody.reasoning as Record<string, unknown>), effort: candidate.upstreamEffort };
+  }
+  if (candidate.upstreamEffort && typeof retryBody.reasoning_effort === "string") retryBody.reasoning_effort = candidate.upstreamEffort;
   const retryRequest = new Request(req.url, {
     method: req.method,
     headers,
-    body: JSON.stringify({ ...rawBody, model: `${candidate.provider}/${candidate.model}` }),
+    body: JSON.stringify(retryBody),
     signal: req.signal,
   });
   // A sessionless request keeps the lane it was already allocated. Without this the second
@@ -173,18 +198,29 @@ export async function handleResponsesWithPolicyFallback(
   const initialTrace = logCtx.routeDecision;
   const initialRequestedModel = logCtx.requestedModel;
   if (!rawBody || !isPolicyDecision(initialTrace)) return response;
+  const hasOrderedCandidates = initialTrace.candidates.some(candidate => candidate.stepIndex !== undefined && candidate.candidateIndex !== undefined);
+  const initialCandidate = initialTrace.candidates[initialTrace.selected.candidateIndex];
 
+  const orderedPlacementKey = logCtx.orderedPlacementKey;
   const tried = new Set<string>([
-    candidateKey({ provider: initialTrace.selected.provider, model: initialTrace.selected.model }),
+    hasOrderedCandidates && initialCandidate
+      ? orderedKey(initialCandidate)
+      : candidateKey({ provider: initialTrace.selected.provider, model: initialTrace.selected.model }),
   ]);
 
   while (!storedPool401ReplayDispatched && await shouldHopPolicyCandidate(response, req.signal)) {
     if (req.signal.aborted) return response;
-    const next = rankPolicyFallbackCandidates(initialTrace, tried)[0];
+    const next = hasOrderedCandidates
+      ? orderedFallbackCandidates(initialTrace, tried, orderedPlacementKey)[0]
+      : rankPolicyFallbackCandidates(initialTrace, tried)[0];
     if (!next) return response;
-    tried.add(candidateKey(next));
+    if (logCtx.orderedAffinityKey) forgetOrderedAffinity(logCtx.orderedAffinityKey);
+    tried.add(hasOrderedCandidates ? orderedKey(next) : candidateKey(next));
     if (logCtx.policyAffinityKey) {
       logCtx.policyAffinityTarget = { provider: next.provider, model: next.model };
+    }
+    if (logCtx.orderedAffinityKey && next.stepIndex !== undefined && next.candidateIndex !== undefined && next.upstreamEffort) {
+      logCtx.orderedAffinityTarget = { stepIndex: next.stepIndex, candidateIndex: next.candidateIndex, provider: next.provider, model: next.model, upstreamEffort: next.upstreamEffort };
     }
 
     finishFailedPolicyAttempt(logCtx, response.status);
@@ -192,8 +228,10 @@ export async function handleResponsesWithPolicyFallback(
     try {
       try {
         response = await runCore(retryRequest, config, logCtx, coreOptions);
-        if (response.status < 400 && logCtx.policyAffinityKey && logCtx.policyAffinityTarget) {
-          rememberPolicyAffinity(logCtx.policyAffinityKey, logCtx.policyAffinityTarget);
+        if (response.status < 400) {
+          if (logCtx.policyAffinityKey && logCtx.policyAffinityTarget) rememberPolicyAffinity(logCtx.policyAffinityKey, logCtx.policyAffinityTarget);
+          const occurrence = next.stepIndex !== undefined && next.candidateIndex !== undefined && next.upstreamEffort ? { stepIndex: next.stepIndex, candidateIndex: next.candidateIndex, provider: next.provider, model: next.model, upstreamEffort: next.upstreamEffort } : undefined;
+          if (logCtx.orderedAffinityKey && occurrence) { logCtx.orderedAffinityTarget = occurrence; rememberOrderedAffinity(logCtx.orderedAffinityKey, occurrence); }
         }
       } catch (error) {
         const overload = requestPacingOverloadResponse(error);

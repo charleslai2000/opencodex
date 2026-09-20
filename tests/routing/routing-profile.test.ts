@@ -80,6 +80,33 @@ describe("routing profiles (RI-04)", () => {
     expect(profile.revision).toMatch(/^[0-9a-f]{16}$/);
   });
 
+  test("ordered routes validate, preserve order, and change revision", () => {
+    const config = baseConfig({ routingProfiles: {} });
+    const raw = {
+      routes: {
+        medium: [
+          { candidates: [{ provider: "a", model: "m1" }, { provider: "a", model: "m2" }] },
+          { candidates: [{ provider: "b", model: "m2" }] },
+        ],
+      },
+    };
+    expect(routingProfileIssues("lead", raw, config)).toEqual([]);
+    const normalized = normalizeRoutingProfile("lead", raw);
+    expect(normalized.candidates).toEqual([]);
+    expect(normalized.routes?.medium?.map(step => step.candidates.map(candidate => [candidate.provider, candidate.model, candidate.upstreamEffort]))).toEqual([
+      [["a", "m1", "medium"], ["a", "m2", "medium"]], [["b", "m2", "medium"]],
+    ]);
+    const withOverride = structuredClone(raw);
+    withOverride.routes.medium[0].candidates[0].upstreamEffort = "high";
+    expect(normalizeRoutingProfile("lead", withOverride).routes?.medium?.[0]?.candidates[0]?.upstreamEffort).toBe("high");
+    const reordered = structuredClone(raw);
+    reordered.routes.medium.reverse();
+    expect(normalizeRoutingProfile("lead", reordered).revision).not.toBe(normalized.revision);
+    expect(routingProfileIssues("bad", { candidates: [{ provider: "a", model: "m1" }], routes: raw.routes }, config).some(issue => issue.message.includes("exactly one"))).toBe(true);
+    expect(routingProfileIssues("bad", { routes: { bogus: [{ candidates: [{ provider: "a", model: "m1" }] }] } }, config).some(issue => issue.message.includes("canonical"))).toBe(true);
+    expect(routingProfileIssues("bad", { routes: { medium: [{ candidates: [] }] } }, config).some(issue => issue.message.includes("non-empty"))).toBe(true);
+  });
+
   test("revision digest is stable and changes with the profile", () => {
     const config = baseConfig();
     const first = getRoutingProfile(config, "fast")!.revision;

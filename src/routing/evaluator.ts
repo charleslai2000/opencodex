@@ -62,6 +62,8 @@ export interface PolicyCandidateEvidence {
   codexAccountId?: string;
   /** A failed effective-transport resolution excludes the candidate under every unknown policy. */
   routeResolutionFailed?: boolean;
+  /** Ordered-route candidate-local effort; absent means the request logical effort. */
+  effectiveReasoningEffort?: string;
   capability?: RouteCapabilityEvidence;
   health?: RouteHealthEvidence;
   quota?: RouteQuotaEvidence;
@@ -286,16 +288,19 @@ export function evaluatePolicyProfile(
     const evidence = candidateEvidence.find(
       candidate => candidate.provider === declared.provider && candidate.model === declared.model,
     ) ?? { provider: declared.provider, model: declared.model };
+    const effectiveRequestEvidence = evidence.effectiveReasoningEffort === undefined
+      ? requestEvidence
+      : { ...requestEvidence, reasoningEffort: evidence.effectiveReasoningEffort };
     const requirements = [
       ...requirementFor(profile.require, evidence.capability, evidence.quota),
-      ...requestRequirementFor(requestEvidence, evidence.capability),
+      ...requestRequirementFor(effectiveRequestEvidence, evidence.capability),
     ];
-    if (declared.efforts !== undefined && requestEvidence.reasoningEffort !== undefined) {
+    if (declared.efforts !== undefined && effectiveRequestEvidence.reasoningEffort !== undefined) {
       requirements.push({
         id: "candidate-effort",
-        expected: requestEvidence.reasoningEffort,
+        expected: effectiveRequestEvidence.reasoningEffort,
         actual: declared.efforts.join(","),
-        outcome: declared.efforts.includes(requestEvidence.reasoningEffort) ? "satisfied" : "unsatisfied",
+        outcome: declared.efforts.includes(effectiveRequestEvidence.reasoningEffort) ? "satisfied" : "unsatisfied",
       });
     }
     const exclusions: RouteExclusionReason[] = [];

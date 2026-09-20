@@ -1054,6 +1054,8 @@ export interface OcxConfig {
    * scoring. Existing model ids are never routed through profiles implicitly.
    */
   routingProfiles?: Record<string, OcxRoutingProfileConfig>;
+  /** Active isolated/production preset name; absent preserves legacy behavior. */
+  routingPreset?: "openai" | "deepseek";
   /** Background proactive token refresh ("Token Guardian"). Off by default; see OcxTokenGuardianConfig. */
   tokenGuardian?: OcxTokenGuardianConfig;
   /** Additional exact origins allowed for CORS (e.g. HTTPS or chrome-extension://<id>). Loopback origins are always allowed. */
@@ -1206,12 +1208,26 @@ export interface OcxRoutingProfileCompatibility {
   degradedEvidence?: OcxRoutingUnknownEvidenceMode;
 }
 
+export interface OcxRoutingRouteCandidate {
+  provider: string;
+  model: string;
+  /** Candidate-local effort sent into the existing provider/model effort mapping pipeline. */
+  upstreamEffort?: string;
+}
+
+export interface OcxRoutingRouteStep {
+  candidates: OcxRoutingRouteCandidate[];
+}
+
 export interface OcxRoutingProfileConfig {
-  /**
-   * Explicit candidate allowlist (`provider/model` refs). No implicit
-   * expansion in v1.
-   */
-  candidates: OcxRoutingProfileCandidate[];
+  /** Client-facing policy context ceiling; does not alter physical route eligibility. */
+  advertisedContextWindow?: number;
+  /** Client-facing output ceiling; does not alter upstream request limits. */
+  advertisedMaxOutputTokens?: number;
+  /** Legacy V1 flat candidate allowlist. Mutually exclusive with routes. */
+  candidates?: OcxRoutingProfileCandidate[];
+  /** V1.1 ordered routes keyed by the exact logical reasoning effort. */
+  routes?: Record<string, OcxRoutingRouteStep[]>;
   /** Optional public model name replacing the default `policy/<id>` slug. */
   alias?: string;
   /** Hard requirements evaluated before scoring. */

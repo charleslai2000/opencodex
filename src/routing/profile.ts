@@ -71,7 +71,10 @@ export interface NormalizedRoutingProfileRequirements {
 export interface NormalizedRoutingProfile {
   id: string;
   alias: string | null;
+  advertisedContextWindow?: number;
+  advertisedMaxOutputTokens?: number;
   candidates: Array<{ provider: string; model: string; efforts?: string[]; replicaGroup?: string }>;
+  routes?: Record<string, Array<{ candidates: Array<{ provider: string; model: string; upstreamEffort: string; stepIndex: number; candidateIndex: number }> }>>;
   require: NormalizedRoutingProfileRequirements;
   optimize: { latency: number; health: number; cost: number; quota: number };
   limits: { maxEstimatedCostUsd?: number; onUnknownCost?: OcxRoutingUnknownCostCapMode };
@@ -212,6 +215,12 @@ export function routingProfileIssues(
   }
   const body = raw as Record<string, unknown>;
 
+  for (const key of ["advertisedContextWindow", "advertisedMaxOutputTokens"] as const) {
+    if (body[key] !== undefined && (typeof body[key] !== "number" || !Number.isSafeInteger(body[key]) || body[key] < 1)) {
+      issues.push({ path: [key], message: `${key} must be a positive safe integer` });
+    }
+  }
+
   if (body.alias !== undefined) {
     if (typeof body.alias !== "string") {
       issues.push({ path: ["alias"], message: "alias must be a string" });
@@ -221,11 +230,16 @@ export function routingProfileIssues(
     }
   }
 
-  if (!Array.isArray(body.candidates) || body.candidates.length === 0) {
+  const hasCandidates = Array.isArray(body.candidates) && body.candidates.length > 0;
+  const hasRoutes = body.routes !== undefined;
+  if (hasCandidates === hasRoutes) {
+    issues.push({ path: [], message: "exactly one of candidates or routes must be configured" });
+  }
+  if (body.candidates !== undefined && !Array.isArray(body.candidates)) {
     issues.push({ path: ["candidates"], message: "candidates must be a non-empty array" });
-  } else {
+  } else if (hasCandidates) {
     const seen = new Set<string>();
-    body.candidates.forEach((rawCandidate, index) => {
+    (body.candidates as unknown[]).forEach((rawCandidate, index) => {
       if (!rawCandidate || typeof rawCandidate !== "object" || Array.isArray(rawCandidate)) {
         issues.push({ path: ["candidates", index], message: `candidates[${index}] must be an object` });
         return;
@@ -273,6 +287,49 @@ export function routingProfileIssues(
         }
       }
     });
+  }
+
+  if (hasRoutes) {
+    if (!body.routes || typeof body.routes !== "object" || Array.isArray(body.routes) || Object.keys(body.routes).length === 0) {
+      issues.push({ path: ["routes"], message: "routes must be a non-empty object" });
+    } else {
+      for (const [effort, rawSteps] of Object.entries(body.routes as Record<string, unknown>)) {
+        if (!isDeclaredReasoningEffort(effort)) {
+          issues.push({ path: ["routes", effort], message: "route key must be a canonical reasoning effort" });
+          continue;
+        }
+        if (!Array.isArray(rawSteps) || rawSteps.length === 0) {
+          issues.push({ path: ["routes", effort], message: "route must contain at least one step" });
+          continue;
+        }
+        rawSteps.forEach((rawStep, stepIndex) => {
+          const stepPath = ["routes", effort, stepIndex] as Array<string | number>;
+          if (!rawStep || typeof rawStep !== "object" || Array.isArray(rawStep)) {
+            issues.push({ path: stepPath, message: "route step must be an object" });
+            return;
+          }
+          const rawCandidates = (rawStep as Record<string, unknown>).candidates;
+          if (!Array.isArray(rawCandidates) || rawCandidates.length === 0) {
+            issues.push({ path: [...stepPath, "candidates"], message: "step candidates must be a non-empty array" });
+            return;
+          }
+          const seen = new Set<string>();
+          rawCandidates.forEach((rawCandidate, candidateIndex) => {
+            const candidate = rawCandidate as Record<string, unknown>;
+            const provider = typeof candidate?.provider === "string" ? candidate.provider.trim() : "";
+            const model = typeof candidate?.model === "string" ? candidate.model.trim() : "";
+            if (candidate?.upstreamEffort !== undefined && (typeof candidate.upstreamEffort !== "string" || !isDeclaredReasoningEffort(candidate.upstreamEffort.trim()))) {
+              issues.push({ path: [...stepPath, "candidates", candidateIndex, "upstreamEffort"], message: "upstreamEffort must be a canonical reasoning effort" });
+            }
+            if (!provider) issues.push({ path: [...stepPath, "candidates", candidateIndex, "provider"], message: "provider is required" });
+            if (!model) issues.push({ path: [...stepPath, "candidates", candidateIndex, "model"], message: "model is required" });
+            const key = `${provider}/${model}`;
+            if (provider && model && seen.has(key)) issues.push({ path: [...stepPath, "candidates", candidateIndex], message: `duplicate route candidate "${key}"` });
+            if (provider && model) seen.add(key);
+          });
+        });
+      }
+    }
   }
 
   if (body.require !== undefined) {
@@ -524,7 +581,9 @@ export function normalizeRoutingProfile(id: string, raw: OcxRoutingProfileConfig
   const profile: Omit<NormalizedRoutingProfile, "revision"> = {
     id,
     alias: alias || null,
-    candidates: raw.candidates.map(candidate => ({
+    ...(raw.advertisedContextWindow !== undefined ? { advertisedContextWindow: raw.advertisedContextWindow } : {}),
+    ...(raw.advertisedMaxOutputTokens !== undefined ? { advertisedMaxOutputTokens: raw.advertisedMaxOutputTokens } : {}),
+    candidates: (raw.candidates ?? []).map(candidate => ({
       provider: candidate.provider.trim(),
       model: candidate.model.trim(),
       ...(candidate.efforts !== undefined
@@ -534,6 +593,7 @@ export function normalizeRoutingProfile(id: string, raw: OcxRoutingProfileConfig
         ? { replicaGroup: candidate.replicaGroup.trim() }
         : {}),
     })),
+    ...(raw.routes ? { routes: Object.fromEntries(Object.entries(raw.routes).map(([effort, steps]) => [effort, steps.map((step, stepIndex) => ({ candidates: step.candidates.map((candidate, candidateIndex) => ({ provider: candidate.provider.trim(), model: candidate.model.trim(), upstreamEffort: candidate.upstreamEffort?.trim() ?? effort, stepIndex, candidateIndex })) }))])) } : {}),
     require: normalizedRequirements(raw),
     optimize: {
       latency: weights.latency / safeSum,

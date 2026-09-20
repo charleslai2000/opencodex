@@ -190,6 +190,9 @@ export interface RequestLogContext {
   /** Why the binding was kept, moved, or released (#4546). */
   affinityReason?: CodexAffinityReason;
   /** Internal process-local policy affinity metadata; never persisted. */
+  orderedPlacementKey?: string;
+  orderedAffinityKey?: string;
+  orderedAffinityTarget?: { stepIndex: number; candidateIndex: number; provider: string; model: string; upstreamEffort: string };
   policyAffinityKey?: string;
   policyAffinityProfileId?: string;
   policyAffinityTarget?: { provider: string; model: string };

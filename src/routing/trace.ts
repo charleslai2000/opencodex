@@ -137,6 +137,11 @@ export interface RouteScoreEvidence {
 }
 
 export interface RouteCandidateTrace {
+  /** Internal ordered-route identity; absent for legacy V1 traces. */
+  stepIndex?: number;
+  candidateIndex?: number;
+  /** Candidate-local canonical upstream effort; absent on legacy traces. */
+  upstreamEffort?: string;
   provider: string;
   model: string;
   accountRef?: string;
@@ -216,6 +221,9 @@ function unknownable(value: unknown): Unknownable | undefined {
 }
 
 export interface TraceCandidateInput {
+  stepIndex?: number;
+  candidateIndex?: number;
+  upstreamEffort?: string;
   provider: string;
   model: string;
   accountRef?: string;
@@ -265,6 +273,9 @@ function buildCandidate(input: TraceCandidateInput, budget: ParseCaps): RouteCan
   const cost = input.cost ? parseCost(input.cost, budget) : undefined;
   const compatibility = input.compatibility ? parseCompatibility(input.compatibility, budget) : undefined;
   return {
+    ...(input.stepIndex !== undefined ? { stepIndex: input.stepIndex } : {}),
+    ...(input.candidateIndex !== undefined ? { candidateIndex: input.candidateIndex } : {}),
+    ...(input.upstreamEffort !== undefined ? { upstreamEffort: capString(input.upstreamEffort, budget) } : {}),
     provider: capString(input.provider, budget),
     model: capString(input.model, budget),
     ...(input.accountRef !== undefined
@@ -641,6 +652,8 @@ function parseCandidate(raw: unknown, caps: ParseCaps): RouteCandidateTrace | nu
   const model = raw.model;
   if (typeof provider !== "string" || provider.length === 0) return null;
   if (typeof model !== "string" || model.length === 0) return null;
+  const stepIndex = Number.isInteger(raw.stepIndex) && (raw.stepIndex as number) >= 0 ? raw.stepIndex as number : undefined;
+  const candidateIndex = Number.isInteger(raw.candidateIndex) && (raw.candidateIndex as number) >= 0 ? raw.candidateIndex as number : undefined;
   if (provider.length > MAX_TRACE_STRING) caps.strings = true;
   if (model.length > MAX_TRACE_STRING) caps.strings = true;
   if (typeof raw.accountRef === "string" && raw.accountRef.length > MAX_TRACE_STRING) caps.strings = true;
@@ -658,6 +671,9 @@ function parseCandidate(raw: unknown, caps: ParseCaps): RouteCandidateTrace | nu
   const compatibility = parseCompatibility(raw.compatibility, caps);
   const score = parseScore(raw.score);
   return {
+    ...(stepIndex !== undefined ? { stepIndex } : {}),
+    ...(candidateIndex !== undefined ? { candidateIndex } : {}),
+    ...(typeof raw.upstreamEffort === "string" ? { upstreamEffort: raw.upstreamEffort.slice(0, MAX_TRACE_STRING) } : {}),
     provider: provider.slice(0, MAX_TRACE_STRING),
     model: model.slice(0, MAX_TRACE_STRING),
     ...(typeof raw.accountRef === "string"

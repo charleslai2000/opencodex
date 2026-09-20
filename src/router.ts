@@ -43,16 +43,79 @@ import {
   type RouteDecisionTraceV1,
   type TraceCandidateInput,
 } from "./routing/trace";
-import { getRoutingProfile, resolvePolicyProfileId, POLICY_NAMESPACE } from "./routing/profile";
+import { getRoutingProfile, resolvePolicyProfileId, policyModelId, POLICY_NAMESPACE, type NormalizedRoutingProfile } from "./routing/profile";
 import { evaluatePolicyProfile, type PolicyRequestEvidence } from "./routing/evaluator";
+import { type RouteCandidateTrace } from "./routing/trace";
+import { orderedPlacementKey, selectOrderedRouteCandidate, type OrderedRoutePlan } from "./routing/ordered-route";
+import { rankCandidatesByHrw } from "./routing/replica-placement";
 import { assemblePolicyCandidateEvidence } from "./routing/compatibility/assemble";
-import { forgetPolicyAffinity, lookupPolicyAffinity, policyAffinityKey } from "./routing/session-affinity";
+import { forgetOrderedAffinity, forgetPolicyAffinity, lookupOrderedAffinity, lookupPolicyAffinity, orderedAffinityKey, policyAffinityKey } from "./routing/session-affinity";
 
 export class UnknownRoutingPolicyError extends Error {
   constructor(readonly profileId: string) {
     super(`Unknown routing policy: ${profileId}`);
     this.name = "UnknownRoutingPolicyError";
   }
+}
+
+function routeOrderedProfile(
+  config: OcxConfig,
+  profile: NormalizedRoutingProfile,
+  policyId: string,
+  evidence: PolicyRequestEvidence,
+  affinityContext?: PolicyAffinityContext,
+): RouteResult {
+  const logicalEffort = evidence.reasoningEffort;
+  const steps = logicalEffort ? profile.routes?.[logicalEffort] : undefined;
+  if (!logicalEffort || !steps) throw new NoEligiblePolicyCandidateError(policyId);
+  const plan: OrderedRoutePlan = { logicalEffort, steps };
+  const placementKey = affinityContext?.placementPrincipal && affinityContext.sessionLane
+    ? orderedPlacementKey(affinityContext.placementPrincipal, policyId, logicalEffort, affinityContext.sessionLane)
+    : undefined;
+  const affinityKey = orderedAffinityKey(affinityContext?.principal, policyId, logicalEffort, affinityContext?.sessionLane);
+  const bound = affinityKey ? lookupOrderedAffinity(affinityKey) : undefined;
+  const evaluations = steps.map(step => {
+    const stepConfig = { ...config, routingProfiles: { ...config.routingProfiles, [policyId]: { candidates: step.candidates.map(candidate => ({ provider: candidate.provider, model: candidate.model })), require: profile.require, optimize: profile.optimize, limits: profile.limits, unknownEvidence: profile.unknownEvidence } } };
+    const stepProfile = getRoutingProfile(stepConfig, policyId)!;
+    const stepEvidence = assemblePolicyCandidateEvidence(config, stepProfile, Date.now(), { routedProviderConfig }).map((item, candidateIndex) => ({
+      ...item,
+      effectiveReasoningEffort: step.candidates[candidateIndex]?.upstreamEffort ?? logicalEffort,
+    }));
+    return evaluatePolicyProfile(stepConfig, policyId, evidence, stepEvidence, Date.now());
+  });
+  const traceCandidates: RouteCandidateTrace[] = [];
+  const ranked = evaluations.map((evaluation, stepIndex) => {
+    const rows = evaluation.candidates.map((candidate, candidateIndex) => {
+      const declared = steps[stepIndex]!.candidates[candidateIndex]!;
+      const trace = { ...candidate, stepIndex: declared.stepIndex, candidateIndex: declared.candidateIndex, upstreamEffort: declared.upstreamEffort };
+      traceCandidates.push(trace);
+      return { ...declared, eligible: candidate.eligible, score: candidate.score };
+    });
+    return rows;
+  });
+  const boundCandidate = bound && steps[bound.stepIndex]?.candidates[bound.candidateIndex];
+  const boundRow = boundCandidate ? ranked[bound.stepIndex]?.[bound.candidateIndex] : undefined;
+  const affinitySelected = boundCandidate && boundRow?.eligible === true
+    && boundCandidate.provider === bound.provider && boundCandidate.model === bound.model
+    && (boundCandidate.upstreamEffort ?? logicalEffort) === bound.upstreamEffort
+    ? boundCandidate : undefined;
+  const selected = affinitySelected ? { candidate: affinitySelected, stepIndex: affinitySelected.stepIndex } : selectOrderedRouteCandidate(plan, candidate => {
+    const row = ranked[candidate.stepIndex]?.[candidate.candidateIndex];
+    return row?.eligible === true;
+  }, new Set(), (rows) => {
+    const hrw = placementKey ? rankCandidatesByHrw(placementKey, rows) : rows;
+    return hrw[0];
+  });
+  if (!selected) throw new NoEligiblePolicyCandidateError(policyId);
+  if (bound && !affinitySelected && affinityKey) forgetOrderedAffinity(affinityKey);
+  const selectedTraceIndex = traceCandidates.findIndex(candidate => candidate.stepIndex === selected.candidate.stepIndex && candidate.candidateIndex === selected.candidate.candidateIndex);
+  const selectedTrace = traceCandidates[selectedTraceIndex]!;
+  const trace = buildRouteDecisionTrace({
+    requestedModel: policyModelId(policyId), routeKind: "policy", profile: { id: profile.id, revision: profile.revision },
+    requirements: [], candidates: traceCandidates, selected: { provider: selectedTrace.provider, model: selectedTrace.model, reason: affinitySelected ? "affinity-hit" : bound ? "affinity-invalidated" : placementKey ? "ordered-hrw" : "ordered-step", candidateIndex: selectedTraceIndex },
+  });
+  const routed = routeModelInternal(config, `${selectedTrace.provider}/${selectedTrace.model}`, true);
+  return { ...routed, routeKind: "policy", orderedRoute: true, orderedUpstreamEffort: selectedTrace.upstreamEffort, routeReason: trace.selected.reason, routeDecision: trace };
 }
 
 export class NoEligiblePolicyCandidateError extends Error {
@@ -72,6 +135,10 @@ export interface RouteResult {
   modelId: string;
   /** Which deterministic routing path produced this route (RI-01). */
   routeKind: RouteDecisionKind;
+  /** Internal marker: ordered-route Stage C deliberately has no mutable affinity. */
+  orderedRoute?: true;
+  /** Candidate-local canonical effort for the existing request normalization pipeline. */
+  orderedUpstreamEffort?: string;
   /** Stable wire reason code for the selected route (RI-01). */
   routeReason: string;
   codexAccountMode?: CodexAccountMode;
@@ -636,6 +703,9 @@ function routeModelInternal(
     throw new UnknownRoutingPolicyError(policyId ?? modelId.slice(POLICY_NAMESPACE.length + 1));
   }
   if (profile && policyId) {
+    if (profile.routes) {
+      return routeOrderedProfile(config, profile, policyId, policyEvidence ?? {}, affinityContext);
+    }
     // One clock read per decision keeps candidate evidence, exclusions, and
     // scores mutually consistent and reproducible.
     const now = Date.now();

@@ -38,6 +38,7 @@ import {
 } from "../ws-bridge";
 import { websocketsEnabled } from "../../config";
 import { grokDefaultReasoningEffort } from "../../grok/effort";
+import { logicalModelCatalogRows } from "../../routing/presets";
 import { OPENAI_CODEX_PROVIDER_ID } from "../../providers/openai-tiers";
 import { providerCodexAccountMode } from "../../providers/registry";
 import {
@@ -1173,6 +1174,7 @@ export function createServeOptions(ctx: ServeOptionsContext) {
           ));
         }));
         const data = [
+          ...logicalModelCatalogRows(config),
           ...visibleNatives.flatMap(id => expandedNativeModelRow(id)),
           ...visibleAccountNatives.flatMap(({ id, metadataId }) => expandedNativeModelRow(id, metadataId)),
           ...routedRows.flat(),

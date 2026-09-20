@@ -64,7 +64,7 @@ import {
 import { evidenceFromBody } from "../../routing/request-evidence";
 import { contextPrincipalIdOf } from "../auth-cors";
 import { getOrAllocateRequestSessionLane } from "../request-log-conversation";
-import { policyAffinityKey, rememberPolicyAffinity } from "../../routing/session-affinity";
+import { orderedAffinityKey, rememberOrderedAffinity, policyAffinityKey, rememberPolicyAffinity } from "../../routing/session-affinity";
 import { OPENAI_CODEX_PROVIDER_ID, isCanonicalOpenAiForwardProvider } from "../../providers/openai-tiers";
 import { isThreadSpawnRequest } from "../effort-policy";
 import {
@@ -450,8 +450,31 @@ export async function prepareResponsesRequest(
     }
     if (parsed._compactionRequest === true) parsed._cursorIsolateConversation = true;
     route = shadowRoute ?? resolveRoute(parsed.modelId);
+    if (route.orderedUpstreamEffort) {
+      parsed.options.reasoning = route.orderedUpstreamEffort;
+      if (parsed._rawBody && typeof parsed._rawBody === "object") {
+        const raw = parsed._rawBody as { reasoning?: Record<string, unknown> };
+        if (raw.reasoning && typeof raw.reasoning === "object") raw.reasoning.effort = route.orderedUpstreamEffort;
+      }
+    }
     logCtx.routeDecision = route.routeDecision;
-    if (route.routeKind === "policy" && route.routeDecision?.profile) {
+    if (route.orderedRoute && options.admission && "routingPlacementPrincipalId" in options.admission) {
+      const principal = options.admission.routingPlacementPrincipalId;
+      const profileId = route.routeDecision?.profile?.id;
+      const logicalEffort = logCtx.requestedEffort;
+      const sessionLane = getOrAllocateRequestSessionLane(req);
+      if (principal && profileId && logicalEffort && sessionLane) {
+        logCtx.orderedPlacementKey = `${principal}\u0000${profileId}\u0000${logicalEffort}\u0000${sessionLane}`;
+        logCtx.orderedAffinityKey = orderedAffinityKey(contextPrincipalIdOf(options.admission), profileId, logicalEffort, sessionLane);
+        const selected = route.routeDecision?.candidates[route.routeDecision.selected.candidateIndex];
+        if (selected?.stepIndex !== undefined && selected.candidateIndex !== undefined && selected.upstreamEffort) {
+          logCtx.orderedAffinityTarget = { stepIndex: selected.stepIndex, candidateIndex: selected.candidateIndex, provider: selected.provider, model: selected.model, upstreamEffort: selected.upstreamEffort };
+          const previous = options.onResponseComplete;
+          options.onResponseComplete = model => { if (logCtx.orderedAffinityKey && logCtx.orderedAffinityTarget) rememberOrderedAffinity(logCtx.orderedAffinityKey, logCtx.orderedAffinityTarget); previous?.(model); };
+        }
+      }
+    }
+    if (route.routeKind === "policy" && !route.orderedRoute && route.routeDecision?.profile) {
       const key = policyAffinityKey(
         contextPrincipalIdOf(options.admission),
         route.routeDecision.profile.id,

@@ -27,6 +27,8 @@ import { NoEligiblePolicyCandidateError, UnknownRoutingPolicyError, routeModel }
 import { evidenceFromBody } from "../routing/request-evidence";
 import { contextPrincipalIdOf } from "./auth-cors";
 import { policyAffinityKey, rememberPolicyAffinity } from "../routing/session-affinity";
+import { orderedPlacementKey } from "../routing/ordered-route";
+import { orderedAffinityKey, rememberOrderedAffinity } from "../routing/session-affinity";
 import { resolveWireProtocolOverride } from "./adapter-resolve";
 import { resolveOpenCodeGoTransport } from "../providers/opencode-go-transport";
 import {
@@ -178,8 +180,20 @@ async function handleChatCompletionsWithBudget(
     logCtx.requestedModel = requestedModel;
     if (route.routeReason === "model-alias" || route.modelId !== requestedModel && requestedModel.includes("/")) logCtx.requestedAlias = requestedModel;
     logCtx.provider = route.providerName;
+    if (route.orderedRoute && logIds?.admission && "routingPlacementPrincipalId" in logIds.admission && route.routeDecision?.profile) {
+      const principal = logIds.admission.routingPlacementPrincipalId;
+      const effort = typeof chatBody.reasoning_effort === "string" ? chatBody.reasoning_effort : undefined;
+      if (principal && effort) {
+        const lane = getOrAllocateRequestSessionLane(req);
+        logCtx.orderedPlacementKey = orderedPlacementKey(principal, route.routeDecision.profile.id, effort, lane);
+        logCtx.orderedAffinityKey = orderedAffinityKey(contextPrincipalIdOf(logIds?.admission), route.routeDecision.profile.id, effort, lane);
+        const selected = route.routeDecision.candidates[route.routeDecision.selected.candidateIndex];
+        if (selected?.stepIndex !== undefined && selected.candidateIndex !== undefined && selected.upstreamEffort) logCtx.orderedAffinityTarget = { stepIndex: selected.stepIndex, candidateIndex: selected.candidateIndex, provider: selected.provider, model: selected.model, upstreamEffort: selected.upstreamEffort };
+      }
+    }
+    if (route.orderedUpstreamEffort) chatBody.reasoning_effort = route.orderedUpstreamEffort;
     logCtx.routeDecision = route.routeDecision;
-    if (route.routeKind === "policy" && route.routeDecision?.profile) {
+    if (route.routeKind === "policy" && !route.orderedRoute && route.routeDecision?.profile) {
       const key = policyAffinityKey(
         contextPrincipalIdOf(logIds?.admission),
         route.routeDecision.profile.id,
@@ -379,9 +393,8 @@ async function handleChatCompletionsWithBudget(
     abortSignal: req.signal,
     // Body is Responses-shaped by now, but the client spoke Chat Completions.
     inboundWire: "chat",
-    ...(logCtx.policyAffinityKey && logCtx.policyAffinityTarget ? {
-      onResponseComplete: () => rememberPolicyAffinity(logCtx.policyAffinityKey!, logCtx.policyAffinityTarget!),
-    } : {}),
+    ...(logCtx.policyAffinityKey && logCtx.policyAffinityTarget ? { onResponseComplete: () => rememberPolicyAffinity(logCtx.policyAffinityKey!, logCtx.policyAffinityTarget!) } : {}),
+    ...(logCtx.orderedAffinityKey && logCtx.orderedAffinityTarget ? { onResponseComplete: () => rememberOrderedAffinity(logCtx.orderedAffinityKey!, logCtx.orderedAffinityTarget!) } : {}),
     // Terminal vision-describe marker (roadmap 180): the bridge rebuilds
     // headers from the FORWARD_HEADERS allowlist, which would drop the raw
     // header — so the fact is detected here and carried as an option flag.
