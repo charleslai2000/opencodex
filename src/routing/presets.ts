@@ -7,6 +7,9 @@ export type RoutingPresetName = "openai" | "deepseek";
 
 const POLICY_CONTEXT = 400_000;
 const POLICY_OUTPUT = 128_000;
+const LING_MODEL = "@preset/lstack-ling-3-0-flash";
+const LING_REASONING_EFFORTS = ["low", "medium", "high"];
+const REQUIRED_PRESET_PROVIDERS = ["openai", "openrouter", "deepseek"] as const;
 
 type Route = OcxRoutingProfileConfig["routes"];
 
@@ -73,10 +76,38 @@ export function compileRoutingPreset(name: RoutingPresetName): Record<string, Oc
   };
 }
 
+function applyPresetRequiredProviderMetadata(config: OcxConfig, name: RoutingPresetName): OcxConfig {
+  for (const providerName of REQUIRED_PRESET_PROVIDERS) {
+    if (!config.providers?.[providerName]) throw new Error(`required provider ${providerName} missing for ${name} preset`);
+  }
+  const openrouter = config.providers.openrouter!;
+  const models = [...(openrouter.models ?? [])];
+  if (!models.includes(LING_MODEL)) models.push(LING_MODEL);
+  return {
+    ...config,
+    providers: {
+      ...config.providers,
+      openrouter: {
+        ...openrouter,
+        models,
+        modelReasoningEfforts: {
+          ...(openrouter.modelReasoningEfforts ?? {}),
+          [LING_MODEL]: [...LING_REASONING_EFFORTS],
+        },
+        modelReasoningEffortMap: {
+          ...(openrouter.modelReasoningEffortMap ?? {}),
+          [LING_MODEL]: Object.fromEntries(LING_REASONING_EFFORTS.map(effort => [effort, effort])),
+        },
+      },
+    },
+  };
+}
+
 export function applyRoutingPreset(config: OcxConfig, name: RoutingPresetName): OcxConfig {
   const profiles = compileRoutingPreset(name);
   const nextProfiles = Object.fromEntries(Object.entries(profiles).map(([id, raw]) => [id, { ...raw, alias: id }]));
-  const next = { ...config, routingPreset: name, routingProfiles: { ...(config.routingProfiles ?? {}), ...nextProfiles } };
+  const withProfiles = { ...config, routingPreset: name, routingProfiles: { ...(config.routingProfiles ?? {}), ...nextProfiles } };
+  const next = applyPresetRequiredProviderMetadata(withProfiles, name);
   for (const [id, raw] of Object.entries(nextProfiles)) {
     const issues = routingProfileIssues(id, raw, next);
     if (issues.length > 0) throw new Error(`Invalid ${name} preset profile ${id}: ${issues[0]!.message}`);

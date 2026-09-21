@@ -82,4 +82,40 @@ describe("production routing preset compiler", () => {
       reasoning: true,
     });
   });
+
+  test("generates Ling capability metadata for both presets without changing credentials", () => {
+    for (const name of ["openai", "deepseek"] as const) {
+      const base = config();
+      const openrouter = base.providers.openrouter;
+      const applied = applyRoutingPreset(base, name);
+      expect(applied.providers.openrouter.baseUrl).toBe(openrouter.baseUrl);
+      expect(applied.providers.openrouter.apiKey).toBe(openrouter.apiKey);
+      expect(applied.providers.openrouter.models).toContain("@preset/lstack-ling-3-0-flash");
+      expect(applied.providers.openrouter.modelReasoningEfforts?.["@preset/lstack-ling-3-0-flash"]).toEqual(["low", "medium", "high"]);
+      expect(applied.providers.openrouter.modelReasoningEffortMap?.["@preset/lstack-ling-3-0-flash"]).toEqual({ low: "low", medium: "medium", high: "high" });
+    }
+  });
+
+  test("preserves unrelated OpenRouter metadata and is idempotent across preset round trips", () => {
+    const base = config();
+    base.providers.openrouter.models = ["@preset/lstack-ling-3-0-flash", "another-model"];
+    base.providers.openrouter.modelReasoningEfforts = { "another-model": ["low"] };
+    base.providers.openrouter.modelReasoningEffortMap = { "another-model": { low: "native-low" } };
+    const once = applyRoutingPreset(base, "openai");
+    const twice = applyRoutingPreset(once, "openai");
+    expect(twice).toEqual(once);
+    const roundTrip = applyRoutingPreset(applyRoutingPreset(base, "deepseek"), "openai");
+    expect(roundTrip).toEqual(once);
+    expect(roundTrip.providers.openrouter.models).toEqual(["@preset/lstack-ling-3-0-flash", "another-model"]);
+    expect(roundTrip.providers.openrouter.modelReasoningEfforts?.["another-model"]).toEqual(["low"]);
+    expect(roundTrip.providers.openrouter.modelReasoningEffortMap?.["another-model"]).toEqual({ low: "native-low" });
+  });
+
+  test("fails before producing a preset when a required provider is missing", () => {
+    const base = config();
+    delete base.providers.openrouter;
+    expect(() => applyRoutingPreset(base, "openai")).toThrow("required provider openrouter missing");
+    expect(base.routingPreset).toBeUndefined();
+    expect(base.routingProfiles).toHaveProperty("public");
+  });
 });
