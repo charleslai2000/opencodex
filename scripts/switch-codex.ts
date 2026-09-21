@@ -69,6 +69,18 @@ async function get(path: string): Promise<{ response: Response; body: unknown }>
   const text = await response.text(); let body: unknown; try { body = JSON.parse(text); } catch { body = text.slice(0, 200); }
   return { response, body };
 }
+async function waitForReady(): Promise<void> {
+  for (let attempt = 0; attempt < 120; attempt += 1) {
+    try {
+      const health = await get("/healthz");
+      const ready = await get("/readyz");
+      if (health.response.ok && ready.response.ok) return;
+    } catch { /* service is still restarting */ }
+    await new Promise(resolve => setTimeout(resolve, 250));
+  }
+  throw new Error("service did not become ready after restart");
+}
+
 async function verify(expectedConfigHash?: string): Promise<{ configHash: string; catalogHash: string; profileHash: string }> {
   const health = await get("/healthz"); if (!health.response.ok) throw new Error(`healthz ${health.response.status}`);
   const ready = await get("/readyz"); if (!ready.response.ok) throw new Error(`readyz ${ready.response.status}`);
@@ -89,13 +101,13 @@ async function apply(name: RoutingPresetName): Promise<void> {
   const nextBytes = Buffer.from(`${JSON.stringify(next, null, 2)}\n`);
   if (dryRun) { console.log(JSON.stringify({ dryRun: true, preset: name, configHash: sha256(nextBytes), profileHash: sha256(stable(profileState(next))) })); return; }
   const snap = snapshot(current.bytes, current.config.routingPreset);
-  try { writeAtomic(nextBytes); restart(); const verified = await verify(sha256(nextBytes)); console.log(JSON.stringify({ preset: name, snapshot: snap, ...verified })); }
-  catch (error) { writeAtomic(current.bytes); try { restart(); await verify(sha256(current.bytes)); } catch (rollbackError) { throw new Error(`apply failed; rollback verification failed: ${String(rollbackError)}`); } throw new Error(`apply failed; snapshot restored: ${String(error)}`); }
+  try { writeAtomic(nextBytes); restart(); await waitForReady(); const verified = await verify(sha256(nextBytes)); console.log(JSON.stringify({ preset: name, snapshot: snap, ...verified })); }
+  catch (error) { writeAtomic(current.bytes); try { restart(); await waitForReady(); await verify(sha256(current.bytes)); } catch (rollbackError) { throw new Error(`apply failed; rollback verification failed: ${String(rollbackError)}`); } throw new Error(`apply failed; snapshot restored: ${String(error)}`); }
 }
 async function rollback(): Promise<void> {
   const entries = (await import("node:fs/promises")).readdir(snapshotDir).then(xs => xs.filter(x => x.startsWith("config-") && x.endsWith(".json")).sort()).catch(() => [] as string[]);
   const names = await entries; const name = names.at(-1); if (!name) throw new Error("no preset snapshot available");
-  const bytes = readFileSync(join(snapshotDir, name)); JSON.parse(bytes.toString()); writeAtomic(bytes); restart(); const verified = await verify(sha256(bytes)); console.log(JSON.stringify({ rollback: name, ...verified }));
+  const bytes = readFileSync(join(snapshotDir, name)); JSON.parse(bytes.toString()); writeAtomic(bytes); restart(); await waitForReady(); const verified = await verify(sha256(bytes)); console.log(JSON.stringify({ rollback: name, ...verified }));
 }
 async function status(): Promise<void> {
   const current = readConfig();
