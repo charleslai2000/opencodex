@@ -132,8 +132,10 @@ describe("anthropic-flavor ModelInfo discovery entries (devlog 130 B4b)", () => 
     const infos = buildAnthropicModelInfos(["gpt-5.6-sol", "gpt-5.5"], []);
     const sol = infos.find(i => i.display_name === "gpt-5.6-sol (native)");
     const gpt55 = infos.find(i => i.display_name === "gpt-5.5 (native)");
-    // Default native 5.6 follows the Codex 272k window, so the input ceiling matches it.
-    expect(sol!.max_input_tokens).toBe(272_000);
+    // The native 272k value is the advertised operating window; the measured input ceiling is
+    // kept separately so Claude can avoid the smaller generic fallback without rewriting it as
+    // a total-window value.
+    expect(sol!.max_input_tokens).toBe(922_000);
     expect(gpt55!.max_input_tokens).toBe(272_000);
   });
 

@@ -42,8 +42,8 @@ function provider(provider: string, models: string[]): OcxProviderConfig {
     liveModels: false,
     contextWindow: 1_000_000,
     maxOutputTokens: 256_000,
-    reasoningEfforts: ["low", "medium", "high"],
-    modelReasoningEfforts: Object.fromEntries(models.map(model => [model, ["low", "medium", "high"]])),
+    reasoningEfforts: provider.startsWith("deepseek") ? ["low", "high", "max"] : ["low", "medium", "high"],
+    modelReasoningEfforts: Object.fromEntries(models.map(model => [model, provider.startsWith("deepseek") ? ["low", "high", "max"] : ["low", "medium", "high"]])),
     fetch: transport(provider),
   };
 }
@@ -89,8 +89,8 @@ describe("canonical provider-id preset FULL_E2E through provider.fetch", () => {
     calls = []; sequence = 0; failed = new Set(); clearPolicyAffinity();
     const cfg = applyRoutingPreset(config(), "deepseek");
     const expected: Record<string, Record<string, [string, string, string]>> = {
-      lead: { low: ["deepseek", "deepseek-flash", "low"], medium: ["deepseek", "deepseek-flash", "high"], high: ["deepseek", "deepseek-flash", "high"] },
-      worker: { low: ["deepseek-worker", "deepseek-flash", "low"], medium: ["deepseek-worker", "deepseek-flash", "low"], high: ["deepseek-worker", "deepseek-flash", "low"] },
+      lead: { low: ["deepseek", "deepseek-flash", "low"], medium: ["deepseek", "deepseek-flash", "high"], high: ["deepseek", "deepseek-flash", "max"] },
+      worker: { low: ["deepseek", "deepseek-flash", "low"], medium: ["deepseek", "deepseek-flash", "low"], high: ["deepseek", "deepseek-flash", "high"] },
       expert: { low: ["deepseek", "deepseek-flash", "high"], medium: ["deepseek", "deepseek-flash", "high"], high: ["deepseek", "deepseek-flash", "high"] },
     };
     for (const [logical, efforts] of Object.entries(expected)) for (const effort of ["low", "medium", "high"]) {

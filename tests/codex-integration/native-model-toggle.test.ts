@@ -203,7 +203,7 @@ describe("native GPT model toggles (bare slugs in disabledModels)", () => {
     const row = nativeModelRows(configured).find(item => item.slug === "gpt-5.6-sol");
     expect(row).toMatchObject({
       contextWindow: 272_000,
-      maxInputTokens: 272_000,
+      maxInputTokens: 922_000,
       autoCompactTokenLimit: 120_000,
     });
 
@@ -211,7 +211,7 @@ describe("native GPT model toggles (bare slugs in disabledModels)", () => {
       providers: { openai: { modelAutoCompactTokenLimits: { "gpt-5.6-sol": 2_000_000 } } },
     } as never;
     expect(nativeModelRows(oversized).find(item => item.slug === "gpt-5.6-sol"))
-      .toMatchObject({ contextWindow: 272_000, maxInputTokens: 272_000, autoCompactTokenLimit: 244_800 });
+      .toMatchObject({ contextWindow: 272_000, maxInputTokens: 922_000, autoCompactTokenLimit: 244_800 });
   });
 
   test("the on-disk catalog entry lands at the same width as the dashboard row", () => {
@@ -271,14 +271,14 @@ describe("native GPT model toggles (bare slugs in disabledModels)", () => {
   });
 
   test("the native /api/models rows carry the input ceiling, not just the window", async () => {
-    // 1,050,000 is the window; 922,000 is the largest input the upstream accepts. A row that
-    // reports only the window tells the dashboard the whole thing is usable as input.
+    // 272,000 is the advertised operating window; 922,000 is the largest input the upstream
+    // accepts. They are separate capabilities and must not be collapsed into one number.
     const rows = nativeModelRows({});
     const sol = rows.find(row => row.slug === "gpt-5.6-sol");
     expect(sol?.contextWindow).toBe(272_000);
-    expect(sol?.maxInputTokens).toBe(272_000);
-    // A cap lowers both numbers together — an input ceiling above the capped window would
-    // be nonsense.
+    expect(sol?.maxInputTokens).toBe(922_000);
+    // An explicit provider cap narrows both surfaces together.
+
     const capped = nativeModelRows({ providerContextCaps: { openai: 272_000 } });
     const cappedSol = capped.find(row => row.slug === "gpt-5.6-sol");
     expect(cappedSol?.contextWindow).toBe(272_000);
@@ -326,7 +326,7 @@ describe("native GPT model toggles (bare slugs in disabledModels)", () => {
     expect(nativeModelRows(config)).toEqual(nativeModelRows(makeConfig()));
     expect(nativeModelRows(config).find(row => row.slug === "gpt-5.6-sol")).toMatchObject({
       contextWindow: 272_000,
-      maxInputTokens: 272_000,
+      maxInputTokens: 922_000,
     });
   });
 

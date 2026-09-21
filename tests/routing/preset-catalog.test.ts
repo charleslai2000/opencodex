@@ -39,14 +39,17 @@ describe("production routing preset compiler", () => {
     expect(route(preset.expert, "high")).toEqual([{ provider: "openai", model: "gpt-5.6-terra", upstreamEffort: "high" }]);
   });
 
-  test("deepseek preserves worker-low and folds lead/expert to the frozen ladder", () => {
+  test("deepseek maps logical efforts onto the canonical low/high/max ladder", () => {
     const preset = compileRoutingPreset("deepseek");
     expect(route(preset.lead, "low")[0]).toMatchObject({ provider: "deepseek", upstreamEffort: "low" });
     expect(route(preset.lead, "medium")[0]).toMatchObject({ provider: "deepseek", upstreamEffort: "high" });
+    expect(route(preset.lead, "high")[0]).toMatchObject({ provider: "deepseek", upstreamEffort: "max" });
     for (const effort of ["low", "medium", "high"]) {
       expect(route(preset.expert, effort)[0]).toMatchObject({ provider: "deepseek", upstreamEffort: "high" });
-      expect(route(preset.worker, effort)[0]).toMatchObject({ provider: "deepseek-worker", upstreamEffort: "low" });
     }
+    expect(route(preset.worker, "low")[0]).toMatchObject({ provider: "deepseek", upstreamEffort: "low" });
+    expect(route(preset.worker, "medium")[0]).toMatchObject({ provider: "deepseek", upstreamEffort: "low" });
+    expect(route(preset.worker, "high")[0]).toMatchObject({ provider: "deepseek", upstreamEffort: "high" });
   });
 
   test("bot has ordered Ling then DeepSeek fallback with medium folded to high", () => {

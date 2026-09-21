@@ -1136,29 +1136,26 @@ separately: a second armed same-target attempt in
 the formatter in `tests/server/retry-after-429.test.ts`, and the native Chat classification in
 `tests/providers/upstream-transient-retry.test.ts`.
 
-## Combo output headroom
+## Combo target input admission
 
-A combo child is admitted against two budgets, not one. `resolveInputCeiling` in
-`src/server/responses/input-admission.ts` answers "how much input may this target take", which
-`modelMaxInputTokens` can tighten below the window. The context window itself is what input and
-output actually share. When the caller declared `max_output_tokens`,
-`checkComboTargetInputAdmission` requires both `estimated input <= ceiling` and
-`estimated input + min(declared output, target output ceiling) <= window`, so the output reserve
-is counted once rather than charged twice against an already-tightened input budget.
+A combo child is admitted against its target-specific input ceiling. `resolveInputCeiling` in
+`src/server/responses/input-admission.ts` resolves the target's context window and lets
+`modelMaxInputTokens` tighten it; `checkComboTargetInputAdmission` then refuses only when the
+estimated input exceeds that effective input ceiling. This preserves target-aware fallback: a
+smaller target can be skipped before any upstream bytes are sent while a later larger target may
+remain eligible.
+
+`max_output_tokens` is a caller ceiling, not a promise that the model will emit that many tokens.
+It is therefore not subtracted from the input budget by combo admission. Existing adapters and
+provider contracts retain responsibility for their output-limit behavior. A large requested output
+value alone cannot reject an input that fits the target's input ceiling.
 
 The refusal is local: HTTP 413 `input_admission_refused` before any upstream bytes are sent, which
-existing combo policy already treats as a safe hop. That ordering is the whole point. A target whose
-total window cannot hold the turn plus the caller's allowance answers 200, emits a few hundred
-tokens and stops on `finish_reason: length`, which the Anthropic surface renders as an output-token
-error naming a limit the model never approached — and by then output has committed and no later
-target may be tried.
-
-Scope is deliberately narrow. Direct and single-target requests keep the loose 2.5x
-pathological-input gate, because they have nowhere to hop. Compaction turns stay exempt. Unknown
-context and a caller that declared no output allowance both remain fail-open, so this invents no
-limits for custom providers. Canonical native slugs that the narrower pinned table does not carry
-resolve their window from the generated in-tree bundle, which is what made the gate inert on the
-route where this was first observed; explicit provider and operator caps may only narrow it.
+existing combo policy treats as a safe hop. Direct and single-target requests keep the loose 2.5x
+pathological-input gate because they have nowhere to hop. Compaction turns stay exempt. Unknown
+context remains fail-open, so no limits are invented for custom providers. Canonical native slugs
+that the narrower pinned table does not carry resolve their window from the generated in-tree
+bundle; explicit provider and operator caps participate in resolving that input ceiling.
 
 Regression coverage: `tests/server/input-admission.test.ts` and
 `tests/helpers/combo-context-headroom-cases.ts`.

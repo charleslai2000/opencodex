@@ -57,14 +57,13 @@ export function compileRoutingPreset(name: RoutingPresetName): Record<string, Oc
     lead: profile({
       low: [candidate("deepseek", "deepseek-flash", "low")],
       medium: [candidate("deepseek", "deepseek-flash", "high")],
-      high: [candidate("deepseek", "deepseek-flash", "high")],
+      high: [candidate("deepseek", "deepseek-flash", "max")],
     }),
     bot,
-    // This deliberately preserves the existing deepseek-worker policy.
     worker: profile({
-      low: [candidate("deepseek-worker", "deepseek-flash", "low")],
-      medium: [candidate("deepseek-worker", "deepseek-flash", "low")],
-      high: [candidate("deepseek-worker", "deepseek-flash", "low")],
+      low: [candidate("deepseek", "deepseek-flash", "low")],
+      medium: [candidate("deepseek", "deepseek-flash", "low")],
+      high: [candidate("deepseek", "deepseek-flash", "high")],
     }),
     expert: profile({
       low: [candidate("deepseek", "deepseek-flash", "high")],

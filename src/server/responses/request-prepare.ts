@@ -1087,13 +1087,9 @@ export async function prepareResponsesRequest(
       return formatErrorResponse(
         413,
         "input_admission_refused",
-        inputAdmission.requiredOutputHeadroom !== undefined
-          ? `Estimated input (~${inputAdmission.estimatedTokens} tokens) plus ${inputAdmission.requiredOutputHeadroom} `
-            + `tokens of requested output headroom cannot fit the context window of ${parsed.modelId} `
-            + `(${inputAdmission.ceiling} tokens).`
-          : `Estimated input (~${inputAdmission.estimatedTokens} tokens) is far past the context window `
-            + `of ${parsed.modelId} (${inputAdmission.ceiling} tokens). Start a new session or choose a `
-            + `model with a larger context window.`,
+        `Estimated input (~${inputAdmission.estimatedTokens} tokens) is past the input ceiling `
+          + `of ${parsed.modelId} (${inputAdmission.ceiling} tokens). Start a new session or choose a `
+          + `model with a larger context window.`,
       );
     }
   }

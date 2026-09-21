@@ -3820,9 +3820,9 @@ describe("Codex catalog routed normalization", () => {
     // measured GPT-5.6 clamp, which over-advertised the ceiling by 50k.
     expect(nativeOpenAiContextTier(NATIVE_GPT6_ASTRA_MODEL))
       .toEqual({ defaultWindow: 272_000, longWindow: 872_000 });
-    // The input ceiling stays clamped to the resolved window: advertising 872k input under a
-    // 272k window is the over-advertising that clamp exists to prevent.
-    expect(nativeOpenAiMaxInputTokens(NATIVE_GPT6_ASTRA_MODEL)).toBe(272_000);
+    // The 272k value is the advertised operating window; the shipped model's measured hard
+    // input ceiling remains 872k and must not be conflated with that operating policy.
+    expect(nativeOpenAiMaxInputTokens(NATIVE_GPT6_ASTRA_MODEL)).toBe(872_000);
     expect(nativeReasoningEfforts(NATIVE_GPT6_ASTRA_MODEL))
       .toEqual(["low", "medium", "high", "xhigh", "max", "ultra"]);
     expect(nativeDefaultReasoningEffort(NATIVE_GPT6_ASTRA_MODEL)).toBe("low");

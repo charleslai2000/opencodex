@@ -345,15 +345,14 @@ export function nativeOpenAiContextTier(
  * Largest input a native slug accepts, or undefined when no separate limit is known
  * (the caller then falls back to the context window).
  *
- * A provider context cap lowers this too: a capped 272k window must not keep advertising a
- * 922k input ceiling, or the cap would be cosmetic on every input-side surface.
+ * A provider context cap or explicit model/provider window lowers this too. The default 272k
+ * GPT-5.6 value is an advertised operating window, not the measured hard input ceiling; keeping
+ * the two separate is what allows a historical 350k+ turn to reach upstream without a cap.
  */
 export function nativeOpenAiMaxInputTokens(slug: string, limits?: NativeContextLimitsInput): number | undefined {
   const raw = NATIVE_OPENAI_CONTEXT_OVERRIDES[slug]?.maxInputTokens;
   if (raw === undefined) return undefined;
-  const window = nativeOpenAiContextWindow(slug, limits);
-  const narrowed = narrowToLimits(raw, slug, limits) ?? raw;
-  return window === undefined ? narrowed : Math.min(narrowed, window);
+  return narrowToLimits(raw, slug, limits) ?? raw;
 }
 
 /** Effective native soft budget after every hard window/input limit is resolved. */

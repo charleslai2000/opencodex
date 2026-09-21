@@ -504,17 +504,23 @@ Native Spark membership and its model-specific request/tool exceptions are remov
 > Decision record: [ADR-0087](../decisions/ADR-0087-model-and-wire-identity.md)
 
 > Decision record: [ADR-0088](../decisions/ADR-0088-model-and-wire-identity.md)
-- The two GPT-5.6 surfaces advertise different windows on purpose. API rows use 1,050,000
-  context with 922,000 max input. Codex-login rows default to the live catalog 272,000
-  (auto-compact 244,800) and only rise to 922,000 / 829,800 when the user turns the 1M
-  switch on.
+- The two GPT-5.6 surfaces advertise different operating windows on purpose. API rows use
+  1,050,000 context with 922,000 max input. Codex-login rows default to the live catalog's
+  272,000 advertised operating window (auto-compact 244,800), while the measured hard input
+  ceiling remains 922,000; the 1M switch raises the operating window to 922,000 / 829,800.
 
-  The ceiling is the same on both — probing a real Codex-login account accepted 921,508 input
-  tokens and refused 922,013 with `context_length_exceeded` on Sol, Terra and Luna alike,
-  matching the 922,000 the API surface already declared. A Codex-login `context_window` is a
-  spending budget, not a label: Codex fills `context_window * effective_context_window_percent`
+  These are separate fields. Probing a real Codex-login account accepted 921,508 input tokens
+  and refused 922,013 with `context_length_exceeded` on Sol, Terra and Luna alike, matching the
+  922,000 hard input ceiling the API surface already declared. Codex's 272,000
+  `context_window` is an operating/spending policy, not evidence that upstream refuses every
+  input above 272,000. Admission must use an explicit provider/model input cap when present,
+  otherwise the actual context capability; it must not manufacture `contextWindow - maxOutput`
+  or silently turn this advertised operating value into a hard input ceiling.
+
+  Codex still fills its operating budget as `context_window * effective_context_window_percent`
   (95% by default, codex-rs `turn_context.rs`). Advertising 1,050,000 there spent 997,500 and
-  blew past the ceiling. The 922,000 opt-in yields a 875,900-token budget and keeps ~46k of
+  blew past the measured ceiling. The 922,000 opt-in yields a 875,900-token operating budget
+  and keeps ~46k of
   headroom. Evidence: `devlog/_fin/260817_native_gpt56_1m_context/001_measurement_evidence.md`
   and `014_final_922k_with_margin.md`.
 - `*-pro` selected ids rewrite to the base wire id with `reasoning.mode: "pro"`; request logs,

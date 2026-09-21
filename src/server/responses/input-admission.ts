@@ -13,7 +13,6 @@
 import {
   nativeOpenAiContextWindow,
   nativeOpenAiMaxInputTokens,
-  nativeOpenAiMaxOutputTokens,
   type NativeContextLimitsInput,
 } from "../../codex/catalog/metadata";
 import { getModelMetadata } from "../../generated/model-metadata";
@@ -60,8 +59,6 @@ export interface InputAdmissionResult {
   estimatedTokens: number;
   /** Resolved ceiling, or null when nothing could be resolved (=> always admitted). */
   ceiling: number | null;
-  /** Output space reserved by the combo preflight; absent on the loose direct gate. */
-  requiredOutputHeadroom?: number;
 }
 
 function positive(value: unknown): number | null {
@@ -182,10 +179,37 @@ function resolveContextLimits(
   const nativeMaxInput = canonicalNativeBare ? positive(nativeOpenAiMaxInputTokens(modelId, nativeLimits)) : null;
 
   const window = canonicalNativeBare ? (native ?? generatedNativeWindow(modelId, configured, nativeContextCap)) : configured;
-  // modelMaxInputTokens is an input-only cap, so it can only tighten the window.
+  // `modelMaxInputTokens` is an explicit input-only cap and can only tighten a shared window.
   const configuredMaxInput = positive(modelRecordValue(provider.modelMaxInputTokens, modelId));
-  const limits = [window, configuredMaxInput, nativeMaxInput].filter((v): v is number => v !== null);
-  return { window, ceiling: limits.length === 0 ? null : Math.min(...limits) };
+  // GPT-5.6's default 272k value is an advertised operating window. Its separate native input
+  // measurement is 922k; do not turn the former into a hard input ceiling unless an explicit
+  // provider/model window or context cap selected it. Once such a window is selected, it remains
+  // the upper bound, and an explicit modelMaxInputTokens can tighten it further.
+  // `nativeContextLimits(config)` returns `{}` when no context cap/window is configured, so
+  // testing the object itself against `undefined` would mistake an absent override for an
+  // explicit one and turn the 272k operating window into the hard admission ceiling.
+  const normalizedNativeContextCap = typeof nativeContextCap === "object" && nativeContextCap !== null
+    ? nativeContextCap
+    : undefined;
+  const hasExplicitNativeContextBound = canonicalNativeBare
+    && (typeof nativeContextCap === "number"
+      || typeof normalizedNativeContextCap?.cap === "number"
+      || typeof normalizedNativeContextCap?.providerWindow === "number"
+      || typeof normalizedNativeContextCap?.modelWindows?.[modelId] === "number");
+  const usesDefaultNativeOperatingWindow = canonicalNativeBare
+    && configured === null
+    && !hasExplicitNativeContextBound
+    && nativeMaxInput !== null;
+  const nativeInputBound = nativeMaxInput === null
+    ? null
+    : usesDefaultNativeOperatingWindow
+      ? nativeMaxInput
+      : Math.min(nativeMaxInput, window ?? nativeMaxInput);
+  const limits = usesDefaultNativeOperatingWindow
+    ? [configuredMaxInput, nativeInputBound]
+    : [window, configuredMaxInput, nativeInputBound];
+  const positiveLimits = limits.filter((v): v is number => v !== null);
+  return { window, ceiling: positiveLimits.length === 0 ? null : Math.min(...positiveLimits) };
 }
 
 /**
@@ -235,40 +259,14 @@ export function resolveInputCeiling(
 }
 
 /**
- * Largest output the concrete target can emit. Used only to avoid reserving MORE than the
- * target could ever produce when a client asks for a bigger allowance than the model has.
- * Unknown stays unknown rather than inventing a capability.
- */
-export function resolveOutputCeiling(
-  provider: OcxProviderConfig,
-  providerName: string,
-  modelId: string,
-): number | null {
-  const configured = positive(modelRecordValue(provider.modelMaxOutputTokens, modelId))
-    ?? positive(provider.defaultMaxOutputTokens);
-  const canonicalNativeBare = providerName === OPENAI_CODEX_PROVIDER_ID
-    && isCanonicalOpenAiForwardProvider(provider)
-    && !modelId.includes("/");
-  const native = canonicalNativeBare ? positive(nativeOpenAiMaxOutputTokens(modelId)) : null;
-  const limits = [configured, native].filter((v): v is number => v !== null);
-  return limits.length === 0 ? null : Math.min(...limits);
-}
-
-/**
- * Combo-only admission. A fallback must be able to satisfy the caller's declared output
- * allowance inside its OWN context window. Otherwise it returns 200, emits a few hundred
- * tokens, and terminates on `finish_reason: length` — which the Anthropic surface renders as
- * "response exceeded the output token maximum" even though the real cause was the total
- * window. By then the next target cannot be tried, because output has already committed.
- *
- * Two budgets are checked separately so the reserve is counted exactly once. `ceiling` is an
- * input-only budget once `modelMaxInputTokens` tightens it below the window, so the output
- * reserve belongs against `window`, not against `ceiling`.
+ * Combo-only hard admission. A fallback target is eligible when the request input fits that
+ * target's own input ceiling; a later target may have a larger ceiling. Output limits remain
+ * the adapter/provider contract: `max_output_tokens` is a caller ceiling, not a promise that
+ * the model will emit that many tokens, so it must not be reserved from input capacity here.
  *
  * Direct and single-target requests keep the deliberately loose 2.5x pathological-input gate.
- * This stricter rule applies only to synthetic combo children, where skipping one known-small
- * target is safe and the ladder continues before any upstream bytes are sent. Unknown context
- * stays fail-open, and a caller that declared no output allowance is unaffected.
+ * Combo children use the strict target-specific input gate because skipping an ineligible target
+ * is safe before any upstream bytes are sent. Unknown context stays fail-open.
  */
 export function checkComboTargetInputAdmission(
   parsed: OcxParsedRequest,
@@ -277,22 +275,10 @@ export function checkComboTargetInputAdmission(
   modelId: string,
   nativeContextCap?: NativeContextLimitsInput,
 ): InputAdmissionResult {
-  const { window, ceiling } = resolveContextLimits(provider, providerName, modelId, nativeContextCap);
-  const requestedOutput = positive(parsed.options.maxOutputTokens);
-  if (window === null || ceiling === null || requestedOutput === null) {
-    return checkInputAdmission(parsed, provider, providerName, modelId, nativeContextCap);
-  }
-  const targetOutput = resolveOutputCeiling(provider, providerName, modelId);
-  const requiredOutputHeadroom = targetOutput === null
-    ? requestedOutput
-    : Math.min(requestedOutput, targetOutput);
+  const { ceiling } = resolveContextLimits(provider, providerName, modelId, nativeContextCap);
+  if (ceiling === null) return checkInputAdmission(parsed, provider, providerName, modelId, nativeContextCap);
   const estimatedTokens = estimateInputTokens(parsed, modelId);
-  return {
-    admitted: estimatedTokens <= ceiling && estimatedTokens + requiredOutputHeadroom <= window,
-    estimatedTokens,
-    ceiling,
-    requiredOutputHeadroom,
-  };
+  return { admitted: estimatedTokens <= ceiling, estimatedTokens, ceiling };
 }
 
 /**
