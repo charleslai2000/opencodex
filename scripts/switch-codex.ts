@@ -4,7 +4,7 @@
  * command only persists complete routing profiles and never mutates legacy combos.
  */
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync, chmodSync } from "node:fs";
+import { chownSync, chmodSync, existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { applyRoutingPreset, type RoutingPresetName } from "../src/routing/presets";
 import type { OcxConfig } from "../src/types";
@@ -31,8 +31,13 @@ function readConfig(): { config: OcxConfig; bytes: Buffer } {
 }
 function writeAtomic(bytes: Uint8Array): void {
   mkdirSync(dirname(configPath), { recursive: true });
+  const existing = existsSync(configPath) ? statSync(configPath) : undefined;
+  const mode = existing ? existing.mode & 0o777 : 0o600;
   const temp = `${configPath}.switch-${process.pid}-${Date.now()}.tmp`;
-  writeFileSync(temp, bytes, { mode: 0o600 }); chmodSync(temp, 0o600); renameSync(temp, configPath);
+  writeFileSync(temp, bytes, { mode });
+  chmodSync(temp, mode);
+  if (existing && process.platform !== "win32") chownSync(temp, existing.uid, existing.gid);
+  renameSync(temp, configPath);
 }
 function profileState(config: OcxConfig): Record<string, unknown> {
   const profiles = config.routingProfiles ?? {};
