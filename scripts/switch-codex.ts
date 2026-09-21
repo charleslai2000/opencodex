@@ -64,7 +64,13 @@ function token(): string | undefined {
   return existsSync(path) ? readFileSync(path, "utf8").trim() : undefined;
 }
 async function get(path: string): Promise<{ response: Response; body: unknown }> {
-  const headers: Record<string, string> = {}; const t = token(); if (t) headers.authorization = `Bearer ${t}`;
+  const headers: Record<string, string> = {};
+  if (path === "/v1/models") {
+    const apiKey = readConfig().config.apiKeys?.[0]?.key;
+    if (apiKey) { headers.authorization = `Bearer ${apiKey}`; headers["x-opencodex-api-key"] = apiKey; }
+  } else {
+    const t = token(); if (t) headers.authorization = `Bearer ${t}`;
+  }
   const response = await fetch(`${baseUrl}${path}`, { headers, signal: AbortSignal.timeout(5_000) });
   const text = await response.text(); let body: unknown; try { body = JSON.parse(text); } catch { body = text.slice(0, 200); }
   return { response, body };
