@@ -86,10 +86,15 @@ async function verify(expectedConfigHash?: string): Promise<{ configHash: string
   const ready = await get("/readyz"); if (!ready.response.ok) throw new Error(`readyz ${ready.response.status}`);
   const profiles = await get("/api/routing-profiles"); if (!profiles.response.ok) throw new Error(`routing profiles ${profiles.response.status}`);
   const listed = (profiles.body as any)?.profiles; if (!Array.isArray(listed)) throw new Error("routing profiles response malformed");
-  for (const role of roles) if (!listed.some((p: any) => p.id === role && p.advertisedContextWindow === 400_000 && p.advertisedMaxOutputTokens === 128_000)) throw new Error(`catalog missing profile ${role}`);
+  for (const role of roles) if (!listed.some((p: any) => p.id === role)) throw new Error(`catalog missing profile ${role}`);
   const models = await get("/v1/models"); if (!models.response.ok) throw new Error(`models ${models.response.status}`);
+  const rows = (models.body as any)?.data; if (!Array.isArray(rows)) throw new Error("models response malformed");
+  for (const role of roles) {
+    const row = rows.find((item: any) => item.id === role);
+    if (!row || row.context_window !== 400_000 || row.max_output_tokens !== 128_000 || JSON.stringify(row.opencodex_logical_efforts) !== JSON.stringify(["low", "medium", "high"])) throw new Error(`catalog policy mismatch for ${role}`);
+  }
   const configHash = sha256(readFileSync(configPath)); if (expectedConfigHash && configHash !== expectedConfigHash) throw new Error("config hash mismatch");
-  return { configHash, catalogHash: sha256(JSON.stringify(models.body)), profileHash: sha256(stable(listed.filter((p: any) => roles.includes(p.id)).map((p: any) => ({ id: p.id, advertisedContextWindow: p.advertisedContextWindow, advertisedMaxOutputTokens: p.advertisedMaxOutputTokens, routes: p.routes })))), };
+  return { configHash, catalogHash: sha256(JSON.stringify(models.body)), profileHash: sha256(stable(listed.filter((p: any) => roles.includes(p.id)))), };
 }
 function restart(): void { if (dryRun) return; const result = Bun.spawnSync(["systemctl", "restart", service], { stdout: "ignore", stderr: "pipe" }); if (result.exitCode !== 0) throw new Error(`restart failed (${result.exitCode})`); }
 function snapshot(bytes: Buffer, oldPreset: unknown): string { mkdirSync(snapshotDir, { recursive: true, mode: 0o700 }); const path = join(snapshotDir, `config-${Date.now()}-${String(oldPreset ?? "unknown")}.json`); writeFileSync(path, bytes, { mode: 0o600 }); chmodSync(path, 0o600); return path; }
