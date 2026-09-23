@@ -29,6 +29,7 @@ export interface HealthzIdentity {
   role?: unknown;
   restartCapability?: unknown;
   providerReloadCapability?: unknown;
+  routingReloadCapability?: unknown;
   guiPairCapability?: unknown;
 }
 

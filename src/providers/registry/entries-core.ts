@@ -24,6 +24,10 @@ import {
   ZAI_GLM_53_REASONING_EFFORTS,
   OPENAI_GPT56_MODELS,
   OPENAI_GPT56_PRO_MODELS,
+  OPENAI_GPT6_MODELS,
+  OPENAI_API_GPT6_CONTEXT_WINDOWS,
+  OPENAI_API_GPT6_MAX_INPUT_TOKENS,
+  OPENAI_API_GPT6_REASONING_EFFORTS,
   OPENAI_API_GPT56_CONTEXT_WINDOWS,
   OPENAI_API_GPT56_MAX_INPUT_TOKENS,
   OPENAI_API_GPT56_VIRTUAL_MODELS,
@@ -527,13 +531,13 @@ export const PROVIDER_REGISTRY_CORE: readonly ProviderRegistryEntry[] = [
     featured: true,
     dashboardUrl: "https://platform.openai.com/api-keys",
     defaultModel: "gpt-5.5",
-    models: ["gpt-5.5", ...OPENAI_GPT56_MODELS, ...OPENAI_GPT56_PRO_MODELS, ...OPENAI_DAYBREAK_MODELS, "gpt-6-astra"],
+    models: ["gpt-5.5", ...OPENAI_GPT56_MODELS, ...OPENAI_GPT56_PRO_MODELS, ...OPENAI_GPT6_MODELS, ...OPENAI_DAYBREAK_MODELS, "gpt-6-astra"],
     liveModels: true,
-    modelContextWindows: { ...OPENAI_API_GPT56_CONTEXT_WINDOWS, ...OPENAI_DAYBREAK_CONTEXT_WINDOWS, "gpt-6-astra": 1_050_000 },
-    modelMaxInputTokens: { ...OPENAI_API_GPT56_MAX_INPUT_TOKENS, ...OPENAI_DAYBREAK_MAX_INPUT_TOKENS, "gpt-6-astra": 922_000 },
+    modelContextWindows: { ...OPENAI_API_GPT56_CONTEXT_WINDOWS, ...OPENAI_API_GPT6_CONTEXT_WINDOWS, ...OPENAI_DAYBREAK_CONTEXT_WINDOWS, "gpt-6-astra": 1_050_000 },
+    modelMaxInputTokens: { ...OPENAI_API_GPT56_MAX_INPUT_TOKENS, ...OPENAI_API_GPT6_MAX_INPUT_TOKENS, ...OPENAI_DAYBREAK_MAX_INPUT_TOKENS, "gpt-6-astra": 922_000 },
     modelMaxOutputTokens: { "gpt-6-astra": 128_000 },
     modelInputModalities: Object.fromEntries(
-      ["gpt-5.5", ...OPENAI_GPT56_MODELS, ...OPENAI_GPT56_PRO_MODELS, ...OPENAI_DAYBREAK_MODELS, "gpt-6-astra"]
+      ["gpt-5.5", ...OPENAI_GPT56_MODELS, ...OPENAI_GPT56_PRO_MODELS, ...OPENAI_GPT6_MODELS, ...OPENAI_DAYBREAK_MODELS, "gpt-6-astra"]
         .map(id => [id, ["text", "image"]]),
     ),
     modelReasoningEfforts: {
@@ -541,6 +545,7 @@ export const PROVIDER_REGISTRY_CORE: readonly ProviderRegistryEntry[] = [
         [...OPENAI_GPT56_MODELS, ...OPENAI_GPT56_PRO_MODELS].map(id => [id, OPENAI_API_GPT56_REASONING_EFFORTS]),
       ),
       ...OPENAI_DAYBREAK_REASONING_EFFORTS,
+      ...Object.fromEntries(OPENAI_GPT6_MODELS.map(id => [id, OPENAI_API_GPT6_REASONING_EFFORTS])),
       "gpt-6-astra": ["low", "medium", "high", "xhigh", "max"],
     },
     virtualModels: OPENAI_API_GPT56_VIRTUAL_MODELS,

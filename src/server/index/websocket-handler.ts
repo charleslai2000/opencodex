@@ -305,7 +305,9 @@ export function createWebsocketHandler(ctx: ServeOptionsContext) {
           });
           try {
             let terminalRecorder: ((status: ResponsesTerminalStatus, httpStatusOverride?: number) => void) | undefined;
-            const response = await handleResponses(req, config, logCtx, {
+            const turnRouting = ctx.routingRuntime.capture();
+            const response = await handleResponses(req, turnRouting.config, logCtx, {
+              turnRoutingContext: turnRouting,
               ...(wsAdmission ? { admission: wsAdmission } : {}),
               forceEmptyResponseId: true,
               inboundTransport: "websocket",

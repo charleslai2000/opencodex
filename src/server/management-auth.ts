@@ -39,6 +39,16 @@ import {
   parseExpectedLocalProviderReloadPid,
   verifyLocalProviderReloadCapability,
 } from "../lib/local-provider-reload-contract";
+
+import {
+  LOCAL_ROUTING_RELOAD_CAPABILITY_HEADER,
+  LOCAL_ROUTING_RELOAD_EXPECTED_PID_HEADER,
+  LOCAL_ROUTING_RELOAD_EXPIRES_AT_HEADER,
+  LOCAL_ROUTING_RELOAD_CONFIG_HASH_HEADER,
+  LOCAL_ROUTING_RELOAD_NONCE_HEADER,
+  LOCAL_ROUTING_RELOAD_PATH,
+  verifyLocalRoutingReloadCapability,
+} from "../lib/local-routing-reload-contract";
 import {
   GUI_PAIR_BROWSER_ORIGIN_HEADER,
   GUI_PAIR_CAPABILITY_HEADER,
@@ -70,6 +80,10 @@ const admittedLocalReadRequests = new WeakSet<Request>();
 const LOCAL_PROVIDER_RELOAD_REPLAY_LIMIT = 256;
 const consumedLocalProviderReloadCapabilities = new Map<string, number>();
 const admittedLocalProviderReloadRequests = new WeakSet<Request>();
+const consumedLocalRoutingReloadCapabilities = new Map<string, number>();
+const admittedLocalRoutingReloadRequests = new WeakSet<Request>();
+const admittedLocalRoutingReadRequests = new WeakSet<Request>();
+const consumedLocalRoutingReadCapabilities = new Map<string, number>();
 const GUI_PAIR_REPLAY_LIMIT = 256;
 const consumedGuiPairCapabilities = new Map<string, number>();
 const admittedGuiPairRequests = new WeakSet<Request>();
@@ -301,6 +315,8 @@ export type ManagementPrincipal =
   | "gui-pair-capability"
   | "local-read-capability"
   | "local-provider-reload-capability"
+  | "local-routing-reload-capability"
+  | "local-routing-read-capability"
   | "system-restart-capability";
 
 export interface LocalManagementAuthContext {
@@ -431,6 +447,50 @@ function hasLocalProviderReloadCapability(
   return true;
 }
 
+function hasLocalRoutingReloadCapability(req: Request, local: LocalManagementAuthContext | undefined): boolean {
+  if (req.method === "GET") {
+    if (admittedLocalRoutingReadRequests.has(req)) return true;
+    if (!local) return false;
+    let readUrl: URL;
+    try { readUrl = new URL(req.url); } catch { return false; }
+    if (readUrl.pathname !== "/api/routing/reload/state" || readUrl.search !== "") return false;
+    const readPid = parseExpectedLocalProviderReloadPid(req.headers.get(LOCAL_ROUTING_RELOAD_EXPECTED_PID_HEADER));
+    const readExpiryRaw = req.headers.get(LOCAL_ROUTING_RELOAD_EXPIRES_AT_HEADER);
+    if (readPid.kind !== "present" || readPid.pid !== local.pid || !readExpiryRaw || !/^[1-9]\d*$/.test(readExpiryRaw)) return false;
+    const readExpiry = Number(readExpiryRaw);
+    const readHash = req.headers.get(LOCAL_ROUTING_RELOAD_CONFIG_HASH_HEADER);
+    const readCap = req.headers.get(LOCAL_ROUTING_RELOAD_CAPABILITY_HEADER);
+    const readNow = Date.now();
+    if (!Number.isSafeInteger(readExpiry) || !verifyLocalRoutingReloadCapability(local.attestationSecret, req.headers.get(LOCAL_ROUTING_RELOAD_NONCE_HEADER), req.method, readUrl.pathname, local.pid, local.port, readExpiry, readHash, readCap, readNow)) return false;
+    for (const [key, until] of consumedLocalRoutingReadCapabilities) if (until <= readNow) consumedLocalRoutingReadCapabilities.delete(key);
+    if (!readCap || consumedLocalRoutingReadCapabilities.has(readCap) || consumedLocalRoutingReadCapabilities.size >= 256) return false;
+    consumedLocalRoutingReadCapabilities.set(readCap, readExpiry);
+    admittedLocalRoutingReadRequests.add(req);
+    return true;
+  }
+  if (admittedLocalRoutingReloadRequests.has(req)) return true;
+  if (!local || req.method !== "POST") return false;
+  let url: URL;
+  try { url = new URL(req.url); } catch { return false; }
+  if (url.pathname !== LOCAL_ROUTING_RELOAD_PATH || url.search !== "") return false;
+  if (req.headers.get("content-length") !== "0" || req.headers.has("transfer-encoding")) return false;
+  const expected = parseExpectedLocalProviderReloadPid(req.headers.get(LOCAL_ROUTING_RELOAD_EXPECTED_PID_HEADER));
+  if (expected.kind !== "present" || expected.pid !== local.pid) return false;
+  const expiresRaw = req.headers.get(LOCAL_ROUTING_RELOAD_EXPIRES_AT_HEADER);
+  if (!expiresRaw || !/^[1-9]\d*$/.test(expiresRaw)) return false;
+  const expiresAt = Number(expiresRaw);
+  if (!Number.isSafeInteger(expiresAt)) return false;
+  const fingerprint = req.headers.get(LOCAL_ROUTING_RELOAD_CONFIG_HASH_HEADER);
+  const capability = req.headers.get(LOCAL_ROUTING_RELOAD_CAPABILITY_HEADER);
+  const now = Date.now();
+  if (!verifyLocalRoutingReloadCapability(local.attestationSecret, req.headers.get(LOCAL_ROUTING_RELOAD_NONCE_HEADER), req.method, url.pathname, local.pid, local.port, expiresAt, fingerprint, capability, now)) return false;
+  for (const [token, until] of consumedLocalRoutingReloadCapabilities) if (until <= now) consumedLocalRoutingReloadCapabilities.delete(token);
+  if (!capability || consumedLocalRoutingReloadCapabilities.has(capability) || consumedLocalRoutingReloadCapabilities.size >= 256) return false;
+  consumedLocalRoutingReloadCapabilities.set(capability, expiresAt);
+  admittedLocalRoutingReloadRequests.add(req);
+  return true;
+}
+
 function hasGuiPairCapability(
   req: Request,
   local: LocalManagementAuthContext | undefined,
@@ -494,6 +554,7 @@ function resolveManagementAdmission(
   if (cached) return cached;
   let principal: ManagementPrincipal | null = null;
   if (hasSystemRestartCapability(req, local)) principal = "system-restart-capability";
+  else if (hasLocalRoutingReloadCapability(req, local)) principal = req.method === "GET" ? "local-routing-read-capability" : "local-routing-reload-capability";
   else if (hasLocalProviderReloadCapability(req, local)) principal = "local-provider-reload-capability";
   else if (hasLocalReadCapability(req, local)) principal = "local-read-capability";
   else if (hasGuiPairCapability(req, local)) principal = "gui-pair-capability";

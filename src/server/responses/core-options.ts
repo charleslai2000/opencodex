@@ -103,6 +103,8 @@ export interface HandleResponsesOptions {
   nativeCallerAuth?: ExplicitOpenAiCallerAuth | null;
   /** Caller Direct credential under Direct\'s own predicate; restored only for the canonical OpenAI final route. */
   callerDirectAuth?: CallerDirectAuth | null;
+  /** Immutable routing projection captured once when this turn is admitted. */
+  turnRoutingContext?: import("../../routing/runtime-snapshot").TurnRoutingContext;
   /** Internal recursion guard; callers outside this module must not set it. */
   comboAttempt?: boolean;
   /** Internal combo handoff for one parent-validated continuation snapshot. */
@@ -141,6 +143,8 @@ export interface HandleResponsesOptions {
 export interface ResponsesRequestContext {
   req: Request;
   config: OcxConfig;
+  /** Routing projection captured for this Responses turn; fixed through terminal/failure. */
+  turnRoutingContext?: import("../../routing/runtime-snapshot").TurnRoutingContext;
   logCtx: RequestLogContext;
   options: HandleResponsesOptions & { translatorBudget: TranslatorBudget };
 }

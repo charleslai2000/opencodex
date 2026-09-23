@@ -154,6 +154,17 @@ export const OPENAI_API_GPT56_VIRTUAL_MODELS: Record<string, { wireModelId: stri
   "gpt-5.6-luna-pro": { wireModelId: "gpt-5.6-luna", reasoningMode: "pro" },
 };
 export const OPENAI_API_GPT56_REASONING_EFFORTS = ["low", "medium", "high", "xhigh", "max"];
+
+/** Deployed GPT-6 Luna/Sol upstream capability seed used by the V1.1 OpenAI preset. */
+export const OPENAI_GPT6_MODELS = ["gpt-6-sol", "gpt-6-luna"];
+export const OPENAI_API_GPT6_CONTEXT_WINDOW = 1_050_000;
+export const OPENAI_API_GPT6_CONTEXT_WINDOWS: Record<string, number> = Object.fromEntries(
+  OPENAI_GPT6_MODELS.map(id => [id, OPENAI_API_GPT6_CONTEXT_WINDOW]),
+);
+export const OPENAI_API_GPT6_MAX_INPUT_TOKENS: Record<string, number> = Object.fromEntries(
+  OPENAI_GPT6_MODELS.map(id => [id, 922_000]),
+);
+export const OPENAI_API_GPT6_REASONING_EFFORTS = ["low", "medium", "high", "xhigh", "max"];
 /*
  * Meta Model API (https://api.meta.ai/v1) — published ladder, deliberately NOT the
  * house set. dev.meta.ai/docs/reasoning lists "none", "minimal", "low", "medium",

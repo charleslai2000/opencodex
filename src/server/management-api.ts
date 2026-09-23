@@ -183,6 +183,22 @@ export async function handleManagementAPI(
   principal?: ManagementPrincipal,
   sessionControl?: ManagementSessionControl,
 ): Promise<Response | null> {
+  if (url.pathname === "/api/routing/reload/state" && req.method === "GET") {
+    if (principal !== "local-routing-read-capability") return jsonResponse({ error: "routing reload capability required" }, 403, req, config);
+    const snapshot = deps.getRoutingSnapshot?.();
+    if (!snapshot) return jsonResponse({ error: "routing snapshot unavailable" }, 503, req, config);
+    return jsonResponse({ pid: process.pid, generation: snapshot.routingFingerprint, routingFingerprint: snapshot.routingFingerprint, routingPreset: snapshot.routingPreset, routingProfiles: snapshot.routingProfiles, catalog: snapshot.logicalCatalog }, 200, req, config);
+  }
+  if (url.pathname === "/api/routing/reload" && req.method === "POST") {
+    if (principal !== "local-routing-reload-capability") return jsonResponse({ error: "routing reload capability required" }, 403, req, config);
+    const expectedHash = req.headers.get("x-opencodex-routing-reload-config-hash") ?? "";
+    const result = deps.reloadRouting?.(expectedHash);
+    if (!result) return jsonResponse({ error: "routing reload unavailable" }, 503, req, config);
+    if (!result.ok) return jsonResponse({ error: result.reason }, 409, req, config);
+    const snapshot = deps.getRoutingSnapshot?.();
+    if (!snapshot || snapshot.routingFingerprint !== result.snapshot.routingFingerprint) return jsonResponse({ error: "routing snapshot changed during verification" }, 409, req, config);
+    return jsonResponse({ success: true, routingFingerprint: snapshot.routingFingerprint, routingPreset: snapshot.routingPreset, routingProfiles: snapshot.routingProfiles, catalog: snapshot.logicalCatalog, configHash: result.configHash }, 200, req, config);
+  }
   if (!isAllowedManagementOrigin(req, config)) {
     return jsonResponse({ error: "cross-origin request blocked" }, 403, req, config);
   }

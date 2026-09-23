@@ -39,18 +39,18 @@ export function compileRoutingPreset(name: RoutingPresetName): Record<string, Oc
   if (name === "openai") {
     return {
       lead: profile({
-        low: [candidate("openai", "gpt-5.6-luna", "low")],
-        medium: [candidate("openai", "gpt-5.6-luna", "medium")],
-        high: [candidate("openai", "gpt-5.6-luna", "high")],
+        low: [candidate("openai", "gpt-6-luna", "low")],
+        medium: [candidate("openai", "gpt-6-luna", "medium")],
+        high: [candidate("openai", "gpt-6-luna", "high")],
       }),
       bot,
       worker: profile({
-        low: [candidate("openai", "gpt-5.6-luna", "low")],
-        medium: [candidate("openai", "gpt-5.6-luna", "medium")],
-        high: [candidate("openai", "gpt-5.6-luna", "high")],
+        low: [candidate("openai", "gpt-6-luna", "low")],
+        medium: [candidate("openai", "gpt-6-luna", "medium")],
+        high: [candidate("openai", "gpt-6-luna", "high")],
       }),
       expert: profile({
-        low: [candidate("openai", "gpt-5.6-luna", "high")],
+        low: [candidate("openai", "gpt-6-luna", "high")],
         medium: [candidate("openai", "gpt-5.6-terra", "medium")],
         high: [candidate("openai", "gpt-5.6-terra", "high")],
       }),

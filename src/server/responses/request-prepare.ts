@@ -132,11 +132,12 @@ import {
 
 /** Parses, selects, and admits one request without changing the dispatch policy. */
 export async function prepareResponsesRequest(
-  requestContext: Pick<ResponsesRequestContext, "options" | "config" | "req" | "logCtx">,
+  requestContext: Pick<ResponsesRequestContext, "options" | "config" | "req" | "logCtx" | "turnRoutingContext">,
   admissionState: ResponsesAdmissionState,
   requestDispatchers: ResponsesDispatchers,
 ) {
-  const { options, config, req, logCtx } = requestContext;
+  const { options, req, logCtx } = requestContext;
+  const config = requestContext.turnRoutingContext?.config ?? requestContext.config;
 
   // The Chat and Anthropic surfaces replay through here with a Responses-shaped body,
   // so an omitted value means a genuine Responses inbound.

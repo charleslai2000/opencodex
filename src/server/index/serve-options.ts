@@ -165,6 +165,7 @@ import {
 } from "../../lib/local-management-attestation";
 import { SYSTEM_RESTART_CAPABILITY_VERSION } from "../../lib/system-restart-contract";
 import { LOCAL_PROVIDER_RELOAD_CAPABILITY_VERSION } from "../../lib/local-provider-reload-contract";
+import { LOCAL_ROUTING_RELOAD_CAPABILITY_VERSION } from "../../lib/local-routing-reload-contract";
 import {
   GUI_PAIR_BROWSER_ORIGIN_HEADER,
   GUI_PAIR_CAPABILITY_VERSION,
@@ -224,6 +225,7 @@ export interface ServeOptionsContext {
   ) => Promise<Response>;
 
   config: OcxConfig;
+  routingRuntime: ReturnType<typeof import("../../routing/runtime-snapshot").createRoutingRuntime>;
   inboundBodyLimitBytes: number;
   listenPort: number;
   liveCallBindings: LiveCallBindings;
@@ -536,6 +538,7 @@ export function createServeOptions(ctx: ServeOptionsContext) {
           port: healthPort,
           restartCapability: SYSTEM_RESTART_CAPABILITY_VERSION,
           providerReloadCapability: LOCAL_PROVIDER_RELOAD_CAPABILITY_VERSION,
+          routingReloadCapability: LOCAL_ROUTING_RELOAD_CAPABILITY_VERSION,
           guiPairCapability: GUI_PAIR_CAPABILITY_VERSION,
         }, 200, req, policy);
         const challenge = req.headers.get(LOCAL_ATTESTATION_CHALLENGE_HEADER);
@@ -1174,7 +1177,7 @@ export function createServeOptions(ctx: ServeOptionsContext) {
           ));
         }));
         const data = [
-          ...logicalModelCatalogRows(config),
+          ...ctx.routingRuntime.current().logicalCatalog,
           ...visibleNatives.flatMap(id => expandedNativeModelRow(id)),
           ...visibleAccountNatives.flatMap(({ id, metadataId }) => expandedNativeModelRow(id, metadataId)),
           ...routedRows.flat(),
@@ -1356,7 +1359,9 @@ export function createServeOptions(ctx: ServeOptionsContext) {
           addFinalRequestLog(requestId, start, logCtx, status, meta);
         };
         return runAdmittedHttpTurn(req, policy, async turnAdmissionLease => {
-          const response = await handleResponses(req, config, logCtx, {
+          const turnRouting = ctx.routingRuntime.capture();
+          const response = await handleResponses(req, turnRouting.config, logCtx, {
+            turnRoutingContext: turnRouting,
             turnAdmissionLease,
             admission,
             onRequestBodyRead: () => disableResponsesRequestTimeout(req, requestServer),

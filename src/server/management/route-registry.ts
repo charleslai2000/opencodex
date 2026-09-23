@@ -352,6 +352,8 @@ export const MANAGEMENT_ROUTES: readonly ManagementRoute[] = [
   { method: "GET", path: "/api/system/codex-app-server", module: "server/management/system-routes", mutates: false, mechanism: "path-constant" },
   { method: "POST", path: "/api/system/codex-restart", module: "server/management/system-routes", mutates: true, mechanism: "path-constant" },
   { method: "POST", path: "/api/providers/reload", module: "server/management/provider-routes", mutates: true, mechanism: "path-constant", exempt: { reason: "capability-principal", why: "Gated on the local-provider-reload-capability principal (provider-routes.ts:467), not an operator action." } },
+  { method: "POST", path: "/api/routing/reload", module: "server/management-api", mutates: true, mechanism: "path-constant", exempt: { reason: "capability-principal", why: "Bound to the exact process routing-reload capability and adopts only the validated routing projection." } },
+  { method: "GET", path: "/api/routing/reload/state", module: "server/management-api", mutates: false, mechanism: "path-constant", exempt: { reason: "capability-principal", why: "Runtime routing state is exposed only to the local routing reload capability principal." } },
   { method: "GET", path: "/api/client-integrations/{clientId}", module: "server/management/integration-routes", mutates: false, mechanism: "prefix-decode" },
   { method: "PUT", path: "/api/client-integrations/{clientId}", module: "server/management/integration-routes", mutates: true, mechanism: "prefix-decode" },
   { method: "GET", path: "/api/request-history/{id}", module: "server/management/request-history-routes", mutates: false, mechanism: "slice" },

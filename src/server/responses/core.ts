@@ -93,7 +93,13 @@ async function handleResponsesInner(
   logCtx: RequestLogContext,
   options: HandleResponsesOptions & { translatorBudget: TranslatorBudget },
 ): Promise<Response> {
-  const requestContext: ResponsesRequestContext = { req, config, logCtx, options };
+  const requestContext: ResponsesRequestContext = {
+    req,
+    config: options.turnRoutingContext?.config ?? config,
+    turnRoutingContext: options.turnRoutingContext,
+    logCtx,
+    options,
+  };
   const admissionState: ResponsesAdmissionState = {
     pendingHostAdmissionLease: null,
     authCtx: { kind: "main", accountId: null },

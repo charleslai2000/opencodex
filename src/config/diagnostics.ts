@@ -10,6 +10,7 @@ import { MAX_APP_OWNED_MEMORY_BUDGET_MB, MIN_APP_OWNED_MEMORY_BUDGET_MB } from "
 import { isMissingPathError } from "./atomic-write";
 import { getConfigPath } from "./paths";
 import { getDefaultConfig } from "./proxy-env";
+import { apiKeyEntrySchema } from "./schema/leaf-validators";
 import { salvageConfigCandidate } from "./salvage";
 import {
   sanitizeReasoningPinsForLoad,
@@ -562,6 +563,22 @@ function managementIngressConfigError(value: unknown): string | null {
 }
 
 export function validateConfigCandidate(value: unknown): { ok: true; config: OcxConfig } | { ok: false; error: string } {
+  const rawApiKeys = value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>).apiKeys
+    : undefined;
+  if (rawApiKeys !== undefined) {
+    if (!Array.isArray(rawApiKeys)) return { ok: false, error: "apiKeys must be an array" };
+    for (let index = 0; index < rawApiKeys.length; index += 1) {
+      const row = rawApiKeys[index];
+      const checked = apiKeyEntrySchema.safeParse(row);
+      if (!checked.success || (row && typeof row === "object" && !Array.isArray(row)
+        && ((row as Record<string, unknown>).id !== undefined && typeof (row as Record<string, unknown>).id !== "string"
+          || (row as Record<string, unknown>).name !== undefined && typeof (row as Record<string, unknown>).name !== "string"
+          || (row as Record<string, unknown>).createdAt !== undefined && typeof (row as Record<string, unknown>).createdAt !== "string"))) {
+        return { ok: false, error: `apiKeys[${index}] is invalid` };
+      }
+    }
+  }
   const boundaryError = configReasoningPinsConfigError(value)
     ?? blankHostnameError(value)
     ?? claudeSubagentEffortError(value)

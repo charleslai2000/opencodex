@@ -1,8 +1,12 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterAll, afterEach, describe, expect, test } from "bun:test";
 import { applyRoutingPreset } from "../../src/routing/presets";
 import { handleResponses } from "../../src/server/responses/core";
 import type { OcxConfig } from "../../src/types";
 import { fakeChatGptJwt } from "../helpers/fake-chatgpt-jwt";
+import { mkdtempSync, rmSync } from "node:fs";
+import { join } from "node:path";
+const testHome = mkdtempSync(join("/tmp", "preset-route-home-"));
+process.env.OPENCODEX_HOME = testHome;
 
 const originalFetch = globalThis.fetch;
 const canonicalUrl = "https://chatgpt.com/backend-api/codex";
@@ -17,12 +21,12 @@ function baseConfig(): OcxConfig {
         baseUrl: canonicalUrl,
         authMode: "forward",
         codexAccountMode: "direct",
-        models: ["gpt-5.6-luna", "gpt-5.6-terra"],
+        models: ["gpt-6-luna", "gpt-5.6-terra", "gpt-6-sol"],
         liveModels: false,
         contextWindow: 1_000_000,
         reasoningEfforts: ["low", "medium", "high"],
         modelReasoningEfforts: {
-          "gpt-5.6-luna": ["low", "medium", "high"],
+          "gpt-6-luna": ["low", "medium", "high"],
           "gpt-5.6-terra": ["low", "medium", "high"],
         },
       },
@@ -68,13 +72,15 @@ async function request(config: OcxConfig, logical: string, effort: string): Prom
 }
 
 afterEach(() => { globalThis.fetch = originalFetch; });
+afterAll(() => { rmSync(testHome, { recursive: true, force: true }); delete process.env.OPENCODEX_HOME; });
+
 
 describe("frozen OpenAI preset route-preauth qualification", () => {
   const expected: Record<string, Record<string, [string, string]>> = {
-    lead: { low: ["gpt-5.6-luna", "low"], medium: ["gpt-5.6-luna", "medium"], high: ["gpt-5.6-luna", "high"] },
-    worker: { low: ["gpt-5.6-luna", "low"], medium: ["gpt-5.6-luna", "medium"], high: ["gpt-5.6-luna", "high"] },
-    expert: { low: ["gpt-5.6-luna", "high"], medium: ["gpt-5.6-terra", "medium"], high: ["gpt-5.6-terra", "high"] },
-    bot: { low: ["gpt-5.6-luna", "low"], medium: ["gpt-5.6-luna", "medium"], high: ["gpt-5.6-luna", "high"] },
+    lead: { low: ["gpt-6-luna", "low"], medium: ["gpt-6-luna", "medium"], high: ["gpt-6-luna", "high"] },
+    worker: { low: ["gpt-6-luna", "low"], medium: ["gpt-6-luna", "medium"], high: ["gpt-6-luna", "high"] },
+    expert: { low: ["gpt-6-luna", "high"], medium: ["gpt-5.6-terra", "medium"], high: ["gpt-5.6-terra", "high"] },
+    bot: { low: ["@preset/lstack-ling-3-0-flash", "low"], medium: ["@preset/lstack-ling-3-0-flash", "medium"], high: ["@preset/lstack-ling-3-0-flash", "high"] },
   };
 
   for (const logical of ["lead", "worker", "expert"]) for (const effort of ["low", "medium", "high"]) {

@@ -31,6 +31,8 @@ export type RemoteWorkspaceSessionsApi = Pick<RemoteWorkspaceSessionService,
   "availability" | "list" | "create" | "prompt" | "submitPrompt" | "stop" | "shutdown">;
 
 export interface ManagementApiDeps {
+  reloadRouting?: (expectedConfigHash: string) => { ok: true; snapshot: import("../../routing/runtime-snapshot").RoutingRuntimeSnapshot; configHash: string } | { ok: false; reason: string };
+  getRoutingSnapshot?: () => import("../../routing/runtime-snapshot").RoutingRuntimeSnapshot;
   remoteWorkspaceHub?: RemoteWorkspaceHubApi;
   remoteWorkspaceSessions?: RemoteWorkspaceSessionsApi;
   /** The listener retains and awaits teardown only after this optional subsystem activates. */

@@ -14,6 +14,9 @@ import {
   type WsData,
 } from "./ws-bridge";
 import type { Server, ServerWebSocket } from "bun";
+import type { OcxConfig } from "../types";
+import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import {
   applyProxyEnv,
   armClaudeCodeBaseline,
@@ -22,6 +25,7 @@ import {
   getConfigDir,
   loopbackCompanionBindError,
   websocketsEnabled,
+  getConfigPath,
 } from "../config";
 import { flushConfigDirHardening } from "../config/paths";
 import { migrateStartupSubagentModels } from "./subagent-models-startup";
@@ -204,6 +208,7 @@ import {
 } from "../lib/package-tree-integrity";
 import { detectInstall } from "../update/index";
 import { createServeOptions, type ServerIngress } from "./index/serve-options";
+import { buildRoutingRuntimeSnapshot, buildRoutingRuntimeSnapshotFromRaw, createRoutingRuntime } from "../routing/runtime-snapshot";
 import { inspectStartupOwnership, setStartupCacheInvalidationWrite, warnAgentTaskRecoveryStartup, warnPlaintextV2AgentMessagesStartup, type StartServerDeps } from "./index/startup-warnings";
 
 export function startServer(port?: number, deps: StartServerDeps = {}): Server<WsData> {
@@ -222,6 +227,7 @@ export function startServer(port?: number, deps: StartServerDeps = {}): Server<W
   // an in-memory wire upgrade when that upgrade's persistence is temporarily unavailable.
   reconcileOAuthProviders(startupConfig);
   const config = migrateStartupZaiResponses(migrateStartupXaiResponses(startupConfig));
+  const routingRuntime = createRoutingRuntime(config);
   warnPlaintextV2AgentMessagesStartup(config);
   warnAgentTaskRecoveryStartup(config);
   setLiveStateStoreConfig(config);
@@ -653,6 +659,20 @@ export function startServer(port?: number, deps: StartServerDeps = {}): Server<W
   let remoteWorkspaceShutdown: (() => Promise<void>) | undefined;
   const managementApiDeps: ManagementApiDeps = {
     ...deps.managementApi,
+    getRoutingSnapshot: () => routingRuntime.current(),
+    reloadRouting: expectedConfigHash => {
+      try {
+        const bytes = readFileSync(getConfigPath());
+        const configHash = createHash("sha256").update(bytes).digest("hex");
+        if (configHash !== expectedConfigHash) return { ok: false as const, reason: "config changed before routing reload" };
+        const raw = JSON.parse(bytes.toString("utf8")) as unknown;
+        const next = buildRoutingRuntimeSnapshotFromRaw(raw, config);
+        routingRuntime.replace(next);
+        return { ok: true as const, snapshot: next, configHash };
+      } catch (error) {
+        return { ok: false as const, reason: error instanceof Error ? error.message : "routing reload failed" };
+      }
+    },
     remoteWorkspaceStopping: () => remoteWorkspaceStopping,
     onRemoteWorkspaceShutdown: shutdown => { remoteWorkspaceShutdown = shutdown; },
   };
@@ -685,6 +705,7 @@ export function startServer(port?: number, deps: StartServerDeps = {}): Server<W
       serverBusyResponse,
       runAdmittedHttpTurn,
       config,
+      routingRuntime,
       inboundBodyLimitBytes,
       listenPort,
       liveCallBindings,
