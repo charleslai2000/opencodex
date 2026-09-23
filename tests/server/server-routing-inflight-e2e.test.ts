@@ -20,7 +20,7 @@ function fixture(): OcxConfig {
   return {
     port: 0, defaultProvider: "openai", apiKeys: [{ key: "fixture-key", id: "fixture", name: "fixture", createdAt: "2026-01-01T00:00:00.000Z" }], combos: {},
     providers: {
-      openai: { adapter: "openai-responses", baseUrl: "https://chatgpt.com/backend-api/codex", authMode: "forward", codexAccountMode: "pool", models: ["gpt-6-luna", "gpt-6-terra", "gpt-6-sol"], liveModels: false, contextWindow: 1_000_000, reasoningEfforts: ["low", "medium", "high"], modelReasoningEfforts: { "gpt-6-luna": ["low", "medium", "high"], "gpt-6-terra": ["low", "medium", "high"] } },
+      openai: { adapter: "openai-responses", baseUrl: "https://chatgpt.com/backend-api/codex", authMode: "forward", codexAccountMode: "pool", models: ["gpt-6-luna", "gpt-5.6-terra", "gpt-6-sol"], liveModels: false, contextWindow: 1_000_000, reasoningEfforts: ["low", "medium", "high"], modelReasoningEfforts: { "gpt-6-luna": ["low", "medium", "high"], "gpt-5.6-terra": ["low", "medium", "high"] } },
       openrouter: { adapter: "openai-chat", baseUrl: "https://openrouter.ai/api/v1", apiKey: "fixture-key", models: ["@preset/lstack-ling-3-0-flash"], liveModels: false },
       deepseek: { adapter: "openai-chat", baseUrl: "https://api.deepseek.com", apiKey: "fixture-key", models: ["deepseek-flash"], liveModels: false },
     },

@@ -70,7 +70,7 @@ describe("switch-codex error reporting", () => {
         defaultProvider: "openai",
         combos: {},
         providers: {
-          openai: { adapter: "openai-responses", baseUrl: "https://openai.invalid", models: ["gpt-6-luna", "gpt-6-terra"] },
+          openai: { adapter: "openai-responses", baseUrl: "https://openai.invalid", models: ["gpt-6-luna", "gpt-5.6-terra"] },
           openrouter: { adapter: "openai-chat", baseUrl: "https://openrouter.invalid", models: ["@preset/lstack-ling-3-0-flash"] },
           deepseek: { adapter: "openai-chat", baseUrl: "https://deepseek.invalid", models: ["deepseek-flash"] },
         },

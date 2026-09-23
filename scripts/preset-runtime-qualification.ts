@@ -40,7 +40,7 @@ const mock = Bun.serve({ hostname: "127.0.0.1", port: mockPort, async fetch(req)
 
 const provider = (id: string, models: string[]) => ({ adapter: "openai-responses", baseUrl: `http://127.0.0.1:${mockPort}/${id}/v1`, allowPrivateNetwork: true, authMode: "forward", apiKey: "$MOCK_UPSTREAM_API_KEY", models, liveModels: false, contextWindow: id === "openrouter" ? 1_000_000 : 1_000_000, maxOutputTokens: 256_000, reasoningEfforts: ["low", "medium", "high"], modelReasoningEfforts: Object.fromEntries(models.map(model => [model, ["low", "medium", "high"]])) });
 const providers = {
-  openai: { ...provider("openai", ["gpt-6-luna", "gpt-6-terra", "gpt-6-sol"]), authMode: "key", apiKey: "$MOCK_UPSTREAM_API_KEY" },
+  openai: { ...provider("openai", ["gpt-6-luna", "gpt-5.6-terra", "gpt-6-sol"]), authMode: "key", apiKey: "$MOCK_UPSTREAM_API_KEY" },
   openrouter: provider("openrouter", ["@preset/lstack-ling-3-0-flash"]),
   deepseek: provider("deepseek", ["deepseek-flash"]),
   "deepseek-worker": provider("deepseek-worker", ["deepseek-flash"]),

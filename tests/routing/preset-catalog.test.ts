@@ -5,7 +5,7 @@ import { routeModel } from "../../src/router";
 import type { OcxConfig } from "../../src/types";
 
 const providers = {
-  openai: { adapter: "openai-responses", baseUrl: "https://openai.test", models: ["gpt-6-luna", "gpt-6-terra", "gpt-6-sol"] },
+  openai: { adapter: "openai-responses", baseUrl: "https://openai.test", models: ["gpt-6-luna", "gpt-5.6-terra", "gpt-6-sol"] },
   openrouter: { adapter: "openai-chat", baseUrl: "https://openrouter.test", models: ["@preset/lstack-ling-3-0-flash"] },
   deepseek: { adapter: "openai-chat", baseUrl: "https://deepseek.test", models: ["deepseek-flash"] },
   "deepseek-worker": { adapter: "openai-chat", baseUrl: "https://deepseek.test", models: ["deepseek-flash"] },
