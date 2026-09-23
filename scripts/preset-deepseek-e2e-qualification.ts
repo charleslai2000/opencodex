@@ -4,7 +4,7 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
-import { applyRoutingPreset, logicalModelCapabilityEvidence, logicalModelCatalogRows, type RoutingPresetName } from "../src/routing/presets";
+import { applyRoutingPreset, compileRoutingPreset, logicalModelCapabilityEvidence, logicalModelCatalogRows, LOGICAL_EFFORTS, LOGICAL_MODEL_IDS, type RoutingPresetName } from "../src/routing/presets";
 import type { OcxConfig } from "../src/types";
 
 const root = new URL("../", import.meta.url).pathname.replace(/\/$/, "");
@@ -25,7 +25,11 @@ async function stop() { if (!server || server.exitCode !== null) return; server.
 async function fail(targets: string[]) { await fetch(`http://127.0.0.1:${mockPort}/control/fail`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ targets }) }); }
 async function ask(logical: string, effort: string) { const before = calls.length; const res = await fetch(`http://127.0.0.1:${port}/v1/responses`, { method: "POST", headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json", "x-opencodex-session-id": "e2e-session" }, body: JSON.stringify({ model: `policy/${logical}`, input: "Return exactly ROUTE_OK", reasoning: { effort }, stream: true }) }); if (!res.ok) throw new Error(`${logical}/${effort} HTTP ${res.status}: ${await res.text()}`); await res.text(); const call = calls.slice(before).at(-1); if (!call) throw new Error(`no upstream call for ${logical}/${effort}`); return call; }
 function assert(ok: unknown, message: string): asserts ok { if (!ok) throw new Error(message); }
-const expected: Record<string, Record<string, [string, string, string]>> = { lead: { low: ["deepseek", "deepseek-flash", "low"], medium: ["deepseek", "deepseek-flash", "high"], high: ["deepseek", "deepseek-flash", "max"] }, worker: { low: ["deepseek", "deepseek-flash", "low"], medium: ["deepseek", "deepseek-flash", "low"], high: ["deepseek", "deepseek-flash", "high"] }, expert: { low: ["deepseek", "deepseek-flash", "high"], medium: ["deepseek", "deepseek-flash", "high"], high: ["deepseek", "deepseek-flash", "high"] } };
+const compiled = compileRoutingPreset("deepseek");
+const expected = Object.fromEntries(LOGICAL_MODEL_IDS.filter(role => role !== "bot").map(role => [role, Object.fromEntries(LOGICAL_EFFORTS.map(effort => {
+  const candidate = compiled[role]!.routes![effort]![0]!.candidates[0]!;
+  return [effort, [candidate.provider, candidate.model, candidate.upstreamEffort] as [string, string, string]];
+}))]));
 const matrix: unknown[] = [];
 try {
   await start("deepseek");

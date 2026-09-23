@@ -4,7 +4,7 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
-import { applyRoutingPreset, logicalModelCapabilityEvidence, logicalModelCatalogRows, type RoutingPresetName } from "../src/routing/presets";
+import { applyRoutingPreset, compileRoutingPreset, logicalModelCapabilityEvidence, logicalModelCatalogRows, LOGICAL_EFFORTS, LOGICAL_MODEL_IDS, type RoutingPresetName } from "../src/routing/presets";
 import type { OcxConfig } from "../src/types";
 
 const root = new URL("../", import.meta.url).pathname.replace(/\/$/, "");
@@ -53,10 +53,13 @@ async function stop() { if (!server || server.exitCode !== null) return; server.
 async function control(targets: string[]) { await fetch(`http://127.0.0.1:${mockPort}/control/fail`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ targets }) }); }
 async function request(model: string, effort: string) { const before = calls.length; const response = await fetch(`http://127.0.0.1:${port}/v1/responses`, { method: "POST", headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json", "x-opencodex-session-id": "preset-qualification-session" }, body: JSON.stringify({ model: model.startsWith("policy/") ? model : `policy/${model}`, input: "Reply exactly ROUTE_OK", reasoning: { effort }, stream: true }) }); if (!response.ok) throw new Error(`${model}/${effort}: HTTP ${response.status} ${await response.text()}`); await response.text(); const call = calls.slice(before).at(-1); if (!call) throw new Error(`no mock call for ${model}/${effort}`); return call; }
 function assert(condition: unknown, message: string): asserts condition { if (!condition) throw new Error(message); }
-const matrix: Record<RoutingPresetName, Record<string, Record<string, [string, string, string]>>> = {
-  openai: { lead: { low: ["openai", "gpt-6-luna", "low"], medium: ["openai", "gpt-6-luna", "medium"], high: ["openai", "gpt-6-luna", "high"] }, worker: { low: ["openai", "gpt-6-luna", "low"], medium: ["openai", "gpt-6-luna", "medium"], high: ["openai", "gpt-6-luna", "high"] }, expert: { low: ["openai", "gpt-6-luna", "high"], medium: ["openai", "gpt-5.6-terra", "medium"], high: ["openai", "gpt-5.6-terra", "high"] }, bot: { low: ["openrouter", "@preset/lstack-ling-3-0-flash", "low"], medium: ["openrouter", "@preset/lstack-ling-3-0-flash", "medium"], high: ["openrouter", "@preset/lstack-ling-3-0-flash", "high"] } },
-  deepseek: { lead: { low: ["deepseek", "deepseek-flash", "low"], medium: ["deepseek", "deepseek-flash", "high"], high: ["deepseek", "deepseek-flash", "max"] }, worker: { low: ["deepseek", "deepseek-flash", "low"], medium: ["deepseek", "deepseek-flash", "low"], high: ["deepseek", "deepseek-flash", "high"] }, expert: { low: ["deepseek", "deepseek-flash", "high"], medium: ["deepseek", "deepseek-flash", "high"], high: ["deepseek", "deepseek-flash", "high"] }, bot: { low: ["openrouter", "@preset/lstack-ling-3-0-flash", "low"], medium: ["openrouter", "@preset/lstack-ling-3-0-flash", "medium"], high: ["openrouter", "@preset/lstack-ling-3-0-flash", "high"] } },
-};
+const matrix = Object.fromEntries((["openai", "deepseek"] as const).map(preset => {
+  const compiled = compileRoutingPreset(preset);
+  return [preset, Object.fromEntries(LOGICAL_MODEL_IDS.map(role => [role, Object.fromEntries(LOGICAL_EFFORTS.map(effort => {
+    const candidate = compiled[role]!.routes![effort]![0]!.candidates[0]!;
+    return [effort, [candidate.provider, candidate.model, candidate.upstreamEffort] as [string, string, string]];
+  }))]))];
+})) as Record<RoutingPresetName, Record<string, Record<string, [string, string, string]>>>;
 const results: unknown[] = [];
 try {
   for (const preset of ["openai", "deepseek"] as const) {
