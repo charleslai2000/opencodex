@@ -1,10 +1,48 @@
 import { describe, expect, test } from "bun:test";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { formatSwitchError, SwitchApplyError } from "../../scripts/switch-codex";
 import { repoPath } from "../helpers/repo-root";
 
-describe("switch-codex error reporting", () => {
+describe("switch-codex CLI output", () => {
+  test("formats a successful switch as a concise route summary instead of opaque hashes", () => {
+    const source = readFileSync(repoPath("scripts", "switch-codex.ts"), "utf8");
+    expect(source).toContain("OpenCodeX preset switched to ${name}.");
+    expect(source).toContain("Logical routes:");
+    expect(source).toContain("Verified: health, readiness, catalog, and runtime routing snapshot.");
+    expect(source).toContain("Rollback snapshot saved:");
+    expect(source).not.toContain("console.log(JSON.stringify({ preset: name, snapshot: snap");
+  });
+
+  test("human route summary includes ordered fallback targets without hashes", async () => {
+    const home = mkdtempSync(join("/tmp", "switch-codex-dry-run-"));
+    try {
+      writeFileSync(join(home, "config.json"), JSON.stringify({
+        port: 1, defaultProvider: "openai", combos: {},
+        providers: {
+          openai: { adapter: "openai-responses", baseUrl: "https://openai.invalid", models: ["gpt-6-luna", "gpt-5.6-terra"] },
+          openrouter: { adapter: "openai-chat", baseUrl: "https://openrouter.invalid", models: ["@preset/lstack-ling-3-0-flash"] },
+          deepseek: { adapter: "openai-chat", baseUrl: "https://deepseek.invalid", models: ["deepseek-flash"] },
+        },
+      }));
+      const child = Bun.spawn([process.execPath, "run", repoPath("scripts", "switch-codex.ts"), "openai"], {
+        cwd: repoPath(),
+        env: { ...process.env, OPENCODEX_HOME: home, OCX_SWITCH_CONFIG: join(home, "config.json"), OCX_SWITCH_DRY_RUN: "1" },
+        stdout: "pipe", stderr: "pipe",
+      });
+      const [exitCode, stdout, stderr] = await Promise.all([child.exited, new Response(child.stdout).text(), new Response(child.stderr).text()]);
+      expect(exitCode).toBe(0);
+      expect(stderr).toBe("");
+      expect(stdout).toContain("Dry run: OpenCodeX preset would switch to openai.");
+      expect(stdout).toContain("lead    openai/gpt-6-luna");
+      expect(stdout).toContain("expert  openai/gpt-6-luna → openai/gpt-5.6-terra");
+      expect(stdout).toContain("bot     openrouter/@preset/lstack-ling-3-0-flash → deepseek/deepseek-flash");
+      expect(stdout).not.toContain("configHash");
+      expect(stdout).not.toContain("profileHash");
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
   test("prints concise failure and rollback failure without stacks by default", () => {
     const operation = new Error("cannot identify the running OpenCodeX process");
     const rollback = new Error("service did not become ready after graceful restart");

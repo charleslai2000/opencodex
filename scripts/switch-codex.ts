@@ -161,15 +161,48 @@ async function verify(expectedConfigHash?: string, expectedSnapshot?: ReturnType
   return { configHash, catalogHash: sha256(JSON.stringify(models.body)), profileHash: sha256(stable(listed.filter((p: any) => roles.includes(p.id)))), routingFingerprint: runtimeState?.routingFingerprint ?? "" };
 }
 function snapshot(bytes: Buffer, oldPreset: unknown): string { mkdirSync(snapshotDir, { recursive: true, mode: 0o700 }); const path = join(snapshotDir, `config-${Date.now()}-${String(oldPreset ?? "unknown")}.json`); writeFileSync(path, bytes, { mode: 0o600 }); chmodSync(path, 0o600); return path; }
+function describePreset(config: OcxConfig, name: RoutingPresetName): string[] {
+  const profiles = config.routingProfiles ?? {};
+  const lines: string[] = [];
+  for (const role of roles) {
+    const routes = profiles[role]?.routes;
+    const targets = new Set<string>();
+    for (const effort of efforts) {
+      for (const step of routes?.[effort] ?? []) {
+        for (const candidate of step.candidates) targets.add(`${candidate.provider}/${candidate.model}`);
+      }
+    }
+    lines.push(`  ${role.padEnd(7)} ${[...targets].join(" → ") || "(no route)"}`);
+  }
+  return lines;
+}
+function printApplySuccess(name: RoutingPresetName, config: OcxConfig, snapshotPath: string): void {
+  console.log(`OpenCodeX preset switched to ${name}.`);
+  console.log("Logical routes:");
+  for (const line of describePreset(config, name)) console.log(line);
+  console.log(`Verified: health, readiness, catalog, and runtime routing snapshot.`);
+  console.log(`Rollback snapshot saved: ${snapshotPath.split(/[\\/]/).at(-1)}`);
+}
+function printRollbackSuccess(name: string, config: OcxConfig): void {
+  console.log(`OpenCodeX preset restored from snapshot ${name}.`);
+  console.log("Logical routes:");
+  for (const line of describePreset(config, (config.routingPreset ?? "openai") as RoutingPresetName)) console.log(line);
+  console.log("Verified: health, readiness, catalog, and runtime routing snapshot.");
+}
 async function apply(name: RoutingPresetName): Promise<void> {
   const current = readConfig();
   const next = applyRoutingPreset(structuredClone(current.config), name) as OcxConfig;
   if (next.providerContextCaps?.openai !== undefined) { next.providerContextCaps = { ...next.providerContextCaps }; delete next.providerContextCaps.openai; if (Object.keys(next.providerContextCaps).length === 0) delete next.providerContextCaps; }
   validatePreset(next, name);
   const nextBytes = Buffer.from(`${JSON.stringify(next, null, 2)}\n`);
-  if (dryRun) { console.log(JSON.stringify({ dryRun: true, preset: name, configHash: sha256(nextBytes), profileHash: sha256(stable(profileState(next))) })); return; }
+  if (dryRun) {
+    console.log(`Dry run: OpenCodeX preset would switch to ${name}.`);
+    console.log("Logical routes:");
+    for (const line of describePreset(next, name)) console.log(line);
+    return;
+  }
   const snap = snapshot(current.bytes, current.config.routingPreset);
-  try { writeAtomic(nextBytes); const target = await findLiveProxy(); if (!target) throw new Error("no attested OpenCodeX process is running"); const reloaded = await requestBoundLocalRoutingReload(target, { readConfigBytes: () => readFileSync(configPath) }); const runtime = await requestBoundLocalRoutingState(target, {}); const expected = buildRoutingRuntimeSnapshot(next); const verified = await verify(sha256(nextBytes), expected, { ...runtime, expectedPid: target.pid! }); console.log(JSON.stringify({ preset: name, snapshot: snap, ...verified })); }
+  try { writeAtomic(nextBytes); const target = await findLiveProxy(); if (!target) throw new Error("no attested OpenCodeX process is running"); await requestBoundLocalRoutingReload(target, { readConfigBytes: () => readFileSync(configPath) }); const runtime = await requestBoundLocalRoutingState(target, {}); const expected = buildRoutingRuntimeSnapshot(next); await verify(sha256(nextBytes), expected, { ...runtime, expectedPid: target.pid! }); printApplySuccess(name, next, snap); }
   catch (error) {
     writeAtomic(current.bytes);
     try { const target = await findLiveProxy(); if (!target) throw new Error("no attested OpenCodeX process is running"); await requestBoundLocalRoutingReload(target, { readConfigBytes: () => readFileSync(configPath) }); const runtime = await requestBoundLocalRoutingState(target, {}); const expected = buildRoutingRuntimeSnapshot(current.config); await verify(sha256(current.bytes), expected, { ...runtime, expectedPid: target.pid! }); }
@@ -180,7 +213,7 @@ async function apply(name: RoutingPresetName): Promise<void> {
 async function rollback(): Promise<void> {
   const entries = (await import("node:fs/promises")).readdir(snapshotDir).then(xs => xs.filter(x => x.startsWith("config-") && x.endsWith(".json")).sort()).catch(() => [] as string[]);
   const names = await entries; const name = names.at(-1); if (!name) throw new Error("no preset snapshot available");
-  const bytes = readFileSync(join(snapshotDir, name)); const restored = JSON.parse(bytes.toString()) as OcxConfig; writeAtomic(bytes); const target = await findLiveProxy(); if (!target) throw new Error("no attested OpenCodeX process is running"); await requestBoundLocalRoutingReload(target, { readConfigBytes: () => readFileSync(configPath) }); const runtime = await requestBoundLocalRoutingState(target, {}); const expected = buildRoutingRuntimeSnapshot(restored); const verified = await verify(sha256(bytes), expected, { ...runtime, expectedPid: target.pid! }); console.log(JSON.stringify({ rollback: name, ...verified }));
+  const bytes = readFileSync(join(snapshotDir, name)); const restored = JSON.parse(bytes.toString()) as OcxConfig; writeAtomic(bytes); const target = await findLiveProxy(); if (!target) throw new Error("no attested OpenCodeX process is running"); await requestBoundLocalRoutingReload(target, { readConfigBytes: () => readFileSync(configPath) }); const runtime = await requestBoundLocalRoutingState(target, {}); const expected = buildRoutingRuntimeSnapshot(restored); await verify(sha256(bytes), expected, { ...runtime, expectedPid: target.pid! }); printRollbackSuccess(name, restored);
 }
 async function status(): Promise<void> {
   const current = readConfig();
@@ -189,15 +222,14 @@ async function status(): Promise<void> {
   const ready = await get("/readyz").catch(error => ({ response: { ok: false, status: 0 }, body: String(error) }));
   let checks: any = {};
   try { checks = await verify(); } catch (error) { checks.error = String(error); }
-  console.log(JSON.stringify({
-    activePreset: current.config.routingPreset ?? null,
-    runtime,
-    configHash: sha256(current.bytes),
-    profilePresence: Object.fromEntries(roles.map(role => [role, Boolean((current.config.routingProfiles as any)?.[role]?.routes)])),
-    health: { ok: health.response.ok, status: health.response.status },
-    readiness: { ok: ready.response.ok, status: ready.response.status },
-    ...checks,
-  }));
+  const activePreset = current.config.routingPreset;
+  console.log(`OpenCodeX status: ${health.response.ok && ready.response.ok ? "healthy and ready" : "not healthy/ready"}`);
+  console.log(`Active preset: ${activePreset ?? "custom / unset"}`);
+  console.log(`Runtime: ${runtime}`);
+  if (checks.error) console.log(`Verification issue: ${checks.error}`);
+  else console.log("Verified: health, readiness, and logical model catalog.");
+  console.log("Logical routes:");
+  for (const line of describePreset(current.config, (activePreset ?? "openai") as RoutingPresetName)) console.log(line);
 }
 export async function main(args: readonly string[] = process.argv.slice(2)): Promise<number> {
   const command = args[0];
