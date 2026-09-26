@@ -1,6 +1,7 @@
 {
   "server-routing-reload.test.ts": "server",
   "server-routing-inflight-e2e.test.ts": "server",
+  "server-routing-reload-surfaces.test.ts": "server",
   "server-combo-held-response.test.ts": "server",
   "ordered-route.test.ts": "routing",
   "key-attribution.test.ts": "usage",

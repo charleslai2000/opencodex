@@ -1206,9 +1206,10 @@ export function createServeOptions(ctx: ServeOptionsContext) {
           inboundProtocol: "responses",
         };
         return runAdmittedHttpTurn(req, policy, async turnAdmissionLease => {
+          const turnRouting = ctx.routingRuntime.capture();
           let response: Response;
           try {
-            response = await handleResponsesCompact(req, config, logCtx, turnAdmissionLease, admission, {
+            response = await handleResponsesCompact(req, turnRouting.config, logCtx, turnAdmissionLease, admission, {
               onRequestBodyRead: () => disableResponsesRequestTimeout(req, requestServer),
             });
           } catch {
@@ -1427,11 +1428,14 @@ export function createServeOptions(ctx: ServeOptionsContext) {
         // Logging is finalized inside handleClaudeMessages (Responses-vocab tap on the
         // pre-translation stream + native passthrough callbacks) — do not re-wrap the
         // translated Anthropic stream here.
-        return runAdmittedHttpTurn(req, policy, async turnAdmissionLease => withCors(
-          await handleClaudeMessages(req, config, logCtx, { requestId, start, turnAdmissionLease, admission }, policy),
-          req,
-          policy,
-        ), { requestId, start, logCtx });
+        return runAdmittedHttpTurn(req, policy, async turnAdmissionLease => {
+          const turnRouting = ctx.routingRuntime.capture();
+          return withCors(
+            await handleClaudeMessages(req, turnRouting.config, logCtx, { requestId, start, turnAdmissionLease, admission }, policy),
+            req,
+            policy,
+          );
+        }, { requestId, start, logCtx });
       }
 
       // OpenAI Chat Completions inbound (GitHub Copilot App / OpenAI-compatible clients).
@@ -1456,11 +1460,14 @@ export function createServeOptions(ctx: ServeOptionsContext) {
         // `policy`, not `config`: this route is now served on the unauthenticated loopback
         // listener too (#4236), and only the receiving listener's view produces CORS headers
         // that match the admission decision made above.
-        return runAdmittedHttpTurn(req, policy, async turnAdmissionLease => withCors(
-          await handleChatCompletions(req, config, logCtx, { requestId, start, turnAdmissionLease, admission }),
-          req,
-          policy,
-        ), { requestId, start, logCtx });
+        return runAdmittedHttpTurn(req, policy, async turnAdmissionLease => {
+          const turnRouting = ctx.routingRuntime.capture();
+          return withCors(
+            await handleChatCompletions(req, turnRouting.config, logCtx, { requestId, start, turnAdmissionLease, admission }),
+            req,
+            policy,
+          );
+        }, { requestId, start, logCtx });
       }
 
       if (url.pathname === "/v1/audio/transcriptions" && req.method === "POST") {
