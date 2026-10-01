@@ -1,0 +1,21 @@
+# De-escalation evidence: OCX-INC-20260923-01-I1 -> I2
+
+- task_id: OCX-INC-20260923-01
+- invocation_id: OCX-INC-20260923-01-I2
+- parent_invocation_id: OCX-INC-20260923-01-I1
+- epoch: 2
+- transition: L2 -> L4
+- source owner: debugger-deep / root orchestrator
+- target and return owner: devops-executor / root orchestrator
+- decision_id: DEC-OCX-INC-20260923-01-START-EXISTING-UNIT
+- goal: Restore the existing formal OpenCodeX proxy after all backend routes returned Connection error.
+- constraints: Start only the already enabled `opencodex.service`; do not modify its unit/config/artifact or touch unrelated listeners on 3457 or 10100.
+- confirmed facts: `opencodex.service` is inactive/dead since 2026-09-23 06:49:27 CST, Result=success, Main PID exited 0/SUCCESS, NRestarts=0. Its existing ExecStart points to immutable `/opt/opencodex-gpt6-cab39de77`, runs as `dev-codex`, listens on port 3456. Port 3456 refused connections. Unrelated ports 3457 and 10100 answered HTTP 200. Recent journal shows deactivation but no subsequent start or failure.
+- attempted approaches: Read-only systemd state/unit/journal inspection and local health checks; no production mutations.
+- unresolved uncertainties: Why the service was deliberately stopped; whether routing works upstream after local service readiness.
+- error cost: high; multiple production routing callers are affected.
+- reason L2 no longer needed: Immediate outage cause is confirmed as the exact formal listener absent because its configured unit is inactive; safe next action is a bounded start of that unchanged unit.
+- accepted procedure/oracle: `systemctl start opencodex.service`, then verify active state and HTTP health/readiness on 127.0.0.1:3456.
+- stop/rollback: If start fails or health/readiness is not successful, stop further mutation and capture concise journal evidence; do not retry or switch artifacts.
+- prohibited alternatives: Restarting unrelated services, changing configuration/unit/artifact, treating ports 3457/10100 as replacements.
+- immutable evidence references: `ops/deploy-accident-01.md`; live command output from 2026-09-23 06:53 CST; `/etc/systemd/system/opencodex.service` read-only inspection.

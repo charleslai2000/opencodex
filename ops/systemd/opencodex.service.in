@@ -1,0 +1,26 @@
+[Unit]
+Description=OpenCodeX system proxy
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/var/lib/opencodex
+Environment=HOME=/root
+Environment=USER=root
+Environment=OPENCODEX_HOME=/var/lib/opencodex
+Environment=CODEX_HOME=/home/dev-codex/.codex
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
+ExecStart=/bin/sh -lc 'if [ -r /var/lib/opencodex/service-api-token ]; then export OPENCODEX_API_AUTH_TOKEN="$(cat /var/lib/opencodex/service-api-token)"; fi; exec @ARTIFACT_ROOT@/node_modules/bun/bin/bun.exe @ARTIFACT_ROOT@/src/cli/index.ts start --port 3456'
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=90s
+KillSignal=SIGTERM
+KillMode=control-group
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

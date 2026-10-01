@@ -1,0 +1,7 @@
+state/
+sessions/
+assignments.json
+control.sqlite3
+control.sqlite3-*
+control/control.sqlite3
+control/control.sqlite3-*

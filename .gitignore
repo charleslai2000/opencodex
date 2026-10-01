@@ -70,3 +70,6 @@ go/
 
 # Rust native helpers keep their reproducible sources and lockfile in git, never local artifacts.
 native/**/target/
+
+# Local package archives produced for deployment; never commit build artifacts.
+*.tgz

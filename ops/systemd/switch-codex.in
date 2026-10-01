@@ -1,0 +1,19 @@
+#!/bin/sh
+set -eu
+if [ "$(id -u)" -ne 0 ]; then
+  exec sudo /usr/local/bin/switch-codex "$@"
+fi
+ARTIFACT=@ARTIFACT_ROOT@
+export HOME=/root OPENCODEX_HOME=/var/lib/opencodex
+export OCX_SWITCH_CONFIG=/var/lib/opencodex/config.json
+export OCX_SWITCH_ADMIN_TOKEN_FILE=/var/lib/opencodex/admin-api-token
+export OCX_SWITCH_SNAPSHOT_DIR=/var/lib/opencodex/switch-snapshots
+export OCX_SWITCH_BASE_URL=http://127.0.0.1:3456
+export OCX_SWITCH_RUNTIME="$ARTIFACT"
+tmp=$(mktemp)
+trap 'rm -f "$tmp"' EXIT
+if ! "$ARTIFACT/node_modules/bun/bin/bun.exe" "$ARTIFACT/scripts/switch-codex.ts" "$@" >"$tmp"; then
+  cat "$tmp"
+  exit 1
+fi
+cat "$tmp"
