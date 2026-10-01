@@ -63,7 +63,7 @@ export class SwitchApplyError extends Error {
     super(
       rollbackError === undefined
         ? `apply failed; snapshot restored: ${errorMessage(operationError)}`
-        : `apply failed; rollback verification failed: ${errorMessage(rollbackError)}`,
+        : `apply failed: ${errorMessage(operationError)}; snapshot restored, but runtime rollback could not be verified: ${errorMessage(rollbackError)}`,
       { cause: operationError },
     );
     this.name = "SwitchApplyError";
@@ -76,7 +76,7 @@ export function formatSwitchError(error: unknown): string {
   if (error instanceof SwitchApplyError) {
     const message = `switch-codex failed: ${error.message}`;
     if (error.rollbackError === undefined) return message;
-    return `${message}\nrollback failed: ${errorMessage(error.rollbackError)}${debug ? `\n${errorStack(error.operationError)}\n${errorStack(error.rollbackError)}` : ""}`;
+    return `${message}${debug ? `\n${errorStack(error.operationError)}\n${errorStack(error.rollbackError)}` : ""}`;
   }
   const reason = errorMessage(error);
   return `switch-codex failed: ${reason}${debug ? `\n${errorStack(error)}` : ""}`;
@@ -202,10 +202,12 @@ async function apply(name: RoutingPresetName): Promise<void> {
     return;
   }
   const snap = snapshot(current.bytes, current.config.routingPreset);
-  try { writeAtomic(nextBytes); const target = await findLiveProxy(); if (!target) throw new Error("no attested OpenCodeX process is running"); await requestBoundLocalRoutingReload(target, { readConfigBytes: () => readFileSync(configPath) }); const runtime = await requestBoundLocalRoutingState(target, {}); const expected = buildRoutingRuntimeSnapshot(next); await verify(sha256(nextBytes), expected, { ...runtime, expectedPid: target.pid! }); printApplySuccess(name, next, snap); }
+  const target = await findLiveProxy();
+  if (!target) throw new Error("could not attest the running OpenCodeX process; configuration was not changed");
+  try { writeAtomic(nextBytes); await requestBoundLocalRoutingReload(target, { readConfigBytes: () => readFileSync(configPath) }); const runtime = await requestBoundLocalRoutingState(target, {}); const expected = buildRoutingRuntimeSnapshot(next); await verify(sha256(nextBytes), expected, { ...runtime, expectedPid: target.pid! }); printApplySuccess(name, next, snap); }
   catch (error) {
     writeAtomic(current.bytes);
-    try { const target = await findLiveProxy(); if (!target) throw new Error("no attested OpenCodeX process is running"); await requestBoundLocalRoutingReload(target, { readConfigBytes: () => readFileSync(configPath) }); const runtime = await requestBoundLocalRoutingState(target, {}); const expected = buildRoutingRuntimeSnapshot(current.config); await verify(sha256(current.bytes), expected, { ...runtime, expectedPid: target.pid! }); }
+    try { const target = await findLiveProxy(); if (!target) throw new Error("could not attest the running OpenCodeX process while restoring the previous runtime route"); await requestBoundLocalRoutingReload(target, { readConfigBytes: () => readFileSync(configPath) }); const runtime = await requestBoundLocalRoutingState(target, {}); const expected = buildRoutingRuntimeSnapshot(current.config); await verify(sha256(current.bytes), expected, { ...runtime, expectedPid: target.pid! }); }
     catch (rollbackError) { throw new SwitchApplyError(error, rollbackError); }
     throw new SwitchApplyError(error);
   }
@@ -213,7 +215,8 @@ async function apply(name: RoutingPresetName): Promise<void> {
 async function rollback(): Promise<void> {
   const entries = (await import("node:fs/promises")).readdir(snapshotDir).then(xs => xs.filter(x => x.startsWith("config-") && x.endsWith(".json")).sort()).catch(() => [] as string[]);
   const names = await entries; const name = names.at(-1); if (!name) throw new Error("no preset snapshot available");
-  const bytes = readFileSync(join(snapshotDir, name)); const restored = JSON.parse(bytes.toString()) as OcxConfig; writeAtomic(bytes); const target = await findLiveProxy(); if (!target) throw new Error("no attested OpenCodeX process is running"); await requestBoundLocalRoutingReload(target, { readConfigBytes: () => readFileSync(configPath) }); const runtime = await requestBoundLocalRoutingState(target, {}); const expected = buildRoutingRuntimeSnapshot(restored); await verify(sha256(bytes), expected, { ...runtime, expectedPid: target.pid! }); printRollbackSuccess(name, restored);
+  const target = await findLiveProxy(); if (!target) throw new Error("could not attest the running OpenCodeX process; rollback was not applied");
+  const bytes = readFileSync(join(snapshotDir, name)); const restored = JSON.parse(bytes.toString()) as OcxConfig; writeAtomic(bytes); await requestBoundLocalRoutingReload(target, { readConfigBytes: () => readFileSync(configPath) }); const runtime = await requestBoundLocalRoutingState(target, {}); const expected = buildRoutingRuntimeSnapshot(restored); await verify(sha256(bytes), expected, { ...runtime, expectedPid: target.pid! }); printRollbackSuccess(name, restored);
 }
 async function status(): Promise<void> {
   const current = readConfig();
@@ -221,7 +224,7 @@ async function status(): Promise<void> {
   const health = await get("/healthz").catch(error => ({ response: { ok: false, status: 0 }, body: String(error) }));
   const ready = await get("/readyz").catch(error => ({ response: { ok: false, status: 0 }, body: String(error) }));
   let checks: any = {};
-  try { checks = await verify(); } catch (error) { checks.error = String(error); }
+  try { checks = await verify(); } catch (error) { checks.error = errorMessage(error); }
   const activePreset = current.config.routingPreset;
   console.log(`OpenCodeX status: ${health.response.ok && ready.response.ok ? "healthy and ready" : "not healthy/ready"}`);
   console.log(`Active preset: ${activePreset ?? "custom / unset"}`);

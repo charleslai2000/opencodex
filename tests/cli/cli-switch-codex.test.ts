@@ -12,6 +12,9 @@ describe("switch-codex CLI output", () => {
     expect(source).toContain("Verified: health, readiness, catalog, and runtime routing snapshot.");
     expect(source).toContain("Rollback snapshot saved:");
     expect(source).not.toContain("console.log(JSON.stringify({ preset: name, snapshot: snap");
+    expect(source).not.toContain("console.log(JSON.stringify({");
+    expect(source).toContain("OpenCodeX status: ");
+    expect(source).toContain("configuration was not changed");
   });
 
   test("human route summary includes ordered fallback targets without hashes", async () => {
@@ -49,8 +52,7 @@ describe("switch-codex CLI output", () => {
 
     const rendered = formatSwitchError(new SwitchApplyError(operation, rollback));
 
-    expect(rendered).toContain("switch-codex failed: apply failed; rollback verification failed");
-    expect(rendered).toContain("rollback failed: service did not become ready after graceful restart");
+    expect(rendered).toContain("switch-codex failed: apply failed: cannot identify the running OpenCodeX process; snapshot restored, but runtime rollback could not be verified: service did not become ready after graceful restart");
     expect(rendered).not.toContain("original error:");
     expect(rendered).not.toContain("cli-switch-codex.test.ts");
     expect(rendered).not.toContain("Unhandled");
@@ -135,8 +137,8 @@ describe("switch-codex CLI output", () => {
 
       expect(exitCode).toBe(1);
       expect(stdout).toBe("");
-      expect(stderr).toContain("switch-codex failed: apply failed; rollback verification failed");
-      expect(stderr).toContain("rollback failed: no attested OpenCodeX process is running");
+      expect(stderr).toContain("switch-codex failed: could not attest the running OpenCodeX process; configuration was not changed");
+      expect(stderr).not.toContain("rollback verification failed");
       expect(stderr).not.toContain("original error:");
       expect(stderr).not.toContain("scripts/switch-codex.ts");
       expect(stderr).not.toContain(home);

@@ -282,13 +282,14 @@ export async function findLiveProxy(io: LivenessIo = {}): Promise<LiveProxy | nu
   const config = configFn();
   const port = config.port ?? 10100;
   if (budgetExhausted()) return null;
+  const runtimeFallback = readRuntimeFn();
   const identity = await proxyIdentityAt(port, { hostname: config.hostname }, probeIo);
   if (identity) {
     return {
       pid: verifiedReportedPid(identity.pid) ?? killablePid(pid),
       port,
       hostname: config.hostname,
-      source: "config",
+      source: identity.pid !== null && runtimeFallback?.pid === identity.pid && runtimeFallback.port === port ? "runtime" : "config",
       ...(identity.version === undefined ? {} : { version: identity.version }),
       ...(identity.role === undefined ? {} : { role: identity.role }),
     };

@@ -264,6 +264,17 @@ describe("findLiveProxy", () => {
     expect(live).toEqual({ pid: 4242, port: 10100, source: "config", version: "2.6.17" });
   });
 
+  test("runtime record can attest configured-port fallback after wildcard bind is unreachable locally", async () => {
+    const live = await findLiveProxy({
+      readPidFn: () => 4242,
+      verifyPidFn: candidate => candidate,
+      readRuntimeFn: () => ({ pid: 4242, port: 10100, hostname: "0.0.0.0", attestationSecret: "a".repeat(43) }),
+      configFn: () => ({ port: 10100 }),
+      fetchFn: (async () => healthz(OURS)) as typeof fetch,
+    });
+    expect(live).toMatchObject({ pid: 4242, port: 10100, source: "runtime" });
+  });
+
   test("a foreign listener on the configured port is not treated as our proxy", async () => {
     const live = await findLiveProxy({
       readPidFn: () => null,
