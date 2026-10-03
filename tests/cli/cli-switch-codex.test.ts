@@ -15,6 +15,8 @@ describe("switch-codex CLI output", () => {
     expect(source).not.toContain("console.log(JSON.stringify({");
     expect(source).toContain("OpenCodeX status: ");
     expect(source).toContain("configuration was not changed");
+    expect(source).toContain("const PROXY_DISCOVERY = { timeoutMs: 5_000, attempts: 3 }");
+    expect(source).toContain("const MANAGEMENT_TIMEOUT_MS = 20_000;");
   });
 
   test("human route summary includes ordered fallback targets without hashes", async () => {
@@ -137,7 +139,7 @@ describe("switch-codex CLI output", () => {
 
       expect(exitCode).toBe(1);
       expect(stdout).toBe("");
-      expect(stderr).toContain("switch-codex failed: could not attest the running OpenCodeX process; configuration was not changed");
+      expect(stderr).toContain("switch-codex failed: could not attest the running OpenCodeX process after three bounded health probes; configuration was not changed");
       expect(stderr).not.toContain("rollback verification failed");
       expect(stderr).not.toContain("original error:");
       expect(stderr).not.toContain("scripts/switch-codex.ts");

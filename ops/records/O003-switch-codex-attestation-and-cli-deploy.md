@@ -64,10 +64,30 @@ Two further defects were fixed in the same change set:
 
 ## Open items
 
-- The first switch attempt after the service restart failed once with
-  `apply failed; snapshot restored: The operation timed out.`; a retry seconds later
-  succeeded and the condition has not recurred. Catalog and management endpoints
-  measured 0.1 s or less afterwards, so the onset coincided with post-restart provider
-  model discovery rather than a persistent condition. Not explained further.
 - The fix is not committed; a future deployment from a clean checkout of `2c45d767`
   would ship the old `switch-codex`.
+
+## Addendum 2026-10-03 — attestation failed again under host load
+
+Repeated `switch-codex deepseek` failures returned `could not attest the running
+OpenCodeX process` while PID 2075 was running, `runtime-port.json` recorded the same
+PID and port, and the unit was active. Direct probes showed the cause was not identity:
+`/healthz` intermittently exceeded the switch client's 750 ms default probe, and
+`/v1/models` took 11-12 s against a 5 s client timeout. The host was under sustained
+load from several `pi` processes (load average ~13, service at ~65% CPU), and simple
+loopback requests to `/healthz` alone timed out at 3-8 s.
+
+Resolution: the switch client now probes with a bounded 5 s budget and 3 attempts, and
+uses a 20 s timeout for management reads and the routing reload. Source: `scripts/switch-codex.ts`.
+The running artifact's `scripts/switch-codex.ts` was updated in place (backup:
+`/var/lib/opencodex/switch-codex.ts.pre-timeout-fix-20261003160730`) without restarting
+the service; service PID 2075 was unchanged throughout.
+
+Verification: `switch-codex status` reports healthy/ready and passes catalog verification
+under the same load; two `switch-codex deepseek` runs succeeded; `/var/lib/opencodex/usage.jsonl`
+shows `requestedModel: lead` served by `deepseek/deepseek-flash` (status 200) afterwards.
+
+Consequence to respect: the deployed artifact's tree digest no longer matches its
+`RELEASE-PROVENANCE.json`, because a file inside the artifact changed after installation.
+The next deployment must be built from a commit that contains this fix, and should not be
+verified against the old provenance digest.
