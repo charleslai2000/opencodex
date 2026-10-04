@@ -81,13 +81,16 @@ const oldExec = run(["systemctl", "show", "opencodex.service", "-p", "ExecStart"
 const oldConfigHash = sha256(configBytes);
 const configStat = await stat(CONFIG);
 const oldRuntime = JSON.parse(run(["python3", "-c", `import json;print(json.dumps(json.load(open('${CONFIG}'))))`], { capture: true })) as { routingPreset?: string };
-if (oldRuntime.routingPreset !== "openai") throw new Error("production preset must be openai before artifact deployment");
+const activePreset = oldRuntime.routingPreset ?? null;
+if (activePreset !== null && activePreset !== "openai" && activePreset !== "deepseek") {
+  throw new Error("production routingPreset is unsupported before artifact deployment");
+}
 if (run(["systemctl", "is-active", "opencodex.service"], { capture: true }) !== "active" || !Number(oldMainPid)) throw new Error("the sole production service is not active before upgrade");
 await mkdir(backupDir, { recursive: true, mode: 0o700 }); await chmod(backupDir, 0o700); await chown(backupDir, 0, 0);
 await writeFile(join(backupDir, "opencodex.service"), oldUnit, { mode: 0o600 });
 await writeFile(join(backupDir, "switch-codex"), oldSwitch, { mode: 0o600 });
 await writeFile(join(backupDir, "config.json"), configBytes, { mode: 0o600 });
-await writeFile(join(backupDir, "deployment.json"), JSON.stringify({ sourceCommit, sourceTree, sourceArchiveSha256: sourceSha256, packageSha256: packageHash, bunLockSha256: lockHash, priorPid: Number(oldMainPid), priorExecStart: oldExec, priorConfigSha256: oldConfigHash, priorPreset: oldRuntime.routingPreset ?? null }, null, 2) + "\n", { mode: 0o600 });
+await writeFile(join(backupDir, "deployment.json"), JSON.stringify({ sourceCommit, sourceTree, sourceArchiveSha256: sourceSha256, packageSha256: packageHash, bunLockSha256: lockHash, priorPid: Number(oldMainPid), priorExecStart: oldExec, priorConfigSha256: oldConfigHash, priorPreset: activePreset }, null, 2) + "\n", { mode: 0o600 });
 await mkdir(stage, { recursive: false, mode: 0o755 }); await chmod(stage, 0o755); await chown(stage, 0, 0);
 let installed = false;
 try {
@@ -140,7 +143,7 @@ try {
   if (finalDigests.digest !== finalProvenance.artifactTreeSha256 || finalDigests.permissions !== finalProvenance.permissionManifestSha256) throw new Error("artifact tree/provenance digest mismatch");
   const owner = run(["systemctl", "show", "opencodex.service", "-p", "User", "--value"], { capture: true });
   if (owner !== "root") throw new Error("deployed systemd service is not running as root");
-  console.log(JSON.stringify({ artifact, sourceCommit, ...digests, sourceArchiveSha256: sourceSha256, bunLockSha256: lockHash, packageSha256: packageHash, backupDir, priorPid: Number(oldMainPid), pid: h.pid, configSha256: oldConfigHash, activePreset: oldRuntime.routingPreset ?? null, health: health.status, ready: ready.status }, null, 2));
+  console.log(JSON.stringify({ artifact, sourceCommit, ...digests, sourceArchiveSha256: sourceSha256, bunLockSha256: lockHash, packageSha256: packageHash, backupDir, priorPid: Number(oldMainPid), pid: h.pid, configSha256: oldConfigHash, activePreset, health: health.status, ready: ready.status }, null, 2));
 } catch (error) {
   console.error(`deployment failed: ${error instanceof Error ? error.message : String(error)}`);
   try {

@@ -28,4 +28,15 @@ describe("versioned production deployment contract", () => {
     expect(deploy).toContain("systemctl");
     expect(deploy).not.toContain("3457");
   });
+
+  test("deployment preserves config as-is and accepts the no-preset runtime", () => {
+    const deploy = readFileSync(repoPath("scripts/deploy-production.ts"), "utf8");
+    expect(deploy).toContain("const activePreset = oldRuntime.routingPreset ?? null");
+    expect(deploy).toContain('activePreset !== null && activePreset !== "openai" && activePreset !== "deepseek"');
+    expect(deploy).not.toContain("production preset must be openai");
+    expect(deploy).toContain("priorConfigSha256: oldConfigHash");
+    expect(deploy).toContain("sha256(await readFile(CONFIG)) !== oldConfigHash");
+    expect(deploy).not.toContain("applyRoutingPreset(");
+    expect(deploy).not.toContain('run(["switch-codex"');
+  });
 });
