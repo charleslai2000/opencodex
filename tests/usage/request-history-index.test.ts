@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { Database } from "bun:sqlite";
 import {
   appendFileSync,
   existsSync,
@@ -21,13 +22,18 @@ import {
 } from "../../src/usage/log";
 import {
   closeRequestHistoryIndex,
+  initializeRequestHistoryIndexSync,
+  openRequestHistoryIndexSync,
   queryRequestHistory,
   rebuildRequestHistoryIndex,
+  requestHistoryIntegrityCheckRuns,
+  requestHistoryDb,
   requestHistoryRowById,
   REQUEST_HISTORY_MAX_RECORD_BYTES,
   REQUEST_HISTORY_MAX_PAGE_SIZE,
   REQUEST_HISTORY_READ_CHUNK_BYTES,
 } from "../../src/routing/history/indexer";
+import { healthEvidenceForCandidate } from "../../src/routing/health";
 import { InvalidCursorError } from "../../src/routing/history/cursor";
 import { HISTORY_DB_FILENAME } from "../../src/routing/history/schema";
 import { getConfigDir } from "../../src/config";
@@ -122,6 +128,20 @@ describe("request-history index (RI-02)", () => {
     expect(after.meta.lastError).not.toMatch(/identity changed/i);
   });
 
+  test("startup qualification checks once and hundreds of route health refreshes reuse the handle", () => {
+    for (const row of seedRows(5)) appendUsageEntry(row);
+    const checksBeforeStartup = requestHistoryIntegrityCheckRuns();
+    initializeRequestHistoryIndexSync();
+    const handle = requestHistoryDb();
+    expect(requestHistoryIntegrityCheckRuns() - checksBeforeStartup).toBe(1);
+    for (let index = 0; index < 500; index++) {
+      healthEvidenceForCandidate({ provider: "a", model: `m${index}`, now: 1_000_000 + index * 2_000 });
+      openRequestHistoryIndexSync();
+      expect(requestHistoryDb()).toBe(handle);
+    }
+    expect(requestHistoryIntegrityCheckRuns() - checksBeforeStartup).toBe(1);
+  });
+
   test("appended rows are ingested as a tail, never a full rebuild", async () => {
     for (const row of seedRows(5)) appendUsageEntry(row);
     const first = await queryRequestHistory({}, undefined, 10);
@@ -182,27 +202,30 @@ describe("request-history index (RI-02)", () => {
     expect(pages).toBe(15);
   });
 
-  test("corrupt database is repaired by a full rebuild without losing canonical rows", async () => {
+  test("corrupt database is reported and preserved for operator inspection", async () => {
     for (const row of seedRows(8)) appendUsageEntry(row);
     await queryRequestHistory({}, undefined, 10);
     closeRequestHistoryIndex();
     const dbFile = join(getConfigDir(), HISTORY_DB_FILENAME);
     writeFileSync(dbFile, "this is not a sqlite file at all");
-    const page = await queryRequestHistory({}, undefined, 10);
-    expect(page.rows.length).toBe(8);
-    expect(page.meta.lastError).toContain("rebuilt");
+    const corruptBytes = readFileSync(dbFile);
+    const corruptInode = statSync(dbFile).ino;
+    await expect(queryRequestHistory({}, undefined, 10)).rejects.toThrow(/qualification failed; database preserved/);
+    expect(readFileSync(dbFile)).toEqual(corruptBytes);
+    expect(statSync(dbFile).ino).toBe(corruptInode);
+    expect(readFileSync(usageLogPath()).toString("utf-8").trim().split("\n")).toHaveLength(8);
   });
 
-  test("old schema version triggers a rebuild", async () => {
+  test("old schema version is reported without replacing indexed history", async () => {
     for (const row of seedRows(4)) appendUsageEntry(row);
     await queryRequestHistory({}, undefined, 10);
-    const { Database } = await import("bun:sqlite");
     const db = new Database(join(getConfigDir(), HISTORY_DB_FILENAME));
     db.query("UPDATE schema_meta SET value = '999' WHERE key = 'schema_version'").run();
     db.close();
-    const page = await queryRequestHistory({}, undefined, 10);
-    expect(page.rows.length).toBe(4);
-    expect(page.meta.schemaVersion).toBe(1);
+    await expect(queryRequestHistory({}, undefined, 10)).rejects.toThrow(/schema version 999/);
+    const verify = new Database(join(getConfigDir(), HISTORY_DB_FILENAME), { readonly: true });
+    expect((verify.query("SELECT COUNT(*) AS count FROM requests").get() as { count: number }).count).toBe(4);
+    verify.close();
   });
 
   test("partial final JSONL line is skipped until it completes", async () => {
@@ -262,26 +285,26 @@ describe("request-history index (RI-02)", () => {
     expect(page.meta.indexedRows).toBe(3);
   });
 
-  test("JSONL truncation triggers a rebuild that mirrors the truncated ledger", async () => {
+  test("JSONL truncation is reported without deleting indexed history", async () => {
     for (const row of seedRows(10)) appendUsageEntry(row);
     await queryRequestHistory({}, undefined, 10);
     const { usageLogPath } = await import("../../src/usage/log");
     truncateSync(usageLogPath(), 0);
-    const page = await queryRequestHistory({}, undefined, 10);
-    expect(page.rows.length).toBe(0);
-    expect(page.meta.indexedRows).toBe(0);
+    await expect(queryRequestHistory({}, undefined, 10)).rejects.toThrow(/ledger was truncated/);
+    const handle = requestHistoryDb();
+    expect((handle.query("SELECT COUNT(*) AS count FROM requests").get() as { count: number }).count).toBe(10);
   });
 
-  test("JSONL replacement (new file identity) rebuilds from the new ledger", async () => {
+  test("JSONL replacement is reported without replacing indexed history", async () => {
     for (const row of seedRows(5, 500)) appendUsageEntry(row);
     await queryRequestHistory({}, undefined, 10);
     const { usageLogPath } = await import("../../src/usage/log");
     // Replace the file wholesale (new inode on most platforms).
     rmSync(usageLogPath(), { force: true });
     for (const row of seedRows(7, 7000, "b")) appendUsageEntry(row);
-    const page = await queryRequestHistory({}, undefined, 10);
-    expect(page.rows.length).toBe(7);
-    expect(page.rows.every(row => row.provider === "b")).toBe(true);
+    await expect(queryRequestHistory({}, undefined, 10)).rejects.toThrow(/source identity changed/);
+    const handle = requestHistoryDb();
+    expect((handle.query("SELECT COUNT(*) AS count FROM requests").get() as { count: number }).count).toBe(5);
   });
 
   test("filters: provider, model, status, conversationId, surface, date range", async () => {

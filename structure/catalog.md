@@ -466,6 +466,8 @@ Account quota surfaces use [safe probe diagnostics](transports/inventory.md#acco
 
 Live sideband admission and its bounded upstream handshake follow the [runtime contract](runtime.md#live-sideband-handshake); the ordinary Responses WebSocket exchange remains separate.
 
+`src/routing/history/indexer.ts` qualifies schema, source identity, and SQLite integrity during server startup, then validates cheap metadata on refresh. The server keeps one database handle for its lifetime, so full `quick_check` runs once before the listener admits requests. Qualification failures preserve the existing database for operator inspection; automatic refresh never replaces or truncates indexed history.
+
 ## Provider-scoped approval reviewer
 
 `src/codex/catalog/auto-review.ts` resolves exact case-preserving provider/model reviewer selectors against the final catalog in both retained sync and `src/codex/convergence.ts`. Valid per-model selection wins over valid provider-wide selection, then the root selector supplies fallback. Native root stamps retain the observed original value and applied selector bound to their slug; removal restores the original only while the applied value is unchanged. The native provenance remains after restoration so an equal provider reviewer cannot trigger legacy reclassification on the next sync. Ambiguous legacy unmarked catalogs retain their existing heuristic cleanup. Provider stamps do not change routing or credentials.

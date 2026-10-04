@@ -24,6 +24,7 @@ import {
 } from "./startup-warnings";
 
 import { remoteWorkspaceEnabled } from "../../remote-control/workspace-activation";
+import { initializeRequestHistoryIndexSync, requestHistoryIntegrityCheckRuns } from "../../routing/history/indexer";
 import { markActivity } from "../../lib/sidecar-tracker";
 import { knownModelIdsForProvider } from "../../router";
 import {
@@ -245,6 +246,9 @@ export interface ServeOptionsContext {
 }
 
 export function createServeOptions(ctx: ServeOptionsContext) {
+  // Qualify the persistent history index before Bun.serve can admit routing.
+  initializeRequestHistoryIndexSync();
+  console.info(`[opencodex] request-history SQLite quick_check complete (runs=${requestHistoryIntegrityCheckRuns()})`);
   const {
     drainingResponse,
     ingressForServer,

@@ -1,12 +1,10 @@
 /**
  * Derived request-history index (RI-02).
  *
- * `usage.jsonl` stays canonical; this module maintains a rebuildable SQLite
- * projection (ADR-1, ADR-8). On every open/query it verifies schema version,
- * file identity, integrity, and byte offset, then appends whatever complete
- * JSONL rows arrived since the last index. Missing/corrupt/stale index or a
- * replaced/truncated source triggers an automatic full rebuild; canonical
- * history is never touched.
+ * `usage.jsonl` stays canonical; this module maintains a SQLite projection
+ * (ADR-1, ADR-8). Startup qualifies schema, file identity, and integrity;
+ * refreshes validate cheap metadata and append complete JSONL rows. Automatic
+ * recovery never replaces or truncates an existing history database.
  */
 
 import { Database } from "bun:sqlite";
@@ -16,7 +14,6 @@ import {
   fstatSync,
   openSync,
   readSync,
-  unlinkSync,
 } from "node:fs";
 import { getConfigDir } from "../../config";
 import { recordOwnedConfigPath } from "../../lib/config-ownership";
@@ -85,6 +82,8 @@ export const REQUEST_HISTORY_MAX_RECORD_BYTES = 1024 * 1024;
 let db: Database | null = null;
 let dbPath = "";
 let openPromise: Promise<RequestHistoryIndexMeta> | null = null;
+let integrityCheckedHandles = new WeakSet<Database>();
+let integrityCheckRuns = 0;
 
 function indexDbPath(): string {
   const dir = getConfigDir();
@@ -315,6 +314,7 @@ function recordSourceMeta(dbHandle: Database, revision: UsageLogRevision | null)
 
 function isHealthy(dbHandle: Database): boolean {
   try {
+    integrityCheckRuns += 1;
     const row = dbHandle.query("PRAGMA quick_check").get() as { quick_check?: string } | undefined;
     return row?.quick_check === "ok";
   } catch {
@@ -322,32 +322,11 @@ function isHealthy(dbHandle: Database): boolean {
   }
 }
 
-function destroyAndRecreate(path: string, reason: string): Database {
-  if (db) {
-    try { db.close(); } catch { /* already closed */ }
-    db = null;
+class RequestHistoryQualificationError extends Error {
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = "RequestHistoryQualificationError";
   }
-  // Windows: a partially-opened handle from a failed `new Database` can hold
-  // the file briefly after the throw. Retry the unlink before recreating.
-  for (let attempt = 0; attempt < 5; attempt++) {
-    try {
-      for (const suffix of ["-wal", "-shm"] as const) {
-        try { unlinkSync(`${path}${suffix}`); } catch { /* sidecar may not exist */ }
-      }
-      unlinkSync(path);
-      break;
-    } catch {
-      if (attempt === 4) break;
-      Bun.sleepSync(50);
-    }
-  }
-  const fresh = new Database(path, { create: true });
-  fresh.exec("PRAGMA journal_mode = WAL");
-  fresh.exec("PRAGMA busy_timeout = 5000");
-  resetAndCreateSchema(fresh);
-  setMeta(fresh, HISTORY_META_KEYS.lastError, reason);
-  db = fresh;
-  return fresh;
 }
 
 function openIndexDb(): Database {
@@ -355,54 +334,56 @@ function openIndexDb(): Database {
   if (db) return db;
   let handle: Database | undefined;
   try {
+    const fresh = !existsSync(path);
     handle = new Database(path, { create: true });
-    handle.exec("PRAGMA journal_mode = WAL");
     handle.exec("PRAGMA busy_timeout = 5000");
-    handle.exec(HISTORY_DDL);
-    if (metaValue(handle, HISTORY_META_KEYS.schemaVersion) === null) {
-      // Fresh database: record the schema version so the next refresh treats
-      // it as current instead of destroying the file we just created.
+    if (fresh) {
+      handle.exec("PRAGMA journal_mode = WAL");
+      handle.exec(HISTORY_DDL);
+      // Fresh database: record its schema version.
       setMeta(handle, HISTORY_META_KEYS.schemaVersion, HISTORY_SCHEMA_VERSION);
       setMeta(handle, HISTORY_META_KEYS.indexedOffset, 0);
       setMeta(handle, HISTORY_META_KEYS.indexedRows, 0);
       setMeta(handle, HISTORY_META_KEYS.builtAtMs, Date.now());
       setMeta(handle, HISTORY_META_KEYS.lastError, "created");
+      recordSourceMeta(handle, sourceIdentity());
     }
-  } catch {
-    // A partially-opened handle on a corrupt file can hold the OS lock on
-    // Windows; close it before the destructive recreate.
+  } catch (error) {
+    // Keep the original database and sidecars intact for operator inspection.
     if (handle) {
       try { handle.close(); } catch { /* already unusable */ }
     }
-    handle = destroyAndRecreate(path, "unreadable database recreated");
+    throw new RequestHistoryQualificationError(`Unable to open request-history database at ${path}: ${String(error)}`, { cause: error });
   }
   dbPath = path;
   db = handle;
   return handle;
 }
 
-function ensureSchemaAndIdentity(dbHandle: Database): "ready" | "rebuilt" {
+function ensureSchemaAndIdentity(dbHandle: Database): void {
   try {
     const storedVersion = metaValue(dbHandle, HISTORY_META_KEYS.schemaVersion);
     if (storedVersion !== String(HISTORY_SCHEMA_VERSION)) {
-      destroyAndRecreate(dbPath, `schema version ${storedVersion ?? "missing"} -> ${HISTORY_SCHEMA_VERSION}`);
-      return "rebuilt";
+      throw new RequestHistoryQualificationError(
+        `Request-history schema version ${storedVersion ?? "missing"} does not match ${HISTORY_SCHEMA_VERSION}`,
+      );
     }
-    if (!isHealthy(dbHandle)) {
-      destroyAndRecreate(dbPath, "integrity check failed; index rebuilt");
-      return "rebuilt";
+    // quick_check visits every SQLite page. Routing-time health evidence opens
+    // this index synchronously, so repeat checks on the same handle turn a
+    // large history database into per-candidate main-thread disk work.
+    if (!integrityCheckedHandles.has(dbHandle)) {
+      if (!isHealthy(dbHandle)) {
+        throw new RequestHistoryQualificationError("Request-history SQLite integrity check failed; database preserved");
+      }
+      integrityCheckedHandles.add(dbHandle);
     }
     const revision = sourceIdentity();
     if (!sourceIdentityMatches(dbHandle, revision)) {
-      destroyAndRecreate(dbPath, "source identity changed; index rebuilt");
-      return "rebuilt";
+      throw new RequestHistoryQualificationError("Request-history source identity changed; database preserved");
     }
-    return "ready";
-  } catch {
-    // A file that opens but is not actually SQLite (or is mid-corruption)
-    // throws on the first statement; treat it as corrupt and rebuild.
-    destroyAndRecreate(dbPath, "index unreadable; rebuilt");
-    return "rebuilt";
+  } catch (error) {
+    if (error instanceof RequestHistoryQualificationError) throw error;
+    throw new RequestHistoryQualificationError("Request-history qualification failed; database preserved", { cause: error });
   }
 }
 
@@ -428,24 +409,19 @@ function fullRebuild(dbHandle: Database, reason: string): void {
 
 function refreshLockedSync(): RequestHistoryIndexMeta {
   openIndexDb();
-  const state = ensureSchemaAndIdentity(db!);
+  ensureSchemaAndIdentity(db!);
   const handle = db!;
   const revision = sourceIdentity();
-  if (state === "rebuilt") {
-    fullRebuild(db!, "rebuilt after identity/schema mismatch");
-    return metaFor(db!);
-  }
   const current = readIndexedMeta(handle);
   if (revision === null) {
-    // Source gone: the derived index must not outlive its canonical ledger.
-    if (current.indexedRows > 0) fullRebuild(handle, "source ledger missing; index reset");
+    if (current.indexedRows > 0) {
+      throw new RequestHistoryQualificationError("Request-history source ledger is missing; database preserved");
+    }
     return metaFor(handle);
   }
   const tailNextOffset = current.indexedOffset;
   if (Number(revision.size) < tailNextOffset) {
-    // Truncated source: offsets no longer make sense.
-    fullRebuild(handle, "source truncated; index rebuilt");
-    return metaFor(handle);
+    throw new RequestHistoryQualificationError("Request-history source ledger was truncated; database preserved");
   }
     if (tailNextOffset < Number(revision.size)) {
       const inserted = ingestSourceTail(handle, revision.path, tailNextOffset);
@@ -461,10 +437,19 @@ export function openRequestHistoryIndexSync(): RequestHistoryIndexMeta {
   return refreshLockedSync();
 }
 
+/** Qualify the persistent index during server startup, before routing begins. */
+export function initializeRequestHistoryIndexSync(): void {
+  refreshLockedSync();
+}
+
+/** Number of full SQLite integrity scans executed by this process. */
+export function requestHistoryIntegrityCheckRuns(): number {
+  return integrityCheckRuns;
+}
+
 /**
  * Open (and refresh) the index. Single-flight: concurrent callers share one
- * refresh. Never throws for missing/corrupt index or ledger state; those are
- * repaired or reflected in the returned meta.
+ * refresh. Qualification failures reject without modifying the existing DB.
  */
 export function openRequestHistoryIndex(): Promise<RequestHistoryIndexMeta> {
   if (!openPromise) {
@@ -481,6 +466,7 @@ export function closeRequestHistoryIndex(): void {
     db = null;
   }
   openPromise = null;
+  integrityCheckedHandles = new WeakSet<Database>();
 }
 
 /** Force a full rebuild from the canonical ledger (CLI / tests). */
