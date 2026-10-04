@@ -142,6 +142,34 @@ describe("request-history index (RI-02)", () => {
     expect(requestHistoryIntegrityCheckRuns() - checksBeforeStartup).toBe(1);
   });
 
+  test("routing health attempt lookup uses the additive partial index", () => {
+    for (const row of seedRows(20)) appendUsageEntry(row);
+    appendUsageEntry({
+      ...entry("combo-health", Date.now() - 1_000, "b", "m2"),
+      attempts: [
+        { ordinal: 1, provider: "a", model: "m1", adapter: "openai-chat", status: 503, durationMs: 20, sendCount: 1, recoveryKinds: [], usageStatus: "reported" },
+        { ordinal: 2, provider: "b", model: "m2", adapter: "openai-chat", status: 200, durationMs: 10, sendCount: 1, recoveryKinds: [], usageStatus: "reported" },
+      ],
+    });
+    initializeRequestHistoryIndexSync();
+    const initialHandle = requestHistoryDb();
+    const before = initialHandle.query("SELECT COUNT(*) AS count, MIN(timestamp) AS min, MAX(timestamp) AS max FROM requests").get();
+    // Model an existing schema-v1 production DB which predates this additive index.
+    initialHandle.exec("DROP INDEX idx_requests_multi_attempt_ts");
+    closeRequestHistoryIndex();
+    initializeRequestHistoryIndexSync();
+    const handle = requestHistoryDb();
+    const after = handle.query("SELECT COUNT(*) AS count, MIN(timestamp) AS min, MAX(timestamp) AS max FROM requests").get();
+    expect(after).toEqual(before);
+    const plan = handle.query(`EXPLAIN QUERY PLAN
+      SELECT timestamp, attempt_count, row_json FROM requests INDEXED BY idx_requests_multi_attempt_ts
+      WHERE timestamp >= ? AND attempt_count > 1 AND row_json LIKE ? AND row_json LIKE ?
+        AND NOT (provider = ? AND model = ?)
+      ORDER BY timestamp DESC LIMIT ?`).all(0, "%provider%", "%model%", "a", "m1", 100) as Array<{ detail: string }>;
+    expect(plan.some(step => step.detail.includes("idx_requests_multi_attempt_ts"))).toBe(true);
+    expect(healthEvidenceForCandidate({ provider: "a", model: "m1" }).failures).toBe(1);
+  });
+
   test("appended rows are ingested as a tail, never a full rebuild", async () => {
     for (const row of seedRows(5)) appendUsageEntry(row);
     const first = await queryRequestHistory({}, undefined, 10);

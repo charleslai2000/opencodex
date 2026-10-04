@@ -255,7 +255,8 @@ function computeHistoricalHealthEvidence(
     const escapeLike = (value: string): string => value.replace(/[\\%_]/g, match => `\\${match}`);
     const attemptRows = handle.query(
       `SELECT timestamp, attempt_count AS attemptCount, row_json AS rowJson
-       FROM requests WHERE timestamp >= ? AND attempt_count > 1
+       FROM requests INDEXED BY idx_requests_multi_attempt_ts
+       WHERE timestamp >= ? AND attempt_count > 1
          AND row_json LIKE ? ESCAPE '\\'
          AND row_json LIKE ? ESCAPE '\\'
          AND NOT (provider = ? AND model = ?)

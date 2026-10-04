@@ -26,6 +26,7 @@ import {
 } from "../../usage/log";
 import {
   HISTORY_DDL,
+  HISTORY_MULTI_ATTEMPT_INDEX_DDL,
   HISTORY_META_KEYS,
   HISTORY_SCHEMA_VERSION,
   historyIndexPath,
@@ -83,6 +84,7 @@ let db: Database | null = null;
 let dbPath = "";
 let openPromise: Promise<RequestHistoryIndexMeta> | null = null;
 let integrityCheckedHandles = new WeakSet<Database>();
+let multiAttemptIndexReadyHandles = new WeakSet<Database>();
 let integrityCheckRuns = 0;
 
 function indexDbPath(): string {
@@ -381,6 +383,12 @@ function ensureSchemaAndIdentity(dbHandle: Database): void {
     if (!sourceIdentityMatches(dbHandle, revision)) {
       throw new RequestHistoryQualificationError("Request-history source identity changed; database preserved");
     }
+    if (!multiAttemptIndexReadyHandles.has(dbHandle)) {
+      // Additive partial index: keep the failover-attempt query off the wide
+      // row_json pages for the overwhelmingly common single-attempt records.
+      dbHandle.exec(HISTORY_MULTI_ATTEMPT_INDEX_DDL);
+      multiAttemptIndexReadyHandles.add(dbHandle);
+    }
   } catch (error) {
     if (error instanceof RequestHistoryQualificationError) throw error;
     throw new RequestHistoryQualificationError("Request-history qualification failed; database preserved", { cause: error });
@@ -467,6 +475,7 @@ export function closeRequestHistoryIndex(): void {
   }
   openPromise = null;
   integrityCheckedHandles = new WeakSet<Database>();
+  multiAttemptIndexReadyHandles = new WeakSet<Database>();
 }
 
 /** Force a full rebuild from the canonical ledger (CLI / tests). */
