@@ -30,6 +30,12 @@ ON requests(timestamp DESC, provider, model)
 WHERE attempt_count > 1;
 `;
 
+/** Bounds the primary routing-health sample lookup by its exact candidate. */
+export const HISTORY_PROVIDER_MODEL_TIME_INDEX_DDL = `
+CREATE INDEX IF NOT EXISTS idx_requests_provider_model_ts
+ON requests(provider, model, timestamp DESC);
+`;
+
 export const HISTORY_DDL = `
 CREATE TABLE IF NOT EXISTS schema_meta (
   key TEXT PRIMARY KEY,
@@ -73,6 +79,7 @@ CREATE INDEX IF NOT EXISTS idx_requests_conversation ON requests(conversation_id
 CREATE INDEX IF NOT EXISTS idx_requests_api_key ON requests(api_key_id);
 CREATE INDEX IF NOT EXISTS idx_requests_profile ON requests(profile_id);
 ${HISTORY_MULTI_ATTEMPT_INDEX_DDL}
+${HISTORY_PROVIDER_MODEL_TIME_INDEX_DDL}
 `;
 
 export function historyIndexPath(configDir: string): string {

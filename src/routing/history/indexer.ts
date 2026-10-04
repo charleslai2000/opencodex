@@ -27,6 +27,7 @@ import {
 import {
   HISTORY_DDL,
   HISTORY_MULTI_ATTEMPT_INDEX_DDL,
+  HISTORY_PROVIDER_MODEL_TIME_INDEX_DDL,
   HISTORY_META_KEYS,
   HISTORY_SCHEMA_VERSION,
   historyIndexPath,
@@ -85,6 +86,7 @@ let dbPath = "";
 let openPromise: Promise<RequestHistoryIndexMeta> | null = null;
 let integrityCheckedHandles = new WeakSet<Database>();
 let multiAttemptIndexReadyHandles = new WeakSet<Database>();
+let providerModelTimeIndexReadyHandles = new WeakSet<Database>();
 let integrityCheckRuns = 0;
 
 function indexDbPath(): string {
@@ -388,6 +390,12 @@ function ensureSchemaAndIdentity(dbHandle: Database): void {
       // row_json pages for the overwhelmingly common single-attempt records.
       dbHandle.exec(HISTORY_MULTI_ATTEMPT_INDEX_DDL);
       multiAttemptIndexReadyHandles.add(dbHandle);
+    }
+    if (!providerModelTimeIndexReadyHandles.has(dbHandle)) {
+      // Routing health asks for the newest rows for one exact candidate. Keep
+      // that request off the global model index and avoid an in-memory sort.
+      dbHandle.exec(HISTORY_PROVIDER_MODEL_TIME_INDEX_DDL);
+      providerModelTimeIndexReadyHandles.add(dbHandle);
     }
   } catch (error) {
     if (error instanceof RequestHistoryQualificationError) throw error;

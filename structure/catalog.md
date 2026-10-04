@@ -466,7 +466,7 @@ Account quota surfaces use [safe probe diagnostics](transports/inventory.md#acco
 
 Live sideband admission and its bounded upstream handshake follow the [runtime contract](runtime.md#live-sideband-handshake); the ordinary Responses WebSocket exchange remains separate.
 
-`src/routing/history/indexer.ts` qualifies schema, source identity, and SQLite integrity during server startup, then validates cheap metadata on refresh. The server keeps one database handle for its lifetime, so full `quick_check` runs once before the listener admits requests. Its additive partial index on multi-attempt rows keeps routing health evidence from scanning single-attempt `row_json` pages. Qualification failures preserve the existing database for operator inspection; automatic refresh never replaces or truncates indexed history.
+`src/routing/history/indexer.ts` qualifies schema, source identity, and SQLite integrity during server startup, then validates cheap metadata on refresh. The server keeps one database handle for its lifetime, so full `quick_check` runs once before the listener admits requests. Additive indexes keep routing health lookups scoped to the exact provider/model/time range and keep failover-attempt evidence off single-attempt `row_json` pages. Qualification failures preserve the existing database for operator inspection; automatic refresh never replaces or truncates indexed history.
 
 ## Provider-scoped approval reviewer
 

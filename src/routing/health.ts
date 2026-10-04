@@ -245,7 +245,7 @@ function computeHistoricalHealthEvidence(
       `SELECT status, close_reason AS closeReason, terminal_status AS terminalStatus,
               duration_ms AS durationMs, timestamp,
               attempt_count AS attemptCount, row_json AS rowJson
-       FROM requests WHERE ${where.join(" AND ")}
+       FROM requests INDEXED BY idx_requests_provider_model_ts WHERE ${where.join(" AND ")}
        ORDER BY timestamp DESC LIMIT ?`,
     ).all(...values, HEALTH_MAX_SAMPLES) as HealthRow[];
     // Rows whose top-level target differs from this candidate may still carry

@@ -154,13 +154,21 @@ describe("request-history index (RI-02)", () => {
     initializeRequestHistoryIndexSync();
     const initialHandle = requestHistoryDb();
     const before = initialHandle.query("SELECT COUNT(*) AS count, MIN(timestamp) AS min, MAX(timestamp) AS max FROM requests").get();
-    // Model an existing schema-v1 production DB which predates this additive index.
+    // Model an existing schema-v1 production DB which predates these additive indexes.
     initialHandle.exec("DROP INDEX idx_requests_multi_attempt_ts");
+    initialHandle.exec("DROP INDEX idx_requests_provider_model_ts");
     closeRequestHistoryIndex();
     initializeRequestHistoryIndexSync();
     const handle = requestHistoryDb();
     const after = handle.query("SELECT COUNT(*) AS count, MIN(timestamp) AS min, MAX(timestamp) AS max FROM requests").get();
     expect(after).toEqual(before);
+    const healthPlan = handle.query(`EXPLAIN QUERY PLAN
+      SELECT status, close_reason, terminal_status, duration_ms, timestamp, attempt_count, row_json
+      FROM requests INDEXED BY idx_requests_provider_model_ts
+      WHERE provider = ? AND model = ? AND timestamp >= ?
+      ORDER BY timestamp DESC LIMIT ?`).all("a", "m1", 0, 100) as Array<{ detail: string }>;
+    expect(healthPlan.some(step => step.detail.includes("idx_requests_provider_model_ts"))).toBe(true);
+    expect(healthPlan.some(step => step.detail.includes("TEMP B-TREE"))).toBe(false);
     const plan = handle.query(`EXPLAIN QUERY PLAN
       SELECT timestamp, attempt_count, row_json FROM requests INDEXED BY idx_requests_multi_attempt_ts
       WHERE timestamp >= ? AND attempt_count > 1 AND row_json LIKE ? AND row_json LIKE ?
