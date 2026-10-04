@@ -452,6 +452,11 @@ export async function prepareResponsesRequest(
     if (parsed._compactionRequest === true) parsed._cursorIsolateConversation = true;
     route = shadowRoute ?? resolveRoute(parsed.modelId);
     if (route.orderedUpstreamEffort) {
+      // The ordered profile selected this physical candidate from immutable caller
+      // intent. Keep the logical effort in requestedEffort; this separate field is
+      // the candidate's effective upstream effort and may be superseded only by an
+      // adapter's exact wire observation.
+      logCtx.effectiveEffort = route.orderedUpstreamEffort;
       parsed.options.reasoning = route.orderedUpstreamEffort;
       if (parsed._rawBody && typeof parsed._rawBody === "object") {
         const raw = parsed._rawBody as { reasoning?: Record<string, unknown> };

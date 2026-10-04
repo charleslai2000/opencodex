@@ -58,6 +58,7 @@ import {
   beginRequestAttempt,
   sealRequestAttemptIdentity,
   recordAttemptCredentialSource,
+  recordAttemptRequestedEffort,
   recordAdapterTierMetadata,
   noteProviderAttemptSend,
   recordKeyAttemptFailure,
@@ -665,6 +666,7 @@ export async function prepareResponsesTransport(
     logCtx.activeAttemptStartedAt = Date.now();
     (logCtx.attempts ??= []).push(attempt);
   }
+  recordAttemptRequestedEffort(logCtx);
   sealRequestAttemptIdentity(logCtx.activeAttempt, logCtx.provider, adapter.name, logCtx.accountLogLabel);
   recordAttemptCredentialSource(logCtx.activeAttempt, route.providerName, adapterProvider, adapter.name);
   runTurnAdapter = adapter;

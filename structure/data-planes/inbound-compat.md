@@ -102,7 +102,11 @@ upstream failures, never successful partial completions. A caller may opt into o
 trace by sending the UUID-shaped `x-ocx-trace-id: EFFORT_TRACE_<uuid>` header. Chat ingress associates
 only that opaque id with its proxy-generated request id and fixed model/effort/route scalars, then
 returns both `x-ocx-trace-id` and `x-opencodex-request-id`; it neither retains bodies or arbitrary
-headers nor contributes to authentication, routing, caching, or outbound provider requests. Provider-controlled structured error
+headers nor contributes to authentication, routing, caching, or outbound provider requests. A policy
+candidate's `upstreamEffort` is physical dispatch metadata: the Chat-to-Responses bridge preserves
+the caller's logical effort and the Responses route selects the candidate before applying that
+physical effort. Request/attempt telemetry retains the logical `requestedEffort` separately from
+candidate/adapter `effectiveEffort`. Provider-controlled structured error
 messages are redacted before either JSON or SSE reaches the client. The native path uses the same
 request-attempt logging, reset retry, same-key 429 replay, key rotation, usage extraction, and
 request-signal cancellation contracts as routed Responses transport. Because

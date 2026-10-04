@@ -211,7 +211,10 @@ async function handleChatCompletionsWithBudget(
       logCtx.requestTrace.model = route.modelId;
       logCtx.requestTrace.upstreamEffort = route.orderedUpstreamEffort;
     }
-    if (route.orderedUpstreamEffort) chatBody.reasoning_effort = route.orderedUpstreamEffort;
+    // This route is a Chat-side eligibility/compatibility observation. Policy routes
+    // continue through the Responses bridge, whose route is the sole dispatch authority.
+    // In particular, an ordered candidate's physical upstream effort must not overwrite
+    // Chat's logical `reasoning_effort`: the bridge reads that field as user intent.
     logCtx.routeDecision = route.routeDecision;
     if (route.routeKind === "policy" && !route.orderedRoute && route.routeDecision?.profile) {
       const key = policyAffinityKey(

@@ -626,6 +626,9 @@ export function recordAttemptRequestedEffort(logCtx: RequestLogContext): void {
     if (typeof logCtx.requestedEffort === "string" && logCtx.requestedEffort) {
       attempt.requestedEffort = redactSecretString(logCtx.requestedEffort).slice(0, 64);
     }
+    if (typeof logCtx.effectiveEffort === "string" && logCtx.effectiveEffort) {
+      attempt.effectiveEffort = redactSecretString(logCtx.effectiveEffort).slice(0, 64);
+    }
   } catch {
     // Request logging is best-effort and must not affect request delivery.
   }

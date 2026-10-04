@@ -114,6 +114,7 @@ describe("routing policy request evidence parity (translator-level coverage)", (
 
 const actualResolver = await import("../../src/server/adapter-resolve");
 let adapterFactory: ((provider: OcxProviderConfig) => ProviderAdapter) | undefined;
+const dispatched: Array<{ model: string; reasoning?: string }> = [];
 
 mock.module("../../src/server/adapter-resolve", () => ({
   ...actualResolver,
@@ -128,6 +129,7 @@ const { handleClaudeMessages } = await import("../../src/server/claude-messages"
 
 afterEach(() => {
   adapterFactory = undefined;
+  dispatched.length = 0;
 });
 
 function testConfig(): OcxConfig {
@@ -155,11 +157,18 @@ function testConfig(): OcxConfig {
 function minimalSuccessAdapter(provider: OcxProviderConfig): ProviderAdapter {
   return {
     name: "test-run-turn",
-    buildRequest: () => ({ url: provider.baseUrl, method: "POST", headers: {}, body: "" }),
+    buildRequest: parsed => ({
+      url: provider.baseUrl,
+      method: "POST",
+      headers: {},
+      body: JSON.stringify({ model: parsed.modelId, reasoning: parsed.options.reasoning }),
+      reasoningLog: parsed.options.reasoning ? { effectiveEffort: parsed.options.reasoning, wireField: "reasoning.effort", wireValue: parsed.options.reasoning } : undefined,
+    }),
     async *parseStream(): AsyncGenerator<AdapterEvent> {
       yield { type: "error", message: "test runTurn adapter does not use parseStream" };
     },
-    async runTurn(_parsed, _incoming, emit) {
+    async runTurn(parsed, _incoming, emit) {
+      dispatched.push({ model: parsed.modelId, reasoning: parsed.options.reasoning });
       emit({ type: "text_delta", text: "ok" });
       emit({ type: "done" });
     },
@@ -194,7 +203,11 @@ describe("routing policy request evidence parity (via dev handlers)", () => {
       removeTreeWithRetry(home);
     }
   });
-  test.each(["low", "medium", "high"])("Chat policy receives %s effort without ingress rewrite", async effort => {
+  test.each([
+    ["low", "deepseek", "deepseek-flash", "high"],
+    ["medium", "terra", "gpt-5.6-terra", "high"],
+    ["high", "terra", "gpt-5.6-terra", "high"],
+  ])("Chat policy preserves %s intent through bridge and dispatches %s/%s at %s", async (effort, provider, model, upstreamEffort) => {
     adapterFactory = minimalSuccessAdapter;
     const log: RequestLogContext = {
       model: "",
@@ -202,14 +215,17 @@ describe("routing policy request evidence parity (via dev handlers)", () => {
       requestTrace: { traceId: "EFFORT_TRACE_00000000-0000-0000-0000-000000000000" },
     };
     const config = testConfig();
+    config.providers = {
+      deepseek: { ...config.providers.a, models: ["deepseek-flash"], modelReasoningEfforts: { "deepseek-flash": ["low", "high"] } },
+      terra: { ...config.providers.a, models: ["gpt-5.6-terra"], modelReasoningEfforts: { "gpt-5.6-terra": ["low", "medium", "high"] } },
+    };
     config.routingProfiles = {
       expert: { alias: "expert", routes: {
-        low: [{ candidates: [{ provider: "a", model: "m1", upstreamEffort: "low" }] }],
-        medium: [{ candidates: [{ provider: "a", model: "m1", upstreamEffort: "medium" }] }],
-        high: [{ candidates: [{ provider: "a", model: "m1", upstreamEffort: "high" }] }],
+        low: [{ candidates: [{ provider: "deepseek", model: "deepseek-flash", upstreamEffort: "high" }] }],
+        medium: [{ candidates: [{ provider: "terra", model: "gpt-5.6-terra", upstreamEffort: "high" }] }],
+        high: [{ candidates: [{ provider: "terra", model: "gpt-5.6-terra", upstreamEffort: "high" }] }],
       } },
     };
-    config.providers.a.modelReasoningEfforts = { m1: ["low", "medium", "high"] };
     const response = await handleChatCompletions(new Request("http://localhost/v1/chat/completions", {
       method: "POST",
       headers: { "content-type": "application/json", "x-ocx-trace-id": log.requestTrace.traceId },
@@ -218,8 +234,45 @@ describe("routing policy request evidence parity (via dev handlers)", () => {
     await response.text();
     expect(log.requestTrace).toMatchObject({
       rawModel: "expert", rawEffort: effort, logicalModel: "expert", logicalEffort: effort,
-      routerModel: "expert", routerEffort: effort, profileKey: "expert", provider: "a", model: "m1", upstreamEffort: effort,
+      routerModel: "expert", routerEffort: effort, profileKey: "expert", provider, model, upstreamEffort,
     });
+    expect(log.requestedEffort).toBe(effort);
+    expect(log.provider).toBe(provider);
+    expect(log.model).toBe(model);
+    expect(log.effectiveEffort).toBe(upstreamEffort);
+    expect(dispatched).toEqual([{ model, reasoning: upstreamEffort }]);
+    expect(log.attempts).toHaveLength(1);
+    expect(log.attempts?.[0]).toMatchObject({ provider, model, requestedEffort: effort, effectiveEffort: upstreamEffort });
+  });
+
+  test("every logical model and effort keeps Chat and Responses routing parity", async () => {
+    adapterFactory = minimalSuccessAdapter;
+    const config = testConfig();
+    const logicalModels = ["lead", "bot", "worker", "expert"];
+    const efforts = ["low", "medium", "high"];
+    config.routingProfiles = Object.fromEntries(logicalModels.map(logicalModel => [logicalModel, {
+      alias: logicalModel,
+      routes: Object.fromEntries(efforts.map(effort => [effort, [{ candidates: [{ provider: "a", model: "m1", upstreamEffort: effort }] }]])),
+    }]));
+    config.providers.a.modelReasoningEfforts = { m1: efforts };
+    for (const model of logicalModels) {
+      for (const effort of efforts) {
+        const chatLog: RequestLogContext = { model: "", provider: "" };
+        const chat = await handleChatCompletions(new Request("http://localhost/v1/chat/completions", {
+          method: "POST", headers: { "content-type": "application/json" },
+          body: JSON.stringify({ model, reasoning_effort: effort, stream: false, messages: [{ role: "user", content: "fixture" }] }),
+        }), config, chatLog);
+        await chat.text();
+        const responsesLog: RequestLogContext = { model: "", provider: "" };
+        const responses = await handleResponses(new Request("http://localhost/v1/responses", {
+          method: "POST", headers: { "content-type": "application/json" },
+          body: JSON.stringify({ model, reasoning: { effort }, stream: false, input: "fixture" }),
+        }), config, responsesLog);
+        await responses.text();
+        expect(chatLog).toMatchObject({ requestedEffort: effort, provider: "a", model: "m1", effectiveEffort: effort });
+        expect(responsesLog).toMatchObject({ requestedEffort: effort, provider: "a", model: "m1", effectiveEffort: effort });
+      }
+    }
   });
 
   test("missing and empty policies return compatible 404s on every wire before adapter resolution", async () => {
