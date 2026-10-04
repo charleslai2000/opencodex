@@ -134,6 +134,10 @@ async function handleChatCompletionsWithBudget(
   }
 
   const requestedModel = chatBody.model as string;
+  if (logCtx.requestTrace) {
+    logCtx.requestTrace.rawModel = requestedModel;
+    if (typeof chatBody.reasoning_effort === "string") logCtx.requestTrace.rawEffort = chatBody.reasoning_effort;
+  }
   const { fastRow, effortRow } = parseSyntheticRowId(requestedModel, config);
   if (effortRow) chatBody.model = effortRow.baseId;
   if (fastRow) {
@@ -144,6 +148,11 @@ async function handleChatCompletionsWithBudget(
     chatBody.service_tier = "priority";
   }
   const stream = chatBody.stream === true;
+  if (logCtx.requestTrace) {
+    logCtx.requestTrace.logicalModel = chatBody.model as string;
+    const effort = effortRow?.effort ?? (typeof chatBody.reasoning_effort === "string" ? chatBody.reasoning_effort : undefined);
+    if (effort) logCtx.requestTrace.logicalEffort = effort;
+  }
   // Best-effort Grok attribution: the managed fence stamps this header on every model
   // it registers (extra_headers, sent verbatim by upstream Grok). Dashboard usage
   // bucketing only — never an auth or billing signal.
@@ -166,6 +175,11 @@ async function handleChatCompletionsWithBudget(
         sessionLane: getOrAllocateRequestSessionLane(req),
       },
     );
+    if (logCtx.requestTrace) {
+      logCtx.requestTrace.routerModel = chatBody.model as string;
+      const effort = effortRow?.effort ?? (typeof chatBody.reasoning_effort === "string" ? chatBody.reasoning_effort : undefined);
+      if (effort) logCtx.requestTrace.routerEffort = effort;
+    }
     // Preserve the routed destination for Go recognition, then settle the wire before
     // deriving protocol-scoped affinity. Recognition must not inspect the flipped adapter.
     const routedProvider = route.provider;
@@ -190,6 +204,12 @@ async function handleChatCompletionsWithBudget(
         const selected = route.routeDecision.candidates[route.routeDecision.selected.candidateIndex];
         if (selected?.stepIndex !== undefined && selected.candidateIndex !== undefined && selected.upstreamEffort) logCtx.orderedAffinityTarget = { stepIndex: selected.stepIndex, candidateIndex: selected.candidateIndex, provider: selected.provider, model: selected.model, upstreamEffort: selected.upstreamEffort };
       }
+    }
+    if (logCtx.requestTrace) {
+      logCtx.requestTrace.profileKey = route.routeDecision?.profile?.id;
+      logCtx.requestTrace.provider = route.providerName;
+      logCtx.requestTrace.model = route.modelId;
+      logCtx.requestTrace.upstreamEffort = route.orderedUpstreamEffort;
     }
     if (route.orderedUpstreamEffort) chatBody.reasoning_effort = route.orderedUpstreamEffort;
     logCtx.routeDecision = route.routeDecision;

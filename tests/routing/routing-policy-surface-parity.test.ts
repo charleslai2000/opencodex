@@ -194,6 +194,34 @@ describe("routing policy request evidence parity (via dev handlers)", () => {
       removeTreeWithRetry(home);
     }
   });
+  test.each(["low", "medium", "high"])("Chat policy receives %s effort without ingress rewrite", async effort => {
+    adapterFactory = minimalSuccessAdapter;
+    const log: RequestLogContext = {
+      model: "",
+      provider: "",
+      requestTrace: { traceId: "EFFORT_TRACE_00000000-0000-0000-0000-000000000000" },
+    };
+    const config = testConfig();
+    config.routingProfiles = {
+      expert: { alias: "expert", routes: {
+        low: [{ candidates: [{ provider: "a", model: "m1", upstreamEffort: "low" }] }],
+        medium: [{ candidates: [{ provider: "a", model: "m1", upstreamEffort: "medium" }] }],
+        high: [{ candidates: [{ provider: "a", model: "m1", upstreamEffort: "high" }] }],
+      } },
+    };
+    config.providers.a.modelReasoningEfforts = { m1: ["low", "medium", "high"] };
+    const response = await handleChatCompletions(new Request("http://localhost/v1/chat/completions", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-ocx-trace-id": log.requestTrace.traceId },
+      body: JSON.stringify({ model: "expert", reasoning_effort: effort, stream: false, messages: [{ role: "user", content: "fixture" }] }),
+    }), config, log);
+    await response.text();
+    expect(log.requestTrace).toMatchObject({
+      rawModel: "expert", rawEffort: effort, logicalModel: "expert", logicalEffort: effort,
+      routerModel: "expert", routerEffort: effort, profileKey: "expert", provider: "a", model: "m1", upstreamEffort: effort,
+    });
+  });
+
   test("missing and empty policies return compatible 404s on every wire before adapter resolution", async () => {
     let adapterCalls = 0;
     adapterFactory = provider => {

@@ -205,8 +205,24 @@ export interface RequestLogContext {
   terminalSource?: "upstream" | "synthetic";
   /** Bounded route-decision trace (RI-01); never contains secrets. */
   routeDecision?: RouteDecisionTraceV1;
+  /** Explicit UUID-shaped diagnostic correlation; never stores request contents. */
+  requestTrace?: RequestTraceLog;
   /** Opt-in shadow evidence, normalized again at the logging boundary. */
   claudeCompatibility?: PersistedClaudeCompatibilityLog;
+}
+
+export interface RequestTraceLog {
+  traceId: string;
+  rawModel?: string;
+  rawEffort?: string;
+  logicalModel?: string;
+  logicalEffort?: string;
+  routerModel?: string;
+  routerEffort?: string;
+  profileKey?: string;
+  provider?: string;
+  model?: string;
+  upstreamEffort?: string;
 }
 
 export interface RequestLogEntry {
@@ -293,6 +309,8 @@ export interface RequestLogEntry {
   terminalSource?: "upstream" | "synthetic";
   /** Bounded route-decision trace (RI-01); never contains secrets. */
   routeDecision?: RouteDecisionTraceV1;
+  /** Explicit UUID-shaped diagnostic correlation; never stores request contents. */
+  requestTrace?: RequestTraceLog;
   /** Closed Claude protocol codes; no request or header values. */
   claudeCompatibility?: PersistedClaudeCompatibilityLog;
 }
@@ -415,6 +433,7 @@ export function requestLogEntryFromPersistedUsage(entry: PersistedUsageEntry): R
     ...(isKnownTransportPhase(entry.transportPhase) ? { transportPhase: entry.transportPhase } : {}),
     ...(isKnownTerminalSource(entry.terminalSource) ? { terminalSource: entry.terminalSource } : {}),
     ...(routeDecision ? { routeDecision } : {}),
+    ...(entry.requestTrace ? { requestTrace: entry.requestTrace } : {}),
     ...(claudeCompatibility ? { claudeCompatibility } : {}),
     ...(entry.conversationStateScrub === "account-change"
       ? { conversationStateScrub: "account-change" }
@@ -563,6 +582,7 @@ export function addRequestLog(entry: RequestLogEntry) {
       ...(isKnownTerminalSource(entry.terminalSource) ? { terminalSource: entry.terminalSource } : {}),
       ...failureDiagnostics,
       ...(entry.routeDecision ? { routeDecision: entry.routeDecision } : {}),
+      ...(entry.requestTrace ? { requestTrace: entry.requestTrace } : {}),
       ...(entry.claudeCompatibility ? { claudeCompatibility: entry.claudeCompatibility } : {}),
       ...(entry.conversationStateScrub === "account-change"
         ? { conversationStateScrub: "account-change" }
@@ -1394,6 +1414,7 @@ export function addFinalRequestLog(
     ...(logCtx.transportPhase ? { transportPhase: logCtx.transportPhase } : {}),
     ...(logCtx.terminalSource ? { terminalSource: logCtx.terminalSource } : {}),
     ...(logCtx.routeDecision ? { routeDecision: logCtx.routeDecision } : {}),
+    ...(logCtx.requestTrace ? { requestTrace: logCtx.requestTrace } : {}),
     ...(claudeCompatibility ? { claudeCompatibility } : {}),
   });
   if (isUsageDebugEnabled()) {

@@ -355,6 +355,20 @@ export interface PersistedUsageEntry {
    * contains prompts, credentials, or hidden reasoning.
    */
   routeDecision?: RouteDecisionTraceV1;
+  /** Opt-in UUID correlation and fixed routing scalars; never request contents. */
+  requestTrace?: {
+    traceId: string;
+    rawModel?: string;
+    rawEffort?: string;
+    logicalModel?: string;
+    logicalEffort?: string;
+    routerModel?: string;
+    routerEffort?: string;
+    profileKey?: string;
+    provider?: string;
+    model?: string;
+    upstreamEffort?: string;
+  };
   /** Closed Claude protocol codes only; absent on older rows. */
   claudeCompatibility?: PersistedClaudeCompatibilityLog;
 }
@@ -775,8 +789,22 @@ function normalizedAttempts(raw: unknown): PersistedUsageAttempt[] {
 }
 
 const MAX_METADATA_STRING_LEN = 64;
+const REQUEST_TRACE_ID = /^EFFORT_TRACE_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function capMetadataString(s: string): string {
   return s.length > MAX_METADATA_STRING_LEN ? s.slice(0, MAX_METADATA_STRING_LEN) : s;
+}
+function normalizeRequestTrace(trace: PersistedUsageEntry["requestTrace"]): PersistedUsageEntry["requestTrace"] | undefined {
+  if (!trace || typeof trace.traceId !== "string" || !REQUEST_TRACE_ID.test(trace.traceId)) return undefined;
+  const string = (value: unknown) => typeof value === "string" ? sanitizeLogMetadataString(value) : undefined;
+  const fields = Object.fromEntries(Object.entries({
+    rawModel: trace.rawModel, rawEffort: trace.rawEffort, logicalModel: trace.logicalModel, logicalEffort: trace.logicalEffort,
+    routerModel: trace.routerModel, routerEffort: trace.routerEffort, profileKey: trace.profileKey, provider: trace.provider,
+    model: trace.model, upstreamEffort: trace.upstreamEffort,
+  }).flatMap(([key, value]) => {
+    const normalized = string(value);
+    return normalized ? [[key, capMetadataString(normalized)]] : [];
+  }));
+  return { traceId: trace.traceId, ...fields };
 }
 
 /** Test seam: the normalization branch old rows take is worth asserting directly. */
@@ -805,6 +833,7 @@ function normalizeUsageEntry(entry: PersistedUsageEntry): PersistedUsageEntry {
   const routeDecision = entry.routeDecision
     ? normalizeRouteDecisionTrace(entry.routeDecision)
     : undefined;
+  const requestTrace = normalizeRequestTrace(entry.requestTrace);
   const spend = normalizeRequestSpend(entry.spend);
   return {
     requestId: entry.requestId,
@@ -886,6 +915,7 @@ function normalizeUsageEntry(entry: PersistedUsageEntry): PersistedUsageEntry {
     ...(entry.closeReason ? { closeReason: entry.closeReason } : {}),
     ...(entry.upstreamError ? { upstreamError: entry.upstreamError } : {}),
     ...(routeDecision ? { routeDecision } : {}),
+    ...(requestTrace ? { requestTrace } : {}),
     ...(claudeCompatibility ? { claudeCompatibility } : {}),
   };
 }

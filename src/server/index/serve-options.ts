@@ -22,6 +22,7 @@ import {
 import {
   withRequestLogId,
 } from "./startup-warnings";
+import { requestTraceId, requestTraceLog } from "../request-trace";
 
 import { remoteWorkspaceEnabled } from "../../remote-control/workspace-activation";
 import { initializeRequestHistoryIndexSync, requestHistoryIntegrityCheckRuns } from "../../routing/history/indexer";
@@ -1466,11 +1467,10 @@ export function createServeOptions(ctx: ServeOptionsContext) {
         // that match the admission decision made above.
         return runAdmittedHttpTurn(req, policy, async turnAdmissionLease => {
           const turnRouting = ctx.routingRuntime.capture();
-          return withCors(
-            await handleChatCompletions(req, turnRouting.config, logCtx, { requestId, start, turnAdmissionLease, admission }),
-            req,
-            policy,
-          );
+          const traceId = requestTraceId(req.headers);
+          if (traceId) logCtx.requestTrace = requestTraceLog(traceId);
+          const response = await handleChatCompletions(req, turnRouting.config, logCtx, { requestId, start, turnAdmissionLease, admission });
+          return withRequestLogId(withCors(response, req, policy), requestId, traceId);
         }, { requestId, start, logCtx });
       }
 
