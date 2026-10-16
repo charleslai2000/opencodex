@@ -21,13 +21,14 @@ function baseConfig(): OcxConfig {
         baseUrl: canonicalUrl,
         authMode: "forward",
         codexAccountMode: "direct",
-        models: ["gpt-6-luna", "gpt-5.6-terra", "gpt-6-sol"],
+        models: ["gpt-6-luna", "gpt-5.6-terra", "gpt-6-sol", "gpt-6.1-sol"],
         liveModels: false,
         contextWindow: 1_000_000,
         reasoningEfforts: ["low", "medium", "high"],
         modelReasoningEfforts: {
-          "gpt-6-luna": ["low", "medium", "high"],
+          "gpt-6-luna": ["low", "medium", "high", "max"],
           "gpt-5.6-terra": ["low", "medium", "high"],
+          "gpt-6.1-sol": ["low", "medium", "high", "xhigh"],
         },
       },
       deepseek: { adapter: "openai-chat", baseUrl: "https://deepseek.test/v1", apiKey: "fixture" },
@@ -79,7 +80,8 @@ describe("frozen OpenAI preset route-preauth qualification", () => {
   const expected: Record<string, Record<string, [string, string]>> = {
     lead: { low: ["gpt-6-luna", "low"], medium: ["gpt-6-luna", "medium"], high: ["gpt-6-luna", "high"] },
     worker: { low: ["gpt-6-luna", "low"], medium: ["gpt-6-luna", "medium"], high: ["gpt-6-luna", "high"] },
-    expert: { low: ["gpt-6-luna", "high"], medium: ["gpt-5.6-terra", "medium"], high: ["gpt-5.6-terra", "high"] },
+    // The logical route is Luna/max; the OpenAI Responses wire normalizes max to xhigh.
+    expert: { low: ["gpt-6-luna", "xhigh"], medium: ["gpt-6.1-sol", "medium"], high: ["gpt-6.1-sol", "xhigh"] },
     bot: { low: ["@preset/lstack-ling-3-0-flash", "low"], medium: ["@preset/lstack-ling-3-0-flash", "medium"], high: ["@preset/lstack-ling-3-0-flash", "high"] },
   };
 

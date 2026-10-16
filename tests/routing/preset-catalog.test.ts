@@ -5,7 +5,7 @@ import { routeModel } from "../../src/router";
 import type { OcxConfig } from "../../src/types";
 
 const providers = {
-  openai: { adapter: "openai-responses", baseUrl: "https://openai.test", models: ["gpt-6-luna", "gpt-5.6-terra", "gpt-6-sol"] },
+  openai: { adapter: "openai-responses", baseUrl: "https://openai.test", models: ["gpt-6-luna", "gpt-5.6-terra", "gpt-6-sol", "gpt-6.1-sol"] },
   openrouter: { adapter: "openai-chat", baseUrl: "https://openrouter.test", models: ["@preset/lstack-ling-3-0-flash"] },
   deepseek: { adapter: "openai-chat", baseUrl: "https://deepseek.test", models: ["deepseek-flash"] },
   "deepseek-worker": { adapter: "openai-chat", baseUrl: "https://deepseek.test", models: ["deepseek-flash"] },
@@ -68,15 +68,15 @@ describe("production routing preset compiler", () => {
     expect(runtime.current()).toBe(before);
   });
 
-  test("openai compiles the frozen 4x3 matrix without Terra on lead", () => {
+  test("openai compiles the frozen 4x3 matrix with the configured expert ladder", () => {
     const preset = compileRoutingPreset("openai");
     expect(Object.keys(preset)).toEqual(["lead", "bot", "worker", "expert"]);
     expect(Object.keys(preset.lead.routes!)).toEqual(["low", "medium", "high"]);
     expect(route(preset.lead, "high")).toEqual([{ provider: "openai", model: "gpt-6-luna", upstreamEffort: "high" }]);
     expect(route(preset.worker, "medium")).toEqual([{ provider: "openai", model: "gpt-6-luna", upstreamEffort: "medium" }]);
-    expect(route(preset.expert, "low")).toEqual([{ provider: "openai", model: "gpt-6-luna", upstreamEffort: "high" }]);
-    expect(route(preset.expert, "medium")).toEqual([{ provider: "openai", model: "gpt-5.6-terra", upstreamEffort: "medium" }]);
-    expect(route(preset.expert, "high")).toEqual([{ provider: "openai", model: "gpt-5.6-terra", upstreamEffort: "high" }]);
+    expect(route(preset.expert, "low")).toEqual([{ provider: "openai", model: "gpt-6-luna", upstreamEffort: "max" }]);
+    expect(route(preset.expert, "medium")).toEqual([{ provider: "openai", model: "gpt-6.1-sol", upstreamEffort: "medium" }]);
+    expect(route(preset.expert, "high")).toEqual([{ provider: "openai", model: "gpt-6.1-sol", upstreamEffort: "xhigh" }]);
   });
 
   test("deepseek maps logical efforts onto the canonical low/high/max ladder", () => {

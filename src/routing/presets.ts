@@ -50,9 +50,9 @@ export function compileRoutingPreset(name: RoutingPresetName): Record<string, Oc
         high: [candidate("openai", "gpt-6-luna", "high")],
       }),
       expert: profile({
-        low: [candidate("openai", "gpt-6-luna", "high")],
-        medium: [candidate("openai", "gpt-5.6-terra", "medium")],
-        high: [candidate("openai", "gpt-5.6-terra", "high")],
+        low: [candidate("openai", "gpt-6-luna", "max")],
+        medium: [candidate("openai", "gpt-6.1-sol", "medium")],
+        high: [candidate("openai", "gpt-6.1-sol", "xhigh")],
       }),
     };
   }

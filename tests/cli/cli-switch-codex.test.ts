@@ -25,7 +25,7 @@ describe("switch-codex CLI output", () => {
       writeFileSync(join(home, "config.json"), JSON.stringify({
         port: 1, defaultProvider: "openai", combos: {},
         providers: {
-          openai: { adapter: "openai-responses", baseUrl: "https://openai.invalid", models: ["gpt-6-luna", "gpt-5.6-terra"] },
+          openai: { adapter: "openai-responses", baseUrl: "https://openai.invalid", models: ["gpt-6-luna", "gpt-5.6-terra", "gpt-6.1-sol"] },
           openrouter: { adapter: "openai-chat", baseUrl: "https://openrouter.invalid", models: ["@preset/lstack-ling-3-0-flash"] },
           deepseek: { adapter: "openai-chat", baseUrl: "https://deepseek.invalid", models: ["deepseek-flash"] },
         },
@@ -40,7 +40,7 @@ describe("switch-codex CLI output", () => {
       expect(stderr).toBe("");
       expect(stdout).toContain("Dry run: OpenCodeX preset would switch to openai.");
       expect(stdout).toContain("lead    openai/gpt-6-luna");
-      expect(stdout).toContain("expert  openai/gpt-6-luna → openai/gpt-5.6-terra");
+      expect(stdout).toContain("expert  openai/gpt-6-luna → openai/gpt-6.1-sol");
       expect(stdout).toContain("bot     openrouter/@preset/lstack-ling-3-0-flash → deepseek/deepseek-flash");
       expect(stdout).not.toContain("configHash");
       expect(stdout).not.toContain("profileHash");
@@ -112,7 +112,7 @@ describe("switch-codex CLI output", () => {
         defaultProvider: "openai",
         combos: {},
         providers: {
-          openai: { adapter: "openai-responses", baseUrl: "https://openai.invalid", models: ["gpt-6-luna", "gpt-5.6-terra"] },
+          openai: { adapter: "openai-responses", baseUrl: "https://openai.invalid", models: ["gpt-6-luna", "gpt-5.6-terra", "gpt-6.1-sol"] },
           openrouter: { adapter: "openai-chat", baseUrl: "https://openrouter.invalid", models: ["@preset/lstack-ling-3-0-flash"] },
           deepseek: { adapter: "openai-chat", baseUrl: "https://deepseek.invalid", models: ["deepseek-flash"] },
         },

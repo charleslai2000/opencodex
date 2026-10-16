@@ -22,6 +22,8 @@ validation-pending. Import alone supplies no entitlement evidence for the model 
 
 ## Shared catalog
 
+`src/routing/presets.ts` owns the built-in `openai` and `deepseek` route matrices. In the OpenAI preset, `expert` maps logical low to `openai/gpt-6-luna` at `max`, medium to `openai/gpt-6.1-sol` at `medium`, and high to `openai/gpt-6.1-sol` at `xhigh`; `switch-codex openai` applies this matrix to the persisted configuration and live runtime.
+
 `src/codex/catalog.ts` builds a shared Codex-shaped catalog for CLI, TUI, App, and SDK. It:
 
 - preserves native OpenAI entries from the live catalog or static fallback, and emits
