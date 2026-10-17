@@ -181,8 +181,8 @@ describe("Sol upstream comparison capture", () => {
       send(800); // Second warm request, eligible as the Cold predecessor.
       send(0);   // Cold request references the second warm response.
       send(800); // Recovery references the Cold response.
-      send(850); // Follow-up 1.
-      send(900); // Follow-up 2 completes the event.
+      send(0); // Follow-up 1 may itself be cold.
+      send(0); // Follow-up 2 completes the event regardless of its cache ratio.
       return responseId;
     };
 
@@ -197,6 +197,7 @@ describe("Sol upstream comparison capture", () => {
     expect(afterTwo.completedEvents).toHaveLength(2);
     expect(afterTwo.completedEvents[0]!.postRecovery).toHaveLength(2);
     expect(afterTwo.completedEvents[1]!.postRecovery).toHaveLength(2);
+    expect(afterTwo.completedEvents[0]!.postRecovery.every(row => row.cachedTokens === 0)).toBe(true);
     expect(afterTwo.completedEvents[0]!.chainId).not.toBe(afterTwo.completedEvents[1]!.chainId);
   });
 

@@ -456,49 +456,41 @@ export function captureSolUpstreamPayload(
     const history = cacheObservationsByChain.get(chainId) ?? [];
     const active = activeCacheEventsByChain.get(chainId);
     if (active) {
-      if (!active.recovery && observation.comparisonResponseId === active.cold.responseId
-        && observation.cacheRate >= WARM_CACHE_RATE) {
-        active.recovery = observation;
-      } else if (active.recovery && observation.logicalRequestId !== active.recovery.logicalRequestId) {
-        const latestWarm = history.at(-1);
-        const startsNewCold = observation.cacheRate <= COLD_CACHE_RATE
-          && latestWarm && latestWarm.cacheRate >= WARM_CACHE_RATE
-          && observation.comparisonResponseId === latestWarm.responseId;
-        if (startsNewCold) {
-          const beforeWarm = history.at(-2);
-          if (beforeWarm && beforeWarm.cacheRate >= WARM_CACHE_RATE) {
-            activeCacheEventsByChain.set(chainId, { beforeWarm, warm: latestWarm, cold: observation, postRecovery: [] });
-          } else {
-            activeCacheEventsByChain.delete(chainId);
-          }
+      if (!active.recovery) {
+        if (observation.comparisonResponseId === active.cold.responseId
+          && observation.cacheRate >= WARM_CACHE_RATE) {
+          active.recovery = observation;
         } else {
-          active.postRecovery.push(observation);
-          if (active.postRecovery.length >= 2) {
-            const event: CacheEventSummary = { chainId, ...active } as CacheEventSummary;
-            completedCacheEvents.push(event);
-            appendCaptureRow(logicalRequestId, { phase: "cache_event", event });
-            activeCacheEventsByChain.delete(chainId);
-            if (completedCacheEvents.length >= TARGET_EVENTS) {
-              expiresAt = 0;
-              stopReason = "target_events";
+          const latestWarm = history.at(-1);
+          const startsNewCold = observation.cacheRate <= COLD_CACHE_RATE
+            && latestWarm && latestWarm.cacheRate >= WARM_CACHE_RATE
+            && observation.comparisonResponseId === latestWarm.responseId;
+          if (startsNewCold) {
+            const beforeWarm = history.at(-2);
+            if (beforeWarm && beforeWarm.cacheRate >= WARM_CACHE_RATE) {
+              activeCacheEventsByChain.set(chainId, { beforeWarm, warm: latestWarm, cold: observation, postRecovery: [] });
             }
+          } else if (observation.cacheRate >= WARM_CACHE_RATE
+            && observation.comparisonResponseId !== active.cold.responseId) {
+            // A cache drop that never recovers by referencing its cold response is
+            // an incomplete candidate. Do not let it block later linked drops.
+            activeCacheEventsByChain.delete(chainId);
           }
         }
-      } else if (!active.recovery) {
-        const latestWarm = history.at(-1);
-        const startsNewCold = observation.cacheRate <= COLD_CACHE_RATE
-          && latestWarm && latestWarm.cacheRate >= WARM_CACHE_RATE
-          && observation.comparisonResponseId === latestWarm.responseId;
-        if (startsNewCold) {
-          const beforeWarm = history.at(-2);
-          if (beforeWarm && beforeWarm.cacheRate >= WARM_CACHE_RATE) {
-            activeCacheEventsByChain.set(chainId, { beforeWarm, warm: latestWarm, cold: observation, postRecovery: [] });
-          }
-        } else if (observation.cacheRate >= WARM_CACHE_RATE
-          && observation.comparisonResponseId !== active.cold.responseId) {
-          // A cache drop that never recovers by referencing its cold response is
-          // an incomplete candidate. Do not let it block later linked drops.
+      } else {
+        // The two required follow-up turns are counted regardless of their own
+        // cache ratio. A second cold turn is still a follow-up, not grounds to
+        // replace the event whose recovery was already verified.
+        active.postRecovery.push(observation);
+        if (active.postRecovery.length >= 2) {
+          const event: CacheEventSummary = { chainId, ...active } as CacheEventSummary;
+          completedCacheEvents.push(event);
+          appendCaptureRow(logicalRequestId, { phase: "cache_event", event });
           activeCacheEventsByChain.delete(chainId);
+          if (completedCacheEvents.length >= TARGET_EVENTS) {
+            expiresAt = 0;
+            stopReason = "target_events";
+          }
         }
       }
     } else if (history.length >= 2) {
