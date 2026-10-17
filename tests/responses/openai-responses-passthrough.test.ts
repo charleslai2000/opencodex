@@ -886,6 +886,17 @@ describe("DeepSeek Responses endpoint contract", () => {
     expect(wire.reasoning.effort).toBe("max");
   });
 
+  test("reasoning telemetry records the final serialized forward effort", () => {
+    const raw = { model: "gpt-6-luna", input: "ping", reasoning: { effort: "max" } };
+    const request = createResponsesPassthroughAdapter(provider).buildRequest(parseRequest(raw));
+    expect(JSON.parse(request.body).reasoning.effort).toBe("max");
+    expect(request.reasoningLog).toEqual({
+      effectiveEffort: "max",
+      wireField: "reasoning.effort",
+      wireValue: "max",
+    });
+  });
+
   test("a config saved before the fix is backfilled, and a hand-set path is preserved", () => {
     const saved = { adapter: "openai-chat", baseUrl: "https://api.deepseek.com", apiKey: "sk-test" } as Parameters<typeof enrichProviderFromRegistry>[1];
     enrichProviderFromRegistry("deepseek", saved);

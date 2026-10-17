@@ -477,6 +477,13 @@ export function createResponsesPassthroughAdapter(provider: OcxProviderConfig): 
       const actualServiceTier = isPlainObject(finalBody) && typeof finalBody.service_tier === "string"
         ? finalBody.service_tier
         : null;
+      // Record only the final serialized reasoning selector, never the request body. This is
+      // the authoritative wire observation for the passthrough adapter; the inbound requested
+      // effort can differ after ordered routing or native capability normalization.
+      const finalReasoning = isPlainObject(finalBody) && isPlainObject(finalBody.reasoning)
+        ? finalBody.reasoning
+        : undefined;
+      const finalEffort = typeof finalReasoning?.effort === "string" ? finalReasoning.effort : undefined;
       const tierLog = createAdapterTierMetadata(
         parsed.options?.tierObservation,
         parsed.options?.tierDecision,
@@ -507,6 +514,13 @@ export function createResponsesPassthroughAdapter(provider: OcxProviderConfig): 
         ...(plaintextV2AgentMessageToolNames ? { plaintextV2AgentMessageToolNames } : {}),
         ...(plaintextV2AgentMessageAliasedToolNames ? { plaintextV2AgentMessageAliasedToolNames } : {}),
         ...(convertedMuseToolNameAliases ? { convertedMuseToolNameAliases } : {}),
+        ...(finalEffort ? {
+          reasoningLog: {
+            effectiveEffort: finalEffort,
+            wireField: "reasoning.effort" as const,
+            wireValue: finalEffort,
+          },
+        } : {}),
         ...(tierLog ? { tierLog } : {}),
       };
     },
