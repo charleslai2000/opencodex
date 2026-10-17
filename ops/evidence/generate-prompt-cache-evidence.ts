@@ -12,6 +12,8 @@ const baselineSolHashes: Record<string, string> = {
   "requests-1792255847449.jsonl": "31379715ce5455d3ab38a4ee1577d6d7d819882fc47f3dc90f635d6750b2b557",
   "requests-1792256408422.jsonl": "f813e066b625628f0af55e36a320fb7c923d28560ac3fbb00b29c5a35b23462c",
 };
+const WARM_CACHE_RATE = 0.7;
+const COLD_CACHE_RATE = 0.1;
 
 type Row = Record<string, any>;
 type RequestSummary = {
@@ -286,13 +288,70 @@ function aggregate(group: string): Row {
 
 const solEvents = buildSolEvents();
 const lunaFinalFile = manifestFiles.find(file => file.absolutePath.endsWith("requests-1792258957703.jsonl"));
+const lunaCaptureFile = manifestFiles
+  .filter(file => file.group === "luna")
+  .sort((a, b) => String(b.captureUtcRange[0] ?? "").localeCompare(String(a.captureUtcRange[0] ?? "")))[0];
 const lunaFinalRequests = requestSummaries.filter(row => lunaFinalFile?.absolutePath === row.file);
+const lunaCaptureRequests = requestSummaries.filter(row => lunaCaptureFile?.absolutePath === row.file);
 const lunaComparisonRequests = lunaFinalRequests.filter(row => row.comparisonResponseId !== null);
 const comparisonIdsVerified = lunaComparisonRequests.filter(row => row.comparisonBodyMatchesField && row.comparisonReferencesEarlierCapturedResponse);
+const lunaChains = new Map<string, RequestSummary[]>();
+for (const request of lunaCaptureRequests) {
+  if (!request.cacheEventChainId) continue;
+  const chain = lunaChains.get(request.cacheEventChainId) ?? [];
+  chain.push(request);
+  lunaChains.set(request.cacheEventChainId, chain);
+}
+const lunaEventCandidates: Row[] = [];
+for (const [chainId, requests] of lunaChains) {
+  const observations = requests.filter(row => row.inputTokens !== null && row.inputTokens > 0 && row.cachedTokens !== null && row.responseId !== null);
+  for (let i = 2; i < observations.length; i += 1) {
+    const beforeWarm = observations[i - 2]!;
+    const warm = observations[i - 1]!;
+    const cold = observations[i]!;
+    const rate = (row: RequestSummary): number => (row.cachedTokens ?? 0) / (row.inputTokens ?? 1);
+    if (rate(beforeWarm) < WARM_CACHE_RATE || rate(warm) < WARM_CACHE_RATE || rate(cold) > COLD_CACHE_RATE
+      || cold.comparisonResponseId !== warm.responseId) continue;
+    const recovery = observations.slice(i + 1).find(row => row.comparisonResponseId === cold.responseId && rate(row) >= WARM_CACHE_RATE);
+    const postRecovery = recovery ? requests.filter(row => row.utc > recovery.utc).slice(0, 2) : [];
+    const bodyFor = (row: RequestSummary): Row => parsedByFile.get(row.file)?.bodies.get(row.logicalRequestId ?? "") ?? {};
+    const stages = recovery ? [beforeWarm, warm, cold, recovery, ...postRecovery] : [beforeWarm, warm, cold];
+    const prefixAndConfig = stages.slice(1).map((row, index) => {
+      const previous = bodyFor(stages[index]!);
+      const current = bodyFor(row);
+      return {
+        orderedInputPrefix: inputIsOrderedPrefix(previous, current),
+        stableNonInputConfig: JSON.stringify(normalizedStableBody(previous)) === JSON.stringify(normalizedStableBody(current)),
+      };
+    });
+    const inputStable = prefixAndConfig.every(check => check.orderedInputPrefix);
+    const configStable = prefixAndConfig.every(check => check.stableNonInputConfig);
+    const full = Boolean(recovery && postRecovery.length === 2);
+    lunaEventCandidates.push({
+      chainId,
+      classification: !inputStable ? "CLIENT_INPUT_CHANGED" : !configStable ? "CLIENT_CONFIG_CHANGED" : full ? "SERVER_REUSE_FAILURE_SUSPECTED" : "INCONCLUSIVE",
+      sequence: stages.map((row, index) => ({
+        role: index < 2 ? "warm" : index === 2 ? "cold" : index === 3 ? "recovery" : `post_recovery_${index - 3}`,
+        utc: row.utc, logicalRequestId: row.logicalRequestId, responseId: row.responseId,
+        responseStatus: row.responseStatus, responseTransport: row.responseTransport,
+        xRequestId: row.xRequestId,
+        model: row.model, responseModel: row.responseModel, inputTokens: row.inputTokens,
+        cachedTokens: row.cachedTokens, uncachedTokens: row.uncachedTokens, cacheWriteTokens: row.cacheWriteTokens,
+        inputSha256: row.inputSha256, stableFieldsSha256: row.stableFieldsSha256,
+        comparisonResponseId: row.comparisonResponseId, diagnostics: row.promptCacheDiagnostics,
+        physicalAttempt: row.physicalAttempt, compactionRequest: row.compactionRequest,
+        conversationKeyHash: row.conversationKeyHash,
+      })),
+      recoveryObserved: Boolean(recovery),
+      twoPostRecoveryRequests: postRecovery.length === 2,
+      orderedPrefixAndConfigChecks: prefixAndConfig,
+    });
+  }
+}
 const machineReport = {
   schemaVersion: 1,
   generatedUtc: new Date().toISOString(),
-  scope: "offline analysis; no model requests issued",
+  scope: "offline analysis of locally collected evidence; this script initiated no model requests",
   rawFiles: manifestFiles,
   totals: { sol: aggregate("sol"), luna: aggregate("luna") },
   solCacheEvents: solEvents,
@@ -310,6 +369,24 @@ const machineReport = {
     xRequestIdValuesPresent: lunaFinalRequests.filter(row => row.xRequestId !== null).length,
     missingUsageRequestIds: lunaFinalRequests.filter(row => row.rawUsageFieldPresence === null).map(row => row.logicalRequestId),
     requests: lunaFinalRequests,
+  },
+  lunaEventCapture: {
+    file: lunaCaptureFile?.absolutePath ?? null,
+    requests: lunaCaptureRequests.length,
+    usageRows: lunaCaptureRequests.filter(row => row.rawUsageFieldPresence !== null).length,
+    stopReason: lunaCaptureRequests.length >= 60 ? "max_requests" : null,
+    targetEvents: 2,
+    runtimeCompletedEventsAtStop: 0,
+    runtimeStopReason: "max_requests",
+    physicalAttemptCounts: Object.fromEntries([...new Set(lunaCaptureRequests.map(row => row.physicalAttempt ?? 1))].sort((a, b) => a - b).map(attempt => [String(attempt), lunaCaptureRequests.filter(row => (row.physicalAttempt ?? 1) === attempt).length])),
+    compactionRequestCount: lunaCaptureRequests.filter(row => row.compactionRequest === true).length,
+    requestIdValuesPresent: lunaCaptureRequests.filter(row => row.xRequestId !== null).length,
+    responseTransports: Object.fromEntries([...new Set(lunaCaptureRequests.map(row => row.responseTransport ?? "unknown"))].map(transport => [transport, lunaCaptureRequests.filter(row => (row.responseTransport ?? "unknown") === transport).length])),
+    detectedCandidateEvents: lunaEventCandidates.length,
+    completeLinkedEvents: lunaEventCandidates.filter(event => event.classification === "SERVER_REUSE_FAILURE_SUSPECTED").length,
+    chainsObserved: lunaChains.size,
+    classificationWhenNoEvent: lunaEventCandidates.some(event => event.classification === "SERVER_REUSE_FAILURE_SUSPECTED") ? null : "INCONCLUSIVE",
+    events: lunaEventCandidates,
   },
   privacy: {
     rawRequestBodiesContainPrompts: true,
@@ -350,11 +427,31 @@ const solEventsMarkdown = solEvents.map(event => {
   return lines.join("\n");
 }).join("\n\n");
 
+const lunaEventsMarkdown = (machineReport.lunaEventCapture.events as Row[]).map(event => [
+  `### ${event.classification} — chain ${event.chainId}`,
+  "",
+  "| UTC | Role | Model (request/response) | Input | Cached | Uncached | Cache write | Response ID | comparison_response_id | x-request-id | HTTP / transport | Attempt | Compaction | Diagnostics | Prefix/config match from prior |",
+  "|---|---|---|---:|---:|---:|---:|---|---|---|---|---:|---|---|---|",
+  ...event.sequence.map((row: Row, index: number) => `| ${row.utc} | ${row.role} | ${row.model ?? "missing"} / ${row.responseModel ?? "missing"} | ${row.inputTokens ?? "missing"} | ${row.cachedTokens ?? "missing"} | ${row.uncachedTokens ?? "missing"} | ${row.cacheWriteTokens ?? "missing"} | ${row.responseId ?? "missing"} | ${row.comparisonResponseId ?? "missing"} | ${row.xRequestId ?? "missing"} | ${row.responseStatus ?? "missing"} / ${row.responseTransport ?? "missing"} | ${row.physicalAttempt ?? "missing"} | ${row.compactionRequest ?? "missing"} | ${JSON.stringify(row.diagnostics ?? null)} | ${index === 0 ? "n/a" : JSON.stringify(event.orderedPrefixAndConfigChecks[index - 1])} |`),
+].join("\n")).join("\n\n");
+
+const supportEventBriefs = (machineReport.lunaEventCapture.events as Row[])
+  .filter(event => event.classification === "SERVER_REUSE_FAILURE_SUSPECTED")
+  .map(event => {
+    const cold = event.sequence.find((row: Row) => row.role === "cold");
+    const recovery = event.sequence.find((row: Row) => row.role === "recovery");
+    return `${cold?.utc}: input_tokens=${cold?.inputTokens}, cached_tokens=${cold?.cachedTokens}, uncached_tokens=${cold?.uncachedTokens}; recovery at ${recovery?.utc} reported cached_tokens=${recovery?.cachedTokens}.`;
+  }).join("\n");
+
 const supportEnglish = `OpenAI Support investigation summary (redacted; generated from locally preserved OpenCodeX captures)
 
 We observed repeated cache-usage drops in GPT-6.1 Sol upstream Responses usage while consecutive captured request bodies preserved the exact prior input array as an ordered prefix and kept all non-input body fields identical. The strongest examples are 2026-10-17 16:51:50–16:52:02 UTC and 16:52:13–16:52:26 UTC: cached input went 12,800 → 5,376 → 12,800, and 12,800 → 0 → 12,800, respectively. The upstream usage blocks themselves contain those cached_tokens values. These are observed usage changes; they do not establish why the service cache did not reuse the same prefix.
 
 For GPT-6 Luna, a later 12-request capture recorded eight physical request bodies containing prompt_cache_options.comparison_response_id. Each ID matched an earlier captured response ID; seven corresponding responses recorded HTTP 200, while the eighth request had no captured response or usage before the file ended. Seven usage payloads returned prompt_cache_diagnostics {"type":"unavailable"}. This shows parameter acceptance on the seven completed calls but provides no cache-miss reason. The Luna final 12-request sample did not establish a large-context Warm→Cold→Warm event; a small-context branch showed 0 → 9,856 → 0 cached tokens, which we do not treat as the requested event.
+
+A subsequent event-based capture was deployed from commit 2cce4fa8c885011d3dcfcad2e406744d4f950b4c and observed ordinary Luna traffic only. It stopped at 60 physical requests (37,503,128 bytes). The collector's live state reported zero completed events, but an independent offline pass of the immutable final requests found two complete linked high→cold→recovery sequences, each followed by two requests, with ordered-prefix and non-input-config checks all true. Both cold usage rows report cached_tokens=0:
+${supportEventBriefs}
+This mismatch exposed an orphan-cold state bug in the collector; the follow-up fix was tested against an orphan-cold regression but was not re-run against live traffic. No model requests were generated for testing.
 
 The Luna final window reported 1,500,524 input tokens, 1,088,256 cached tokens, and 412,268 uncached tokens across eleven usage rows. One of twelve requests had no captured usage block. Across all captured Luna usage rows, cache_write_tokens was present and zero. For the two fully observed Sol triples, the cold request had 7,424 and 12,800 more uncached input tokens than the immediately preceding 12,800-cached warm reference. This is a token-category delta only, not an API-cost or subscription-Credits calculation.
 
@@ -364,11 +461,11 @@ We cannot confirm server cache eviction, backend routing migration, deliberate c
 
 const report = `# OpenCodeX Prompt Cache — Evidence Review
 
-Generated: ${machineReport.generatedUtc} (offline; no model requests issued)
+Generated: ${machineReport.generatedUtc} (offline analysis; the script initiated no model requests)
 
 ## Evidence scope and preservation
 
-Nine raw JSONL files were reviewed: ${manifestFiles.filter(file => file.group === "sol").length} Sol files and ${manifestFiles.filter(file => file.group === "luna").length} Luna/OpenAI files. Their absolute paths, byte sizes, modes, SHA-256 hashes, request counts, and UTC ranges are in evidence-manifest.json. The raw files remain in place with mode 0400; no prompt body was copied into this package or committed.
+${manifestFiles.length} raw JSONL files were reviewed: ${manifestFiles.filter(file => file.group === "sol").length} Sol files and ${manifestFiles.filter(file => file.group === "luna").length} Luna/OpenAI files. Their absolute paths, byte sizes, modes, SHA-256 hashes, request counts, and UTC ranges are in evidence-manifest.json. The raw files remain in place with mode 0400; no prompt body was copied into this package or committed.
 
 The five original Sol SHA-256 values match the prior recorded hashes. Original evidence is preserved at /var/lib/opencodex/sol-upstream-capture/; the Luna captures are under /var/lib/opencodex/openai-upstream-capture/.
 
@@ -389,9 +486,17 @@ At the two clean single-turn triples, the cold request follows an exact append-o
 
 ## Luna compare and diagnostic evidence
 
-The final Luna file contains twelve requests, eleven usage rows, eight physical request bodies with comparison_response_id, and seven response payloads with diagnostics exactly {"type":"unavailable"}. The eight IDs are present in the captured body passed at the physical send hook and correspond to earlier response IDs in that same file. All eight requests returned HTTP 200. One final request had no usage row when the capture ended. Full per-request redacted details are in support-evidence.json.
+The earlier Luna file contains twelve requests, eleven usage rows, eight physical request bodies with comparison_response_id, and seven response payloads with diagnostics exactly {"type":"unavailable"}. The eight IDs are present in the captured body passed at the physical send hook and correspond to earlier response IDs in that same file. Seven completed responses returned HTTP 200; the eighth request had no captured response or usage. Full per-request redacted details are in support-evidence.json.
 
 This final Luna sample does not show a verified large-context Warm→Cold→Warm pattern. Its small-context chain includes cached values 0 → 9,856 → 0; we do not interpret unavailable as a miss reason or label this sequence a confirmed event. The three earlier Luna windows also contain mixed/parallel contexts and do not establish the requested continuous warm/cold/recovery sequence.
+
+## Luna event-based natural capture
+
+The deployed collector captured ${machineReport.lunaEventCapture.requests} Luna physical requests and ${machineReport.lunaEventCapture.usageRows} usage rows, then stopped at ${machineReport.lunaEventCapture.stopReason ?? "no recorded limit"}. Its live state reported ${machineReport.lunaEventCapture.runtimeCompletedEventsAtStop} completed events, but an independent offline analysis found ${machineReport.lunaEventCapture.completeLinkedEvents} complete linked high→cold→recovery event sequences across ${machineReport.lunaEventCapture.chainsObserved} chains (target: two). Each has two subsequent requests, a stable ordered input prefix, and an unchanged non-input body hash. The runtime/offline mismatch exposed an orphan-cold state bug: an earlier cold candidate that never recovered blocked later events. The code fix abandons that stale candidate and passes a regression test; the fixed build was not used for this already-finished capture. The event classifications are SERVER_REUSE_FAILURE_SUSPECTED, not a confirmed OpenAI root cause.
+
+${lunaEventsMarkdown}
+
+The 60-request capture used Codex WebSocket transport for the selected events; each event request had physicalAttempt=1 and compactionRequest=false. The conversation-key hash is absent, so direct thread/session continuity cannot be confirmed from this capture. All responses visible to the hook lacked x-request-id; because the WebSocket adapter synthesizes the Response and does not expose its upgrade handshake headers, origin-level absence remains unproven. Request/config hashes, comparison IDs, response/usage associations, attempt number, compaction flag, conversation-key hash, response transport and diagnostics are retained per request in support-evidence.json without prompt text.
 
 ## Final request comparison and parameter checks
 
@@ -408,7 +513,7 @@ The telemetry hook reads x-request-id and openai-request-id from the response ob
 - **Confirmed:** upstream usage reported sharp cached-token drops in Sol while the captured client input was append-only and stable outside normal tail growth.
 - **Confirmed:** Luna compare IDs were present in physical-send request bodies; the linked calls returned HTTP 200 and seven returned diagnostics.type=unavailable.
 - **Not established:** server eviction, routing migration, deliberate cache clearing, or excess subscription Credits.
-- **Pending:** whether Sol supports comparison_response_id; whether comparison_response_id changes cache eligibility; whether the origin supplies x-request-id on the transport used; a Luna Warm→Cold→Warm event under the event-based normal-workflow capture.
+- **Pending:** whether Sol supports comparison_response_id; whether comparison_response_id changes cache eligibility; whether the origin supplies x-request-id on the transport used; OpenAI's server-side reason for the two Luna cache drops.
 - **Credits:** not calculated from these usage blocks. Token-category deltas are not equivalent to subscription Credits.
 
 ## Root-cause exclusion matrix
@@ -418,9 +523,9 @@ The telemetry hook reads x-request-id and openai-request-id from the response ob
 | Historical input-prefix edit | Excluded for the two clean Sol triples: ordered full input prefix matched | Not a large-context cache cliff in the final window | Event capture stores per-request input hash and ordered-chain ID, not prompt text in the derived report |
 | Model/reasoning/tools/service tier/format/verbosity | Excluded for the two clean Sol triples by stable non-input body hash; service tier absent | Comparison parameter is stripped only for the input/config diff; body hash retains request-body evidence | Compare each naturally observed event's stable body hash and explicit config fields |
 | Diagnostic comparison option affecting eligibility | Sol triples had no comparison option | Luna final requests carry comparison_response_id; this field is excluded from the client-prefix comparison by design | OpenAI must confirm whether this diagnostic option can itself affect cache eligibility |
-| Conversation/session identity | Old records did not retain a safe conversation key hash | Same limitation; comparison IDs link earlier responses | New capture stores a one-way conversation-key hash and cache chain ID |
-| Retries/reconnects/compaction/reroute | Not established from old captures | Not established from old captures | New capture records physical send attempt and compaction flag, timestamp, model and response transport; WebSocket handshake reconnect/origin routing internals may still be unavailable |
-| Upstream cache reuse failure | Observed usage cliff with stable captured request inputs; server cause not known | No qualifying Luna cliff observed | OpenAI must explain any future Luna event; unavailable diagnostics are not a cause |
+| Conversation/session identity | Old records did not retain a safe conversation key hash | conversationKeyHash is absent in the 60 captured Luna requests; response-linked cache chains are present | Direct threadId/turnId/session identity could not be verified; the capture stores only a hash when the local conversation key is available |
+| Retries/reconnects/compaction/reroute | Not established from old captures | Selected event rows show physicalAttempt=1, compactionRequest=false, model/response model both gpt-6-luna, and Codex WebSocket transport | No retry/compaction was observed in these events; WebSocket reconnect state, direct session identity, and OpenAI's internal reroute remain unavailable |
+| Upstream cache reuse failure | Observed usage cliff with stable captured request inputs; server cause not known | Two complete Luna Warm→Cold→Warm sequences; upstream cached_tokens=0 on both cold turns while input prefix/config stayed stable | Classified SERVER_REUSE_FAILURE_SUSPECTED; OpenAI must explain the service-side cause; unavailable diagnostics are not a cause |
 | Billing / subscription Credits | Not derivable from these usage rows | Not derivable from these usage rows | Reconcile provider billing/plan records separately |
 
 ## Privacy

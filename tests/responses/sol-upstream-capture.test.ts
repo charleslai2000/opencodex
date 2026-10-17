@@ -156,13 +156,16 @@ describe("Sol upstream comparison capture", () => {
     const runEvent = (conversation: string): string => {
       const turns: unknown[] = [{ type: "message", role: "user", content: conversation }];
       let responseId = "";
-      const send = (cached: number): void => {
+      const send = (cached: number, forceComparisonId?: string): string => {
         const logicalRequestId = `lr-event-${++serial}`;
         const baseBody = body([...turns], "gpt-6-luna");
         const comparison = addSolCacheComparison("openai", "gpt-6-luna", undefined, baseBody);
+        const physicalBody = forceComparisonId
+          ? JSON.stringify({ ...JSON.parse(comparison.body), prompt_cache_options: { comparison_response_id: forceComparisonId } })
+          : comparison.body;
         captureSolUpstreamRequest(
           "openai", "gpt-6-luna", "https://chatgpt.com/backend-api/codex/responses",
-          { method: "POST", body: comparison.body }, logicalRequestId,
+          { method: "POST", body: physicalBody }, logicalRequestId,
           { comparisonDecision: comparison.decision, comparisonInputBody: baseBody }, undefined,
         );
         responseId = `resp-event-${serial}`;
@@ -172,6 +175,7 @@ describe("Sol upstream comparison capture", () => {
         });
         turns.push({ type: "message", role: "assistant", content: `answer-${serial}` });
         turns.push({ type: "message", role: "user", content: `follow-up-${serial}` });
+        return responseId;
       };
       send(800); // First warm request.
       send(800); // Second warm request, eligible as the Cold predecessor.
@@ -194,5 +198,45 @@ describe("Sol upstream comparison capture", () => {
     expect(afterTwo.completedEvents[0]!.postRecovery).toHaveLength(2);
     expect(afterTwo.completedEvents[1]!.postRecovery).toHaveLength(2);
     expect(afterTwo.completedEvents[0]!.chainId).not.toBe(afterTwo.completedEvents[1]!.chainId);
+  });
+
+  test("abandons an orphan cold candidate so a later linked event can complete", () => {
+    startSolRequestCapture(Date.now(), { models: ["gpt-6-luna"] });
+    let serial = 0;
+    const turns: unknown[] = [{ type: "message", role: "user", content: "natural sequence" }];
+    const send = (cached: number, forceComparisonId?: string): string => {
+      const logicalRequestId = `lr-orphan-${++serial}`;
+      const baseBody = body([...turns], "gpt-6-luna");
+      const comparison = addSolCacheComparison("openai", "gpt-6-luna", undefined, baseBody);
+      const physicalBody = forceComparisonId
+        ? JSON.stringify({ ...JSON.parse(comparison.body), prompt_cache_options: { comparison_response_id: forceComparisonId } })
+        : comparison.body;
+      captureSolUpstreamRequest("openai", "gpt-6-luna", "https://chatgpt.com/backend-api/codex/responses",
+        { method: "POST", body: physicalBody }, logicalRequestId,
+        { comparisonDecision: comparison.decision, comparisonInputBody: baseBody });
+      const responseId = `resp-orphan-${serial}`;
+      captureSolUpstreamPayload("openai", "gpt-6-luna", logicalRequestId, {
+        type: "response.completed",
+        response: { id: responseId, usage: { input_tokens: 1000, input_tokens_details: { cached_tokens: cached, cache_write_tokens: 0 } } },
+      });
+      turns.push({ type: "message", role: "assistant", content: `answer-${serial}` });
+      turns.push({ type: "message", role: "user", content: `follow-up-${serial}` });
+      return responseId;
+    };
+
+    send(800);
+    const firstWarm = send(800);
+    send(0);
+    send(800, firstWarm); // Warm response does not reference the cold response.
+    expect(getSolRequestCaptureStatus().completedEvents).toHaveLength(0);
+    send(800);
+    send(800);
+    send(0);
+    send(800); // Proper recovery references the cold response.
+    send(850);
+    send(900);
+    const status = getSolRequestCaptureStatus();
+    expect(status.completedEvents).toHaveLength(1);
+    expect(status.completedEvents[0]!.postRecovery).toHaveLength(2);
   });
 });
