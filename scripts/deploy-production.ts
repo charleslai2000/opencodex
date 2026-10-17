@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { chmod, chown, copyFile, lstat, mkdir, readFile, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
 import { basename, join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
+import { isKnownOpenCodeXFirewallUnit, unexpectedOpenCodeXServiceUnits } from "./deploy-unit-guard";
 
 const ROOT = resolve(import.meta.dir, "..");
 const VERSION = JSON.parse(await readFile(join(ROOT, "package.json"), "utf8")).version as string;
@@ -69,7 +70,23 @@ const oldUnit = await readFile(UNIT, "utf8"); const oldSwitch = await readFile(S
 const existingTarget = run(["systemctl", "show", "opencodex.service", "-p", "FragmentPath", "--value"], { capture: true });
 if (existingTarget !== UNIT) throw new Error(`opencodex.service target mismatch: ${existingTarget}`);
 const enabledUnits = run(["systemctl", "list-unit-files", "--type=service", "--no-legend"], { capture: true }).split("\n");
-if (enabledUnits.some(line => /^opencodex[^ ]*\.service\s/.test(line) && !line.startsWith("opencodex.service "))) throw new Error("another OpenCodeX service unit is registered");
+const unexpectedUnits = unexpectedOpenCodeXServiceUnits(enabledUnits.join("\n"));
+if (unexpectedUnits.length > 0) throw new Error(`another OpenCodeX runtime service is registered: ${unexpectedUnits.join(", ")}`);
+if (enabledUnits.some(line => line.trim().startsWith("opencodex-firewall.service "))) {
+  const firewallPath = run(["systemctl", "show", "opencodex-firewall.service", "-p", "FragmentPath", "--value"], { capture: true });
+  const firewallType = run(["systemctl", "show", "opencodex-firewall.service", "-p", "Type", "--value"], { capture: true });
+  const firewallInfo = await lstat(firewallPath);
+  const firewallContents = await readFile(firewallPath, "utf8");
+  if (!isKnownOpenCodeXFirewallUnit({
+    fragmentPath: firewallPath,
+    type: firewallType,
+    ownerUid: firewallInfo.uid,
+    mode: firewallInfo.mode & 0o777,
+    regularFile: firewallInfo.isFile(),
+    symbolicLink: firewallInfo.isSymbolicLink(),
+    contents: firewallContents,
+  })) throw new Error("opencodex-firewall.service does not match the trusted root-owned nftables oneshot");
+}
 if (run(["systemctl", "show", "opencodex.service", "-p", "User", "--value"], { capture: true }) !== "root") throw new Error("production service must already satisfy root authority before artifact upgrade");
 if (!oldUnit.includes("User=root") || !oldUnit.includes("Group=root")) throw new Error("production unit contents do not match the required root authority contract");
 if (!oldSwitch.includes("/var/lib/opencodex/config.json") || !oldSwitch.includes("127.0.0.1:3456")) throw new Error("production switch wrapper is not bound to the canonical runtime");
@@ -103,7 +120,7 @@ try {
   if (archiveEntries.some(path => forbidden.some(name => path === `package/${name}` || path.endsWith(`/${name}`)))) throw new Error("package archive contains runtime configuration or secret state");
   await copyFile(join(ROOT, "bun.lock"), join(app, "bun.lock"));
   // Run the frozen production install in the extracted package directory.
-  run(["bun", "install", "--production", "--frozen-lockfile", "--no-save"], { cwd: app });
+  run([process.execPath, "install", "--production", "--frozen-lockfile", "--no-save"], { cwd: app });
   const scriptsDir = join(app, "scripts"); await mkdir(scriptsDir, { recursive: true, mode: 0o755 });
   await copyFile(join(ROOT, "scripts/switch-codex.ts"), join(scriptsDir, "switch-codex.ts"));
   const bun = join(app, "node_modules/bun/bin/bun.exe");

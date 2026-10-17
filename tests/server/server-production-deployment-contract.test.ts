@@ -1,6 +1,23 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { repoPath } from "../helpers/repo-root";
+import { isKnownOpenCodeXFirewallUnit, unexpectedOpenCodeXServiceUnits } from "../../scripts/deploy-unit-guard";
+
+const expectedFirewallUnit = `[Unit]
+Description=Restrict OpenCodex port 3456 to loopback and PC01 LAN
+After=nftables.service
+Requires=nftables.service
+Before=opencodex.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/sh -ec 'nft list table inet opencodex_guard >/dev/null 2>&1 && nft delete table inet opencodex_guard || true; nft -f /etc/nftables.d/opencodex-3456.nft'
+ExecStop=/bin/sh -ec 'nft list table inet opencodex_guard >/dev/null 2>&1 && nft delete table inet opencodex_guard || true'
+
+[Install]
+WantedBy=multi-user.target
+`;
 
 describe("versioned production deployment contract", () => {
   test("unit and wrapper templates bind root authority and canonical production paths", () => {
@@ -38,5 +55,41 @@ describe("versioned production deployment contract", () => {
     expect(deploy).toContain("sha256(await readFile(CONFIG)) !== oldConfigHash");
     expect(deploy).not.toContain("applyRoutingPreset(");
     expect(deploy).not.toContain('run(["switch-codex"');
+  });
+
+  test("single-runtime guard accepts only the exact trusted firewall helper", () => {
+    expect(unexpectedOpenCodeXServiceUnits([
+      "opencodex.service enabled enabled",
+      "opencodex-firewall.service enabled enabled",
+      "nftables.service enabled enabled",
+    ].join("\n"))).toEqual([]);
+    expect(unexpectedOpenCodeXServiceUnits("opencodex-preview.service enabled enabled")).toEqual(["opencodex-preview.service"]);
+    expect(isKnownOpenCodeXFirewallUnit({
+      fragmentPath: "/etc/systemd/system/opencodex-firewall.service",
+      type: "oneshot",
+      ownerUid: 0,
+      mode: 0o644,
+      regularFile: true,
+      symbolicLink: false,
+      contents: expectedFirewallUnit,
+    })).toBe(true);
+    expect(isKnownOpenCodeXFirewallUnit({
+      fragmentPath: "/etc/systemd/system/opencodex-firewall.service",
+      type: "oneshot",
+      ownerUid: 0,
+      mode: 0o644,
+      regularFile: true,
+      symbolicLink: false,
+      contents: expectedFirewallUnit.replace("/etc/nftables.d/opencodex-3456.nft", "/tmp/other.nft"),
+    })).toBe(false);
+    expect(isKnownOpenCodeXFirewallUnit({
+      fragmentPath: "/etc/systemd/system/opencodex-firewall.service",
+      type: "oneshot",
+      ownerUid: 0,
+      mode: 0o644,
+      regularFile: true,
+      symbolicLink: false,
+      contents: expectedFirewallUnit.replace("[Install]", "ExecStart=/opt/opencodex/src/cli/index.ts start\n\n[Install]"),
+    })).toBe(false);
   });
 });

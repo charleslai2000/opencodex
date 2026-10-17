@@ -5,6 +5,7 @@ This runbook points to the repository-owned install contract in `ops/systemd/`, 
 ## Runtime paths and topology
 
 - The sole production unit is `opencodex.service`, bound to `3456`.
+- `opencodex-firewall.service` is a separate root-owned nftables oneshot that restricts port `3456`; it does not run another proxy instance.
 - `/var/lib/opencodex` is persistent runtime state, not an artifact directory.
 - Config: `/var/lib/opencodex/config.json`.
 - Management token: `/var/lib/opencodex/admin-api-token`.
