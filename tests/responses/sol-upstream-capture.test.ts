@@ -108,4 +108,24 @@ describe("Sol upstream comparison capture", () => {
     expect(addSolCacheComparison("openai", "gpt-6-sol", "conversation-luna", body(firstInput, "gpt-6-sol")).decision)
       .toBe("model_not_validated");
   });
+
+  test("compares at the pre-adapter stage while capturing the physical upstream body", () => {
+    const firstInput = [{ type: "message", role: "user", content: "first turn" }];
+    const firstClientBody = body(firstInput, "gpt-6-luna");
+    const firstUpstreamBody = JSON.stringify({ ...JSON.parse(firstClientBody), provider_extension: "adapted" });
+    captureSolUpstreamRequest(
+      "openai", "gpt-6-luna", "https://chatgpt.com/backend-api/codex/responses",
+      { method: "POST", body: firstUpstreamBody }, "lr-luna-adapted",
+      { comparisonInputBody: firstClientBody }, undefined,
+    );
+    captureSolUpstreamPayload("openai", "gpt-6-luna", "lr-luna-adapted", {
+      type: "response.completed",
+      response: { id: "resp-luna-adapted", usage: { input_tokens: 100, input_tokens_details: { cached_tokens: 0 } } },
+    });
+
+    const currentClientBody = body([...firstInput, { type: "message", role: "assistant", content: "next" }], "gpt-6-luna");
+    const next = addSolCacheComparison("openai", "gpt-6-luna", undefined, currentClientBody);
+    expect(next.decision).toBe("continued_prefix_match");
+    expect(JSON.parse(next.body).prompt_cache_options.comparison_response_id).toBe("resp-luna-adapted");
+  });
 });

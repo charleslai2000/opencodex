@@ -817,8 +817,10 @@ export async function preparePassthroughExchange(
       ?? req.headers.get("session-id")?.trim()
       ?? parsed._clientThreadId;
     let solComparisonDecision: SolCacheComparisonDecision | undefined;
+    let solComparisonInputBody: string | undefined;
     const solDiagnosticBody = (): string => {
       if (!isCanonicalOpenAiForwardProvider(route.provider)) return request.body;
+      solComparisonInputBody = request.body;
       const diagnostic = addSolCacheComparison(route.providerName, route.modelId, solConversationKey, request.body);
       solComparisonDecision = diagnostic.decision;
       return diagnostic.body;
@@ -831,6 +833,7 @@ export async function preparePassthroughExchange(
         promptCacheKey: inboundCacheFields.prompt_cache_key,
         promptCacheOptions: inboundCacheFields.prompt_cache_options,
         comparisonDecision: solComparisonDecision,
+        comparisonInputBody: solComparisonInputBody,
       }, solConversationKey);
     };
     try {

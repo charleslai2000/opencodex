@@ -25,6 +25,7 @@ let captureFile: string | null = null;
 const capturedLogicalIds = new Map<string, string>();
 const capturedLogicalConversations = new Map<string, string>();
 const capturedLogicalBodies = new Map<string, string>();
+const capturedComparisonBodies = new Map<string, string>();
 const previousResponseIds = new Map<string, string>();
 let previousCompletedCapture: { responseId: string; modelId: string; body: string } | null = null;
 
@@ -61,6 +62,7 @@ export function startSolRequestCapture(now = Date.now()): SolRequestCaptureStatu
   capturedLogicalIds.clear();
   capturedLogicalConversations.clear();
   capturedLogicalBodies.clear();
+  capturedComparisonBodies.clear();
   previousResponseIds.clear();
   previousCompletedCapture = null;
   captureFile = join(dir, `requests-${now}.jsonl`);
@@ -167,7 +169,12 @@ export function captureSolUpstreamRequest(
   input: Parameters<typeof fetch>[0],
   init?: RequestInit,
   logicalRequestId?: string,
-  clientCacheFields?: { promptCacheKey?: unknown; promptCacheOptions?: unknown; comparisonDecision?: SolCacheComparisonDecision },
+  clientCacheFields?: {
+    promptCacheKey?: unknown;
+    promptCacheOptions?: unknown;
+    comparisonDecision?: SolCacheComparisonDecision;
+    comparisonInputBody?: string;
+  },
   conversationKey?: string,
 ): void {
   const now = Date.now();
@@ -212,6 +219,9 @@ export function captureSolUpstreamRequest(
       capturedLogicalIds.set(logicalRequestId, path);
       if (conversationKey) capturedLogicalConversations.set(logicalRequestId, conversationKey);
       capturedLogicalBodies.set(logicalRequestId, body);
+      if (clientCacheFields?.comparisonInputBody !== undefined) {
+        capturedComparisonBodies.set(logicalRequestId, clientCacheFields.comparisonInputBody);
+      }
       while (capturedLogicalIds.size > 32) capturedLogicalIds.delete(capturedLogicalIds.keys().next().value!);
     }
   } catch {
@@ -295,7 +305,11 @@ export function captureSolUpstreamPayload(
     while (previousResponseIds.size > MAX_CONVERSATIONS) previousResponseIds.delete(previousResponseIds.keys().next().value!);
   }
   if (completed && typeof response.id === "string") {
-    const requestBody = capturedLogicalBodies.get(logicalRequestId);
+    // Compare at the same pre-adapter stage at which addSolCacheComparison
+    // evaluated the current request. The physical upstream body may contain
+    // provider adaptation, so mixing it with the pre-adapter current body
+    // falsely reports a prefix mismatch on every turn.
+    const requestBody = capturedComparisonBodies.get(logicalRequestId) ?? capturedLogicalBodies.get(logicalRequestId);
     if (requestBody) previousCompletedCapture = { responseId: response.id, modelId, body: requestBody };
   }
   appendCaptureRow(logicalRequestId, {
@@ -318,5 +332,6 @@ export function captureSolUpstreamPayload(
     capturedLogicalIds.delete(logicalRequestId);
     capturedLogicalConversations.delete(logicalRequestId);
     capturedLogicalBodies.delete(logicalRequestId);
+    capturedComparisonBodies.delete(logicalRequestId);
   }
 }
