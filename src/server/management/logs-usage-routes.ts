@@ -68,6 +68,7 @@ import {
   getSolRequestCaptureStatus,
   startSolRequestCapture,
   stopSolRequestCapture,
+  supportedRequestCaptureModels,
 } from "../responses/sol-upstream-capture";
 import type { OcxClaudeCodeConfig, OcxConfig, OcxCustomModel, OcxProviderConfig } from "../../types";
 import { drainAndShutdown } from "../lifecycle";
@@ -142,9 +143,17 @@ export async function handleLogsUsageRoutes(ctx: ManagementContext): Promise<Res
   }
 
   if ((url.pathname === "/api/debug/openai-request-capture" || url.pathname === "/api/debug/sol-request-capture") && req.method === "PUT") {
-    let body: { action?: unknown };
+    let body: { action?: unknown; models?: unknown };
     try { body = await readManagementJsonBody(req); } catch (error) { rethrowManagementBodyTooLarge(error); return jsonResponse({ error: "invalid JSON body" }, 400); }
-    if (body.action === "start") return jsonResponse(startSolRequestCapture());
+    if (body.action === "start") {
+      if (body.models !== undefined && (!Array.isArray(body.models)
+        || body.models.some(model => typeof model !== "string" || !supportedRequestCaptureModels().includes(model)))) {
+        return jsonResponse({ error: `models must be selected from ${supportedRequestCaptureModels().join(", ")}` }, 400);
+      }
+      return jsonResponse(startSolRequestCapture(Date.now(), {
+        ...(Array.isArray(body.models) ? { models: body.models as string[] } : {}),
+      }));
+    }
     if (body.action === "stop") return jsonResponse(stopSolRequestCapture());
     return jsonResponse({ error: "action must be start or stop" }, 400);
   }

@@ -4,12 +4,17 @@ import { createHash } from "node:crypto";
 import { join } from "node:path";
 import { getConfigDir } from "../../config";
 import { OPENAI_GPT56_MODELS, OPENAI_GPT56_PRO_MODELS, OPENAI_GPT6_MODELS } from "../../providers/registry/model-seeds";
+import { isCodexWsUpstreamResponse } from "./codex-ws-wire";
 
-const WINDOW_MS = 10 * 60_000;
-const MAX_REQUESTS = 12;
-const MAX_BODY_BYTES = 8 * 1024 * 1024;
-const MAX_TOTAL_BYTES = 64 * 1024 * 1024;
+const WINDOW_MS = 15 * 60_000;
+const MAX_REQUESTS = 60;
+const MAX_BODY_BYTES = 4 * 1024 * 1024;
+const MAX_TOTAL_BYTES = 128 * 1024 * 1024;
+const RESPONSE_METADATA_RESERVE_BYTES = 4 * 1024 * 1024;
 const MAX_CONVERSATIONS = 64;
+const TARGET_EVENTS = 2;
+const WARM_CACHE_RATE = 0.7;
+const COLD_CACHE_RATE = 0.1;
 const CAPTURE_MODELS = new Set<string>([
   ...OPENAI_GPT56_MODELS,
   ...OPENAI_GPT56_PRO_MODELS,
@@ -22,12 +27,49 @@ let expiresAt = 0;
 let captured = 0;
 let totalBytes = 0;
 let captureFile: string | null = null;
+let captureModels = new Set<string>(CAPTURE_MODELS);
+let stopReason: "manual" | "target_events" | "max_requests" | "max_bytes" | "time_budget" | null = null;
+let nextChainId = 0;
+const capturedLogicalChains = new Map<string, string>();
+const capturedLogicalComparisons = new Map<string, string | undefined>();
+const responseChainIds = new Map<string, string>();
+const chainByConversation = new Map<string, string>();
+const cacheObservationsByChain = new Map<string, CacheObservation[]>();
+const activeCacheEventsByChain = new Map<string, ActiveCacheEvent>();
+const completedCacheEvents: CacheEventSummary[] = [];
 const capturedLogicalIds = new Map<string, string>();
 const capturedLogicalConversations = new Map<string, string>();
 const capturedLogicalBodies = new Map<string, string>();
 const capturedComparisonBodies = new Map<string, string>();
 const previousResponseIds = new Map<string, string>();
-let previousCompletedCapture: { responseId: string; modelId: string; body: string } | null = null;
+let previousCompletedCapture: { responseId: string; modelId: string; body: string; chainId: string } | null = null;
+
+interface CacheObservation {
+  logicalRequestId: string;
+  responseId: string;
+  comparisonResponseId?: string;
+  utc: string;
+  inputTokens: number;
+  cachedTokens: number;
+  cacheRate: number;
+}
+
+interface ActiveCacheEvent {
+  beforeWarm: CacheObservation;
+  warm: CacheObservation;
+  cold: CacheObservation;
+  recovery?: CacheObservation;
+  postRecovery: CacheObservation[];
+}
+
+interface CacheEventSummary {
+  chainId: string;
+  beforeWarm: CacheObservation;
+  warm: CacheObservation;
+  cold: CacheObservation;
+  recovery: CacheObservation;
+  postRecovery: CacheObservation[];
+}
 
 export type SolCacheComparisonDecision =
   | "capture_inactive"
@@ -46,19 +88,37 @@ export interface SolRequestCaptureStatus {
   files: string[];
   models: string[];
   comparisonModels: string[];
+  maxTotalBytes: number;
+  targetEvents: number;
+  completedEvents: CacheEventSummary[];
+  stopReason: "manual" | "target_events" | "max_requests" | "max_bytes" | "time_budget" | null;
 }
 
 export function solRequestCaptureDir(): string {
   return join(getConfigDir(), "openai-upstream-capture");
 }
 
-export function startSolRequestCapture(now = Date.now()): SolRequestCaptureStatus {
+export function supportedRequestCaptureModels(): string[] {
+  return [...CAPTURE_MODELS];
+}
+
+export function startSolRequestCapture(now = Date.now(), options: { models?: string[] } = {}): SolRequestCaptureStatus {
   const dir = solRequestCaptureDir();
   mkdirSync(dir, { recursive: true, mode: 0o700 });
   try { chmodSync(dir, 0o700); } catch { /* best effort */ }
   expiresAt = now + WINDOW_MS;
   captured = 0;
   totalBytes = 0;
+  captureModels = new Set(options.models?.filter(model => CAPTURE_MODELS.has(model)) ?? CAPTURE_MODELS);
+  stopReason = null;
+  nextChainId = 0;
+  capturedLogicalChains.clear();
+  capturedLogicalComparisons.clear();
+  responseChainIds.clear();
+  chainByConversation.clear();
+  cacheObservationsByChain.clear();
+  activeCacheEventsByChain.clear();
+  completedCacheEvents.length = 0;
   capturedLogicalIds.clear();
   capturedLogicalConversations.clear();
   capturedLogicalBodies.clear();
@@ -80,7 +140,8 @@ export function addSolCacheComparison(
   if (providerName !== "openai" || !modelId || !COMPARISON_MODELS.has(modelId)) {
     return { body, decision: "model_not_validated" };
   }
-  if (expiresAt <= now || captured >= MAX_REQUESTS || totalBytes >= MAX_TOTAL_BYTES) {
+  if (!captureModels.has(modelId)) return { body, decision: "capture_inactive" };
+  if (expiresAt <= now || captured >= MAX_REQUESTS || totalBytes >= MAX_TOTAL_BYTES || completedCacheEvents.length >= TARGET_EVENTS) {
     return { body, decision: "capture_inactive" };
   }
   const scopedConversationKey = conversationKey ? `${modelId}\0${conversationKey}` : undefined;
@@ -143,22 +204,43 @@ function isAppendOnlyContinuation(previousBody: string, currentBody: string): bo
 
 export function stopSolRequestCapture(): SolRequestCaptureStatus {
   expiresAt = 0;
+  stopReason = "manual";
   return getSolRequestCaptureStatus();
 }
 
 export function getSolRequestCaptureStatus(now = Date.now()): SolRequestCaptureStatus {
-  if (expiresAt > 0 && now >= expiresAt) expiresAt = 0;
+  if (expiresAt > 0 && now >= expiresAt) {
+    expiresAt = 0;
+    stopReason = "time_budget";
+  }
+  if (expiresAt > now && captured >= MAX_REQUESTS) {
+    expiresAt = 0;
+    stopReason = "max_requests";
+  }
+  if (expiresAt > now && totalBytes >= MAX_TOTAL_BYTES) {
+    expiresAt = 0;
+    stopReason = "max_bytes";
+  }
+  if (expiresAt > now && completedCacheEvents.length >= TARGET_EVENTS) {
+    expiresAt = 0;
+    stopReason = "target_events";
+  }
   let files: string[] = [];
   try { files = readdirSync(solRequestCaptureDir()).filter(name => name.endsWith(".jsonl")).sort(); } catch { /* absent */ }
   return {
-    enabled: expiresAt > now && captured < MAX_REQUESTS && totalBytes < MAX_TOTAL_BYTES,
+    enabled: expiresAt > now && captured < MAX_REQUESTS && totalBytes < MAX_TOTAL_BYTES
+      && completedCacheEvents.length < TARGET_EVENTS,
     expiresAt: expiresAt > now ? expiresAt : null,
     captured,
     maxRequests: MAX_REQUESTS,
     maxBodyBytes: MAX_BODY_BYTES,
     files,
-    models: [...CAPTURE_MODELS],
+    models: [...captureModels],
     comparisonModels: [...COMPARISON_MODELS],
+    maxTotalBytes: MAX_TOTAL_BYTES,
+    targetEvents: TARGET_EVENTS,
+    completedEvents: [...completedCacheEvents],
+    stopReason,
   };
 }
 
@@ -174,23 +256,44 @@ export function captureSolUpstreamRequest(
     promptCacheOptions?: unknown;
     comparisonDecision?: SolCacheComparisonDecision;
     comparisonInputBody?: string;
+    physicalAttempt?: number;
+    compactionRequest?: boolean;
   },
   conversationKey?: string,
 ): void {
   const now = Date.now();
-  if (providerName !== "openai" || !modelId || !CAPTURE_MODELS.has(modelId)) return;
+  if (providerName !== "openai" || !modelId || !captureModels.has(modelId)) return;
   if (expiresAt <= now || captured >= MAX_REQUESTS || totalBytes >= MAX_TOTAL_BYTES) {
-    if (expiresAt > 0 && now >= expiresAt) expiresAt = 0;
+    if (expiresAt > 0) {
+      const reason = expiresAt <= now ? "time_budget" : captured >= MAX_REQUESTS ? "max_requests" : "max_bytes";
+      expiresAt = 0;
+      stopReason = reason;
+    }
     return;
   }
   const body = init?.body ?? (input instanceof Request ? input.clone().body : null);
   if (typeof body !== "string") return;
   const bytes = Buffer.byteLength(body, "utf8");
-  if (bytes === 0 || bytes > MAX_BODY_BYTES || totalBytes + bytes > MAX_TOTAL_BYTES) return;
+  if (bytes === 0 || bytes > MAX_BODY_BYTES) return;
+  if (totalBytes + bytes > MAX_TOTAL_BYTES - RESPONSE_METADATA_RESERVE_BYTES) {
+    expiresAt = 0;
+    stopReason = "max_bytes";
+    return;
+  }
   try {
     const parsedBody = JSON.parse(body) as Record<string, unknown>;
     const cacheOptions = parsedBody.prompt_cache_options && typeof parsedBody.prompt_cache_options === "object"
       && !Array.isArray(parsedBody.prompt_cache_options) ? parsedBody.prompt_cache_options as Record<string, unknown> : {};
+    const comparisonResponseId = typeof cacheOptions.comparison_response_id === "string"
+      ? cacheOptions.comparison_response_id : undefined;
+    const scopedConversationKey = conversationKey ? `${modelId}\0${conversationKey}` : undefined;
+    const comparisonInputBody = clientCacheFields?.comparisonInputBody ?? body;
+    const prior = previousCompletedCapture;
+    let chainId = comparisonResponseId ? responseChainIds.get(comparisonResponseId) : undefined;
+    if (!chainId && scopedConversationKey) chainId = chainByConversation.get(scopedConversationKey);
+    if (!chainId && prior?.modelId === modelId && isAppendOnlyContinuation(prior.body, comparisonInputBody)) chainId = prior.chainId;
+    if (!chainId) chainId = `luna-chain-${++nextChainId}`;
+    if (scopedConversationKey) chainByConversation.set(scopedConversationKey, chainId);
     const dir = solRequestCaptureDir();
     mkdirSync(dir, { recursive: true, mode: 0o700 });
     try { chmodSync(dir, 0o700); } catch { /* best effort */ }
@@ -204,6 +307,9 @@ export function captureSolUpstreamRequest(
       ...(clientCacheFields?.promptCacheKey !== undefined ? { clientPromptCacheKey: clientCacheFields.promptCacheKey } : {}),
       ...(clientCacheFields?.promptCacheOptions !== undefined ? { clientPromptCacheOptions: clientCacheFields.promptCacheOptions } : {}),
       ...(clientCacheFields?.comparisonDecision !== undefined ? { comparisonDecision: clientCacheFields.comparisonDecision } : {}),
+      ...(clientCacheFields?.physicalAttempt !== undefined ? { physicalAttempt: clientCacheFields.physicalAttempt } : {}),
+      ...(clientCacheFields?.compactionRequest !== undefined ? { compactionRequest: clientCacheFields.compactionRequest } : {}),
+      cacheEventChainId: chainId,
       conversationKeyPresent: Boolean(conversationKey),
       ...(conversationKey ? { conversationKeyHash: createHash("sha256").update(conversationKey).digest("hex").slice(0, 16) } : {}),
       ...(typeof cacheOptions.comparison_response_id === "string"
@@ -211,12 +317,21 @@ export function captureSolUpstreamRequest(
         : {}),
       bodyBytes: bytes, body,
     });
-    appendFileSync(path, `${row}\n`, { encoding: "utf8", mode: 0o600 });
+    const line = `${row}\n`;
+    const lineBytes = Buffer.byteLength(line, "utf8");
+    if (totalBytes + lineBytes > MAX_TOTAL_BYTES - RESPONSE_METADATA_RESERVE_BYTES) {
+      expiresAt = 0;
+      stopReason = "max_bytes";
+      return;
+    }
+    appendFileSync(path, line, { encoding: "utf8", mode: 0o600 });
     try { chmodSync(path, 0o600); } catch { /* best effort */ }
     captured += 1;
-    totalBytes += bytes;
+    totalBytes += lineBytes;
     if (logicalRequestId) {
       capturedLogicalIds.set(logicalRequestId, path);
+      capturedLogicalChains.set(logicalRequestId, chainId);
+      capturedLogicalComparisons.set(logicalRequestId, comparisonResponseId);
       if (conversationKey) capturedLogicalConversations.set(logicalRequestId, conversationKey);
       capturedLogicalBodies.set(logicalRequestId, body);
       if (clientCacheFields?.comparisonInputBody !== undefined) {
@@ -235,7 +350,14 @@ function appendCaptureRow(logicalRequestId: string, row: Record<string, unknown>
   try {
     const now = Date.now();
     const serialized = `${JSON.stringify({ ts: now, utc: new Date(now).toISOString(), logicalRequestId, ...row })}\n`;
+    const serializedBytes = Buffer.byteLength(serialized, "utf8");
+    if (totalBytes + serializedBytes > MAX_TOTAL_BYTES) {
+      expiresAt = 0;
+      stopReason = "max_bytes";
+      return;
+    }
     appendFileSync(path, serialized, { encoding: "utf8", mode: 0o600 });
+    totalBytes += serializedBytes;
     try { chmodSync(path, 0o600); } catch { /* best effort */ }
   } catch { /* Diagnostics must never affect delivery. */ }
 }
@@ -247,10 +369,11 @@ export function captureSolUpstreamResponseHeaders(
   logicalRequestId: string | undefined,
   response: Response,
 ): void {
-  if (providerName !== "openai" || !CAPTURE_MODELS.has(modelId) || !logicalRequestId) return;
+  if (providerName !== "openai" || !captureModels.has(modelId) || !logicalRequestId) return;
   appendCaptureRow(logicalRequestId, {
     phase: "response_headers",
     status: response.status,
+    responseTransport: isCodexWsUpstreamResponse(response) ? "codex-websocket" : "http-fetch",
     xRequestId: response.headers.get("x-request-id") ?? response.headers.get("openai-request-id"),
   });
 }
@@ -262,7 +385,7 @@ export function captureSolUpstreamPayload(
   logicalRequestId: string | undefined,
   payload: unknown,
 ): void {
-  if (providerName !== "openai" || !CAPTURE_MODELS.has(modelId) || !logicalRequestId
+  if (providerName !== "openai" || !captureModels.has(modelId) || !logicalRequestId
     || !payload || typeof payload !== "object" || Array.isArray(payload)) return;
   const root = payload as Record<string, unknown>;
   const response = root.response && typeof root.response === "object" && !Array.isArray(root.response)
@@ -285,7 +408,8 @@ export function captureSolUpstreamPayload(
   const cachedTokens = typeof inputDetails?.cached_tokens === "number" ? inputDetails.cached_tokens : undefined;
   const cacheWriteTokens = typeof inputDetails?.cache_write_tokens === "number" ? inputDetails.cache_write_tokens : undefined;
   const uncachedTokens = inputTokens !== undefined && cachedTokens !== undefined
-    ? Math.max(0, inputTokens - cachedTokens - (cacheWriteTokens ?? 0))
+    && cacheWriteTokens !== undefined
+    ? Math.max(0, inputTokens - cachedTokens - cacheWriteTokens)
     : undefined;
   const diagnostics = response.prompt_cache_diagnostics ?? root.prompt_cache_diagnostics;
   // The Codex backend may return a completed Responses object as one JSON body
@@ -298,6 +422,8 @@ export function captureSolUpstreamPayload(
   const terminal = completed || root.type === "response.failed" || root.type === "response.incomplete";
   if (!usageBlock && diagnostics === undefined && !(terminal && typeof response.id === "string")) return;
   const conversationKey = capturedLogicalConversations.get(logicalRequestId);
+  const chainId = capturedLogicalChains.get(logicalRequestId);
+  const comparisonResponseId = capturedLogicalComparisons.get(logicalRequestId);
   const scopedConversationKey = conversationKey ? `${modelId}\0${conversationKey}` : undefined;
   if (completed && typeof response.id === "string" && scopedConversationKey) {
     previousResponseIds.delete(scopedConversationKey);
@@ -310,7 +436,53 @@ export function captureSolUpstreamPayload(
     // provider adaptation, so mixing it with the pre-adapter current body
     // falsely reports a prefix mismatch on every turn.
     const requestBody = capturedComparisonBodies.get(logicalRequestId) ?? capturedLogicalBodies.get(logicalRequestId);
-    if (requestBody) previousCompletedCapture = { responseId: response.id, modelId, body: requestBody };
+    if (requestBody && chainId) previousCompletedCapture = { responseId: response.id, modelId, body: requestBody, chainId };
+    if (chainId) {
+      responseChainIds.set(response.id, chainId);
+      while (responseChainIds.size > MAX_CONVERSATIONS * 2) responseChainIds.delete(responseChainIds.keys().next().value!);
+    }
+  }
+  if (completed && typeof response.id === "string" && chainId
+    && inputTokens !== undefined && cachedTokens !== undefined && inputTokens > 0) {
+    const observation: CacheObservation = {
+      logicalRequestId,
+      responseId: response.id,
+      ...(comparisonResponseId ? { comparisonResponseId } : {}),
+      utc: new Date().toISOString(),
+      inputTokens,
+      cachedTokens,
+      cacheRate: cachedTokens / inputTokens,
+    };
+    const history = cacheObservationsByChain.get(chainId) ?? [];
+    const active = activeCacheEventsByChain.get(chainId);
+    if (active) {
+      if (!active.recovery && observation.comparisonResponseId === active.cold.responseId
+        && observation.cacheRate >= WARM_CACHE_RATE) {
+        active.recovery = observation;
+      } else if (active.recovery && observation.logicalRequestId !== active.recovery.logicalRequestId) {
+        active.postRecovery.push(observation);
+        if (active.postRecovery.length >= 2) {
+          const event: CacheEventSummary = { chainId, ...active } as CacheEventSummary;
+          completedCacheEvents.push(event);
+          appendCaptureRow(logicalRequestId, { phase: "cache_event", event });
+          activeCacheEventsByChain.delete(chainId);
+          if (completedCacheEvents.length >= TARGET_EVENTS) {
+            expiresAt = 0;
+            stopReason = "target_events";
+          }
+        }
+      }
+    } else if (history.length >= 2) {
+      const warm = history.at(-1)!;
+      const beforeWarm = history.at(-2)!;
+      if (warm.cacheRate >= WARM_CACHE_RATE && observation.cacheRate <= COLD_CACHE_RATE
+        && observation.comparisonResponseId === warm.responseId) {
+        activeCacheEventsByChain.set(chainId, { beforeWarm, warm, cold: observation, postRecovery: [] });
+      }
+    }
+    history.push(observation);
+    if (history.length > 16) history.shift();
+    cacheObservationsByChain.set(chainId, history);
   }
   appendCaptureRow(logicalRequestId, {
     phase: "response_usage",
@@ -333,5 +505,7 @@ export function captureSolUpstreamPayload(
     capturedLogicalConversations.delete(logicalRequestId);
     capturedLogicalBodies.delete(logicalRequestId);
     capturedComparisonBodies.delete(logicalRequestId);
+    capturedLogicalChains.delete(logicalRequestId);
+    capturedLogicalComparisons.delete(logicalRequestId);
   }
 }

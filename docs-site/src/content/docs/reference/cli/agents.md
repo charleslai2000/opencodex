@@ -179,15 +179,15 @@ ocx debug usage logs [-f|--follow]
 ocx debug openai on|off|status
 ```
 
-`ocx debug openai on` captures up to twelve physical OpenAI GPT-6 and GPT-5.6 exchanges for ten minutes. The
-local files under `OPENCODEX_HOME/openai-upstream-capture/` include the request body and cache fields,
-endpoint path, UTC time, response request ID/status, response ID, raw token usage, cached/uncached/
-cache-write input categories when reported, and any upstream cache diagnostics. They omit other
-HTTP headers and are not returned by the management API. The body contains prompts and tool data.
-During capture only, later `gpt-6.1-sol` and `gpt-6-luna` requests carry the prior matching response ID in
-`prompt_cache_options.comparison_response_id` to request upstream cache diagnostics. Stop early with
-`ocx debug openai off`, inspect the window with `status`, and remove the files after diagnosis. The old
-`ocx debug sol` spelling remains an alias.
+`ocx debug openai on` captures normal Luna traffic for up to fifteen minutes, sixty requests, or 128 MiB.
+It stops earlier after two complete high→low→recovery cache events, with two follow-up requests after each
+recovery. High means at least 70% cached input; cold means at most 10%; recovery means at least 70%. The
+local files under `OPENCODEX_HOME/openai-upstream-capture/` include the physical request body, UTC time,
+response ID, raw token usage and cache diagnostics when reported. They omit credentials and request headers
+and are not returned by the management API. The body contains prompts and tool data. During capture,
+eligible `gpt-6-luna` requests carry the prior matching response ID in
+`prompt_cache_options.comparison_response_id`. Stop early with `ocx debug openai off`; use `status` to see
+event count, stop reason, and files. The legacy `ocx debug sol` command captures Sol only.
 
 With no scope, `ocx debug` prints usage and, when the proxy is stopped, the next-start environment
 defaults. Provider debug defaults from `OCX_DEBUG=1` (legacy `OCX_DEBUG_FRAMES=1` also works); usage

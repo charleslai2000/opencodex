@@ -20,17 +20,18 @@ both key and forward modes. A configured provider header with that name wins cas
 when the caller omits it, the adapter invents no client identity. This does not widen the canonical
 forward credential/metadata allowlist or copy any other caller header.
 
-`ocx debug openai on` starts a ten-minute local capture of up to twelve physical request bodies routed
-to OpenAI GPT-6 and GPT-5.6 models; it stops at the first limit. Files live under
+`ocx debug openai on` starts a Luna-only local capture of ordinary requests; it stops after two complete
+high→low→recovery events with two following turns per event, or at 15 minutes, 60 requests, or 128 MiB.
+Files live under
 `OPENCODEX_HOME/openai-upstream-capture/` with owner-only permissions. The capture excludes headers,
 except for the response request-id value, and is not exposed through the management API. Each entry
 records the UTC timestamp, endpoint path, exact model, logical request id, client cache key/options
 when present, final upstream request body, response request id/status, response id/model, raw token
 usage, and explicit input categories (`cached_tokens`, derived uncached input, and
 `cache_write_tokens`) when reported, plus cache diagnostics when the upstream returns them. The
-logical request id joins it to the normal usage ledger. `ocx debug sol off` stops early; `status`
-reports the current window and file names.
-During this explicit capture only, subsequent `gpt-6.1-sol` and `gpt-6-luna` requests include the
+logical request id joins it to the normal usage ledger. `ocx debug openai off` stops early; `status`
+reports the current event count, stop reason, and file names.
+During this explicit capture only, subsequent `gpt-6-luna` requests include the
 preceding matching response ID as `prompt_cache_options.comparison_response_id`. Direct endpoint
 probes confirmed HTTP 200 for both model IDs. Other caller-supplied cache options remain stripped by
 the canonical adapter. Request bodies can contain private prompts and tool data, so operators should

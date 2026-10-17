@@ -45,22 +45,32 @@ async function putDebugSettings(body: Record<string, unknown>): Promise<DebugSet
   return await res.json() as DebugSettingsView;
 }
 
-async function handleOpenAiCapture(action: string): Promise<void> {
+async function handleOpenAiCapture(action: string, model: string): Promise<void> {
   const live = await requireLiveProxy();
   const url = `http://${probeHostname(live.hostname)}:${live.port}/api/debug/openai-request-capture`;
   try {
     const response = action === "status"
       ? await fetch(url, { headers: runningProxyUpdateHeaders() })
-      : await fetch(url, { method: "PUT", headers: runningProxyUpdateHeaders(), body: JSON.stringify({ action: action === "on" ? "start" : "stop" }) });
+      : await fetch(url, {
+        method: "PUT",
+        headers: runningProxyUpdateHeaders(),
+        body: JSON.stringify(action === "on" ? { action: "start", models: [model] } : { action: "stop" }),
+      });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const status = await response.json() as { enabled: boolean; expiresAt: number | null; captured: number; maxRequests: number; files: string[]; models?: string[]; comparisonModels?: string[] };
+    const status = await response.json() as {
+      enabled: boolean; expiresAt: number | null; captured: number; maxRequests: number; files: string[];
+      models?: string[]; comparisonModels?: string[]; targetEvents?: number; completedEvents?: unknown[];
+      maxTotalBytes?: number; stopReason?: string | null;
+    };
     console.log(`OpenAI raw upstream request capture: ${status.enabled ? "ON" : "off"}`);
     console.log(`  captured=${status.captured}/${status.maxRequests}`);
     if (status.models?.length) console.log(`  models=${status.models.join(", ")}`);
     if (status.comparisonModels?.length) console.log(`  comparison_response_id validated=${status.comparisonModels.join(", ")}`);
+    if (status.targetEvents !== undefined) console.log(`  events=${status.completedEvents?.length ?? 0}/${status.targetEvents}`);
+    if (status.stopReason) console.log(`  stopReason=${status.stopReason}`);
     if (status.expiresAt) console.log(`  expires=${new Date(status.expiresAt).toLocaleTimeString()}`);
     if (status.files.length) console.log(`  file=${status.files.join(", ")}`);
-    if (action === "on") console.log("  Automatic stop: 10 minutes or 12 requests; GPT-6/GPT-5.6 models only.");
+    if (action === "on") console.log(`  Automatic stop: 15 minutes, 60 requests, 128 MiB, or ${status.targetEvents ?? 2} completed cache events with two follow-up turns each.`);
   } catch (err) {
     console.error(`Sol capture control failed: ${err instanceof Error ? err.message : String(err)}`);
     process.exit(1);
@@ -171,7 +181,7 @@ async function handleScopeCommand(scope: DebugScope, actionArgv: string[]): Prom
       console.error(`Usage: ocx debug ${scope} on|off|status`);
       process.exit(1);
     }
-    await handleOpenAiCapture(action);
+    await handleOpenAiCapture(action, scope === "sol" ? "gpt-6.1-sol" : "gpt-6-luna");
     return;
   }
 
@@ -225,7 +235,7 @@ function printTopLevelHelp(): void {
   console.log("  ocx debug injection on|off|status|reset");
   console.log("  ocx debug claude on|off|status|reset");
   console.log("  ocx debug openai on|off|status");
-  console.log("  ocx debug sol on|off|status (legacy alias)");
+  console.log("  ocx debug sol on|off|status (Sol-only capture)");
   console.log("");
   console.log("Env defaults on start:");
   console.log("  provider → OCX_DEBUG=1 (legacy OCX_DEBUG_FRAMES still works)");

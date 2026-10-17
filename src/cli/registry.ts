@@ -180,7 +180,7 @@ export const CLI_COMMANDS: CliCommandEntry[] = [
     details: [
       "Provider: ocx debug provider on | off | status | reset | logs [-f]",
       "Usage JSONL: ocx debug usage on | off | status | reset | logs [-f]",
-      "OpenAI request body: ocx debug openai on | off | status (10 minutes, max 12 requests)",
+      "OpenAI cache event capture: ocx debug openai on | off | status (Luna only by default; bounded 15 minutes/60 requests/128 MiB)",
       "Env default: OCX_DEBUG=1 (legacy OCX_DEBUG_FRAMES still works)",
     ],
   },

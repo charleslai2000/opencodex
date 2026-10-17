@@ -818,6 +818,7 @@ export async function preparePassthroughExchange(
       ?? parsed._clientThreadId;
     let solComparisonDecision: SolCacheComparisonDecision | undefined;
     let solComparisonInputBody: string | undefined;
+    let solPhysicalAttempt = 0;
     const solDiagnosticBody = (): string => {
       if (!isCanonicalOpenAiForwardProvider(route.provider)) return request.body;
       solComparisonInputBody = request.body;
@@ -834,6 +835,8 @@ export async function preparePassthroughExchange(
         promptCacheOptions: inboundCacheFields.prompt_cache_options,
         comparisonDecision: solComparisonDecision,
         comparisonInputBody: solComparisonInputBody,
+        physicalAttempt: ++solPhysicalAttempt,
+        compactionRequest: parsed._compactionRequest === true,
       }, solConversationKey);
     };
     try {

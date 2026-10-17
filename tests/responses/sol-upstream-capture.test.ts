@@ -6,6 +6,8 @@ import {
   addSolCacheComparison,
   captureSolUpstreamPayload,
   captureSolUpstreamRequest,
+  captureSolUpstreamResponseHeaders,
+  getSolRequestCaptureStatus,
   startSolRequestCapture,
 } from "../../src/server/responses/sol-upstream-capture";
 import { removeTreeWithRetry } from "../helpers/remove-tree";
@@ -80,6 +82,25 @@ describe("Sol upstream comparison capture", () => {
     expect(JSON.parse(row.body).prompt_cache_options.comparison_response_id).toBe("resp-prior");
   });
 
+  test("records request-ID headers from the pre-sanitized physical response", () => {
+    captureSolUpstreamRequest(
+      "openai", "gpt-6-luna", "https://chatgpt.com/backend-api/codex/responses",
+      { method: "POST", body: body([{ type: "message", role: "user", content: "header probe" }], "gpt-6-luna") },
+      "lr-header",
+    );
+    captureSolUpstreamResponseHeaders(
+      "openai", "gpt-6-luna", "lr-header",
+      new Response(null, { status: 200, headers: { "x-request-id": "req-test" } }),
+    );
+    const captureDir = join(testDir, "openai-upstream-capture");
+    const file = readdirSync(captureDir).find(name => name.endsWith(".jsonl"));
+    const rows = readFileSync(join(captureDir, file!), "utf8").trim().split("\n").map(JSON.parse);
+    expect(rows.find((row: { phase: string }) => row.phase === "response_headers")).toMatchObject({
+      responseTransport: "http-fetch",
+      xRequestId: "req-test",
+    });
+  });
+
   test("captures Luna and links its own prior response without crossing model boundaries", () => {
     const firstInput = [{ type: "message", role: "user", content: "first Luna turn" }];
     captureSolUpstreamRequest(
@@ -127,5 +148,51 @@ describe("Sol upstream comparison capture", () => {
     const next = addSolCacheComparison("openai", "gpt-6-luna", undefined, currentClientBody);
     expect(next.decision).toBe("continued_prefix_match");
     expect(JSON.parse(next.body).prompt_cache_options.comparison_response_id).toBe("resp-luna-adapted");
+  });
+
+  test("stops after two linked cache events and captures two follow-up turns for each", () => {
+    startSolRequestCapture(Date.now(), { models: ["gpt-6-luna"] });
+    let serial = 0;
+    const runEvent = (conversation: string): string => {
+      const turns: unknown[] = [{ type: "message", role: "user", content: conversation }];
+      let responseId = "";
+      const send = (cached: number): void => {
+        const logicalRequestId = `lr-event-${++serial}`;
+        const baseBody = body([...turns], "gpt-6-luna");
+        const comparison = addSolCacheComparison("openai", "gpt-6-luna", undefined, baseBody);
+        captureSolUpstreamRequest(
+          "openai", "gpt-6-luna", "https://chatgpt.com/backend-api/codex/responses",
+          { method: "POST", body: comparison.body }, logicalRequestId,
+          { comparisonDecision: comparison.decision, comparisonInputBody: baseBody }, undefined,
+        );
+        responseId = `resp-event-${serial}`;
+        captureSolUpstreamPayload("openai", "gpt-6-luna", logicalRequestId, {
+          type: "response.completed",
+          response: { id: responseId, usage: { input_tokens: 1000, input_tokens_details: { cached_tokens: cached, cache_write_tokens: 0 } } },
+        });
+        turns.push({ type: "message", role: "assistant", content: `answer-${serial}` });
+        turns.push({ type: "message", role: "user", content: `follow-up-${serial}` });
+      };
+      send(800); // First warm request.
+      send(800); // Second warm request, eligible as the Cold predecessor.
+      send(0);   // Cold request references the second warm response.
+      send(800); // Recovery references the Cold response.
+      send(850); // Follow-up 1.
+      send(900); // Follow-up 2 completes the event.
+      return responseId;
+    };
+
+    runEvent("conversation one");
+    const afterOne = getSolRequestCaptureStatus();
+    expect(afterOne.enabled).toBe(true);
+    expect(afterOne.completedEvents).toHaveLength(1);
+    runEvent("conversation two");
+    const afterTwo = getSolRequestCaptureStatus();
+    expect(afterTwo.enabled).toBe(false);
+    expect(afterTwo.stopReason).toBe("target_events");
+    expect(afterTwo.completedEvents).toHaveLength(2);
+    expect(afterTwo.completedEvents[0]!.postRecovery).toHaveLength(2);
+    expect(afterTwo.completedEvents[1]!.postRecovery).toHaveLength(2);
+    expect(afterTwo.completedEvents[0]!.chainId).not.toBe(afterTwo.completedEvents[1]!.chainId);
   });
 });
