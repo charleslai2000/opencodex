@@ -137,11 +137,11 @@ export async function handleLogsUsageRoutes(ctx: ManagementContext): Promise<Res
     return jsonResponse(getDebugSettings());
   }
 
-  if (url.pathname === "/api/debug/sol-request-capture" && req.method === "GET") {
+  if ((url.pathname === "/api/debug/openai-request-capture" || url.pathname === "/api/debug/sol-request-capture") && req.method === "GET") {
     return jsonResponse(getSolRequestCaptureStatus());
   }
 
-  if (url.pathname === "/api/debug/sol-request-capture" && req.method === "PUT") {
+  if ((url.pathname === "/api/debug/openai-request-capture" || url.pathname === "/api/debug/sol-request-capture") && req.method === "PUT") {
     let body: { action?: unknown };
     try { body = await readManagementJsonBody(req); } catch (error) { rethrowManagementBodyTooLarge(error); return jsonResponse({ error: "invalid JSON body" }, 400); }
     if (body.action === "start") return jsonResponse(startSolRequestCapture());

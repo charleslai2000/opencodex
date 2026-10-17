@@ -25,9 +25,9 @@ afterEach(() => {
   removeTreeWithRetry(testDir);
 });
 
-function body(input: unknown[]): string {
+function body(input: unknown[], model = "gpt-6.1-sol"): string {
   return JSON.stringify({
-    model: "gpt-6.1-sol",
+    model,
     instructions: "stable instructions",
     tools: [{ type: "function", name: "read" }],
     reasoning: { effort: "medium" },
@@ -71,12 +71,33 @@ describe("Sol upstream comparison capture", () => {
       { method: "POST", body: requestBody }, "lr-captured",
       { comparisonDecision: "continued_prefix_match" }, undefined,
     );
-    const captureDir = join(testDir, "sol-upstream-capture");
+    const captureDir = join(testDir, "openai-upstream-capture");
     const file = readdirSync(captureDir).find(name => name.endsWith(".jsonl"));
     expect(file).toBeTruthy();
     const row = JSON.parse(readFileSync(join(captureDir, file!), "utf8").trim());
     expect(row.comparisonDecision).toBe("continued_prefix_match");
     expect(row.comparisonResponseId).toBe("resp-prior");
     expect(JSON.parse(row.body).prompt_cache_options.comparison_response_id).toBe("resp-prior");
+  });
+
+  test("captures Luna and links its own prior response without crossing model boundaries", () => {
+    const firstInput = [{ type: "message", role: "user", content: "first Luna turn" }];
+    captureSolUpstreamRequest(
+      "openai", "gpt-6-luna", "https://chatgpt.com/backend-api/codex/responses",
+      { method: "POST", body: body(firstInput, "gpt-6-luna") }, "lr-luna-first", undefined, "conversation-luna",
+    );
+    captureSolUpstreamPayload("openai", "gpt-6-luna", "lr-luna-first", {
+      type: "response.completed",
+      response: { id: "resp-luna-first", usage: { input_tokens: 100, input_tokens_details: { cached_tokens: 0 } } },
+    });
+
+    const next = addSolCacheComparison(
+      "openai", "gpt-6-luna", "conversation-luna",
+      body([...firstInput, { type: "message", role: "assistant", content: "next" }], "gpt-6-luna"),
+    );
+    expect(next.decision).toBe("conversation_key_match");
+    expect(JSON.parse(next.body).prompt_cache_options.comparison_response_id).toBe("resp-luna-first");
+    expect(addSolCacheComparison("openai", "gpt-6-sol", "conversation-luna", body(firstInput, "gpt-6-sol")).decision)
+      .toBe("model_not_validated");
   });
 });

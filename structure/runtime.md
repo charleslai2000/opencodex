@@ -41,9 +41,9 @@ Catalog-derived reasoning-level diagnostics are escaped only at the human-output
 
 `ocx system codex-restart` requests a full Codex desktop-app restart and app-server restarts through the management endpoint. `src/cli/capabilities.ts` names that scope in its summary and `--yes` description; `src/cli/system-command.ts` explains the desktop interruption when confirmation is missing and sends no restart request. Human output says the restart was requested, while `--json` preserves the complete server result, including skipped or refused desktop outcomes.
 
-`ocx debug sol on|off|status` controls a ten-minute capture of at most twelve physical
-`gpt-6.1-sol` request bodies. `src/cli/debug.ts` drives the local management control route;
-the body files remain local under `OPENCODEX_HOME/sol-upstream-capture/` and are never returned
+`ocx debug openai on|off|status` controls a ten-minute capture of at most twelve physical
+OpenAI GPT-6/GPT-5.6 request bodies. `src/cli/debug.ts` drives the local management control route;
+the body files remain local under `OPENCODEX_HOME/openai-upstream-capture/` and are never returned
 by that route.
 
 ## Hub management dashboard address

@@ -175,12 +175,12 @@ export const CLI_COMMANDS: CliCommandEntry[] = [
   },
   {
     name: "debug",
-    usage: "ocx debug <provider|usage|injection|claude|sol> <on|off|status|reset|logs [-f]>",
-    summary: "Show or toggle runtime provider, usage, injection, Claude, and bounded Sol request capture.",
+    usage: "ocx debug <provider|usage|injection|claude|openai|sol> <on|off|status|reset|logs [-f]>",
+    summary: "Show or toggle runtime provider, usage, injection, Claude, and bounded OpenAI request capture.",
     details: [
       "Provider: ocx debug provider on | off | status | reset | logs [-f]",
       "Usage JSONL: ocx debug usage on | off | status | reset | logs [-f]",
-      "Sol request body: ocx debug sol on | off | status (10 minutes, max 12 requests)",
+      "OpenAI request body: ocx debug openai on | off | status (10 minutes, max 12 requests)",
       "Env default: OCX_DEBUG=1 (legacy OCX_DEBUG_FRAMES still works)",
     ],
   },

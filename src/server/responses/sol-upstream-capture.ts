@@ -1,14 +1,22 @@
-/** Short-lived, local-only capture of the final Sol Responses request body. */
+/** Short-lived, local-only capture of OpenAI Codex Responses request bodies. */
 import { appendFileSync, chmodSync, mkdirSync, readdirSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { join } from "node:path";
 import { getConfigDir } from "../../config";
+import { OPENAI_GPT56_MODELS, OPENAI_GPT56_PRO_MODELS, OPENAI_GPT6_MODELS } from "../../providers/registry/model-seeds";
 
 const WINDOW_MS = 10 * 60_000;
 const MAX_REQUESTS = 12;
 const MAX_BODY_BYTES = 8 * 1024 * 1024;
 const MAX_TOTAL_BYTES = 64 * 1024 * 1024;
 const MAX_CONVERSATIONS = 64;
+const CAPTURE_MODELS = new Set<string>([
+  ...OPENAI_GPT56_MODELS,
+  ...OPENAI_GPT56_PRO_MODELS,
+  ...OPENAI_GPT6_MODELS,
+  "gpt-6.1-sol",
+]);
+const COMPARISON_MODELS = new Set(["gpt-6.1-sol", "gpt-6-luna"]);
 
 let expiresAt = 0;
 let captured = 0;
@@ -18,10 +26,11 @@ const capturedLogicalIds = new Map<string, string>();
 const capturedLogicalConversations = new Map<string, string>();
 const capturedLogicalBodies = new Map<string, string>();
 const previousResponseIds = new Map<string, string>();
-let previousCompletedCapture: { responseId: string; body: string } | null = null;
+let previousCompletedCapture: { responseId: string; modelId: string; body: string } | null = null;
 
 export type SolCacheComparisonDecision =
   | "capture_inactive"
+  | "model_not_validated"
   | "conversation_key_match"
   | "continued_prefix_match"
   | "no_prior_response"
@@ -34,10 +43,12 @@ export interface SolRequestCaptureStatus {
   maxRequests: number;
   maxBodyBytes: number;
   files: string[];
+  models: string[];
+  comparisonModels: string[];
 }
 
 export function solRequestCaptureDir(): string {
-  return join(getConfigDir(), "sol-upstream-capture");
+  return join(getConfigDir(), "openai-upstream-capture");
 }
 
 export function startSolRequestCapture(now = Date.now()): SolRequestCaptureStatus {
@@ -64,16 +75,19 @@ export function addSolCacheComparison(
   body: string,
   now = Date.now(),
 ): { body: string; decision: SolCacheComparisonDecision; comparisonResponseId?: string } {
-  if (providerName !== "openai" || modelId !== "gpt-6.1-sol"
-    || expiresAt <= now || captured >= MAX_REQUESTS || totalBytes >= MAX_TOTAL_BYTES) {
+  if (providerName !== "openai" || !modelId || !COMPARISON_MODELS.has(modelId)) {
+    return { body, decision: "model_not_validated" };
+  }
+  if (expiresAt <= now || captured >= MAX_REQUESTS || totalBytes >= MAX_TOTAL_BYTES) {
     return { body, decision: "capture_inactive" };
   }
-  const comparisonResponseId = conversationKey ? previousResponseIds.get(conversationKey) : undefined;
+  const scopedConversationKey = conversationKey ? `${modelId}\0${conversationKey}` : undefined;
+  const comparisonResponseId = scopedConversationKey ? previousResponseIds.get(scopedConversationKey) : undefined;
   if (comparisonResponseId) {
     return attachComparisonResponseId(body, comparisonResponseId, "conversation_key_match");
   }
   const prior = previousCompletedCapture;
-  if (prior && isAppendOnlyContinuation(prior.body, body)) {
+  if (prior && prior.modelId === modelId && isAppendOnlyContinuation(prior.body, body)) {
     return attachComparisonResponseId(body, prior.responseId, "continued_prefix_match");
   }
   return { body, decision: prior ? "no_matching_prior_prefix" : "no_prior_response" };
@@ -141,6 +155,8 @@ export function getSolRequestCaptureStatus(now = Date.now()): SolRequestCaptureS
     maxRequests: MAX_REQUESTS,
     maxBodyBytes: MAX_BODY_BYTES,
     files,
+    models: [...CAPTURE_MODELS],
+    comparisonModels: [...COMPARISON_MODELS],
   };
 }
 
@@ -155,7 +171,7 @@ export function captureSolUpstreamRequest(
   conversationKey?: string,
 ): void {
   const now = Date.now();
-  if (providerName !== "openai" || modelId !== "gpt-6.1-sol") return;
+  if (providerName !== "openai" || !modelId || !CAPTURE_MODELS.has(modelId)) return;
   if (expiresAt <= now || captured >= MAX_REQUESTS || totalBytes >= MAX_TOTAL_BYTES) {
     if (expiresAt > 0 && now >= expiresAt) expiresAt = 0;
     return;
@@ -221,7 +237,7 @@ export function captureSolUpstreamResponseHeaders(
   logicalRequestId: string | undefined,
   response: Response,
 ): void {
-  if (providerName !== "openai" || modelId !== "gpt-6.1-sol" || !logicalRequestId) return;
+  if (providerName !== "openai" || !CAPTURE_MODELS.has(modelId) || !logicalRequestId) return;
   appendCaptureRow(logicalRequestId, {
     phase: "response_headers",
     status: response.status,
@@ -236,7 +252,7 @@ export function captureSolUpstreamPayload(
   logicalRequestId: string | undefined,
   payload: unknown,
 ): void {
-  if (providerName !== "openai" || modelId !== "gpt-6.1-sol" || !logicalRequestId
+  if (providerName !== "openai" || !CAPTURE_MODELS.has(modelId) || !logicalRequestId
     || !payload || typeof payload !== "object" || Array.isArray(payload)) return;
   const root = payload as Record<string, unknown>;
   const response = root.response && typeof root.response === "object" && !Array.isArray(root.response)
@@ -266,14 +282,15 @@ export function captureSolUpstreamPayload(
   const completed = root.type === "response.completed";
   if (!usageBlock && diagnostics === undefined && !(terminal && typeof response.id === "string")) return;
   const conversationKey = capturedLogicalConversations.get(logicalRequestId);
-  if (completed && typeof response.id === "string" && conversationKey) {
-    previousResponseIds.delete(conversationKey);
-    previousResponseIds.set(conversationKey, response.id);
+  const scopedConversationKey = conversationKey ? `${modelId}\0${conversationKey}` : undefined;
+  if (completed && typeof response.id === "string" && scopedConversationKey) {
+    previousResponseIds.delete(scopedConversationKey);
+    previousResponseIds.set(scopedConversationKey, response.id);
     while (previousResponseIds.size > MAX_CONVERSATIONS) previousResponseIds.delete(previousResponseIds.keys().next().value!);
   }
   if (completed && typeof response.id === "string") {
     const requestBody = capturedLogicalBodies.get(logicalRequestId);
-    if (requestBody) previousCompletedCapture = { responseId: response.id, body: requestBody };
+    if (requestBody) previousCompletedCapture = { responseId: response.id, modelId, body: requestBody };
   }
   appendCaptureRow(logicalRequestId, {
     phase: "response_usage",
