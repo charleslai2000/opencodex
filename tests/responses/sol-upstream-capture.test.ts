@@ -87,8 +87,9 @@ describe("Sol upstream comparison capture", () => {
       { method: "POST", body: body(firstInput, "gpt-6-luna") }, "lr-luna-first", undefined, "conversation-luna",
     );
     captureSolUpstreamPayload("openai", "gpt-6-luna", "lr-luna-first", {
-      type: "response.completed",
-      response: { id: "resp-luna-first", usage: { input_tokens: 100, input_tokens_details: { cached_tokens: 0 } } },
+      id: "resp-luna-first",
+      object: "response",
+      usage: { input_tokens: 100, input_tokens_details: { cached_tokens: 0 } },
     });
 
     const next = addSolCacheComparison(
@@ -97,6 +98,12 @@ describe("Sol upstream comparison capture", () => {
     );
     expect(next.decision).toBe("conversation_key_match");
     expect(JSON.parse(next.body).prompt_cache_options.comparison_response_id).toBe("resp-luna-first");
+    const unkeyedNext = addSolCacheComparison(
+      "openai", "gpt-6-luna", undefined,
+      body([...firstInput, { type: "message", role: "assistant", content: "next" }], "gpt-6-luna"),
+    );
+    expect(unkeyedNext.decision).toBe("continued_prefix_match");
+    expect(JSON.parse(unkeyedNext.body).prompt_cache_options.comparison_response_id).toBe("resp-luna-first");
     expect(addSolCacheComparison("openai", "gpt-6-sol", "conversation-luna", body(firstInput, "gpt-6-sol")).decision)
       .toBe("model_not_validated");
   });

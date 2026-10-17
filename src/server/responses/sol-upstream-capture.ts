@@ -278,8 +278,13 @@ export function captureSolUpstreamPayload(
     ? Math.max(0, inputTokens - cachedTokens - (cacheWriteTokens ?? 0))
     : undefined;
   const diagnostics = response.prompt_cache_diagnostics ?? root.prompt_cache_diagnostics;
-  const terminal = root.type === "response.completed" || root.type === "response.failed" || root.type === "response.incomplete";
-  const completed = root.type === "response.completed";
+  // The Codex backend may return a completed Responses object as one JSON body
+  // instead of an SSE `response.completed` event. Such bodies have an id and
+  // usage block but no event `type`; treat them as completed for comparison
+  // chaining so a following Luna/Sol request can reference the prior response.
+  const completed = root.type === "response.completed"
+    || (root.type === undefined && typeof response.id === "string" && usageBlock !== undefined);
+  const terminal = completed || root.type === "response.failed" || root.type === "response.incomplete";
   if (!usageBlock && diagnostics === undefined && !(terminal && typeof response.id === "string")) return;
   const conversationKey = capturedLogicalConversations.get(logicalRequestId);
   const scopedConversationKey = conversationKey ? `${modelId}\0${conversationKey}` : undefined;
