@@ -23,10 +23,10 @@ export function stripDeprecatedPromptCacheRetention(body: unknown, modelId: unkn
 }
 
 /**
- * Public Responses clients can send `prompt_cache_options`, but the canonical ChatGPT Codex
- * backend rejects the top-level field before inference (issue #2765). Custom forward gateways and
- * API-key Responses providers own different wire contracts, so the caller applies this only after
- * the canonical destination predicate succeeds.
+ * Arbitrary caller-supplied `prompt_cache_options` are stripped on the canonical ChatGPT Codex
+ * route (issue #2765). The short-lived Sol diagnostic capture may add only its verified
+ * `comparison_response_id` field after this adapter runs; custom forward gateways and API-key
+ * Responses providers keep their own wire contracts.
  */
 export function stripCanonicalForwardPromptCacheOptions(body: unknown): unknown {
   if (!isPlainObject(body) || !Object.hasOwn(body, "prompt_cache_options")) return body;

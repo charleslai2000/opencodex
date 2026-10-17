@@ -167,7 +167,7 @@ Any displayed totals reflect readable records only. If a filter has no readable 
 the warning and guidance instead of total lines; skipped records may contain matches.
 `--json` preserves the response-level `usageIncomplete` diagnostic and reason.
 
-### `ocx debug <provider|usage|injection|claude> <on|off|status|reset|logs [-f]>`
+### `ocx debug <provider|usage|injection|claude|sol> <on|off|status|reset|logs [-f]>`
 
 Read or change runtime debug overrides through the running proxy's management API.
 
@@ -176,7 +176,17 @@ ocx debug provider on|off|status|reset
 ocx debug provider logs [-f|--follow]
 ocx debug usage on|off|status|reset
 ocx debug usage logs [-f|--follow]
+ocx debug sol on|off|status
 ```
+
+`ocx debug sol on` captures up to twelve physical `gpt-6.1-sol` exchanges for ten minutes. The
+local files under `OPENCODEX_HOME/sol-upstream-capture/` include the request body and cache fields,
+endpoint path, UTC time, response request ID/status, response ID, raw token usage, cached/uncached/
+cache-write input categories when reported, and any upstream cache diagnostics. They omit other
+HTTP headers and are not returned by the management API. The body contains prompts and tool data.
+During capture only, later Sol requests also carry the prior response ID in
+`prompt_cache_options.comparison_response_id` to request upstream cache diagnostics. Stop early with
+`ocx debug sol off`, inspect the window with `status`, and remove the files after diagnosis.
 
 With no scope, `ocx debug` prints usage and, when the proxy is stopped, the next-start environment
 defaults. Provider debug defaults from `OCX_DEBUG=1` (legacy `OCX_DEBUG_FRAMES=1` also works); usage

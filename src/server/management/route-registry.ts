@@ -219,6 +219,7 @@ export const MANAGEMENT_ROUTES: readonly ManagementRoute[] = [
   // server/management/logs-usage-routes
   { method: "GET", path: "/api/claude/inbound-debug", module: "server/management/logs-usage-routes", mutates: false },
   { method: "GET", path: "/api/debug", module: "server/management/logs-usage-routes", mutates: false },
+  { method: "GET", path: "/api/debug/sol-request-capture", module: "server/management/logs-usage-routes", mutates: false },
   { method: "GET", path: "/api/debug/injection-logs", module: "server/management/logs-usage-routes", mutates: false },
   { method: "GET", path: "/api/debug/logs", module: "server/management/logs-usage-routes", mutates: false },
   { method: "GET", path: "/api/debug/usage-logs", module: "server/management/logs-usage-routes", mutates: false },
@@ -233,6 +234,7 @@ export const MANAGEMENT_ROUTES: readonly ManagementRoute[] = [
   { method: "POST", path: "/api/storage/cleanup/preview", module: "server/management/logs-usage-routes", mutates: true },
   { method: "POST", path: "/api/storage/trash/restore", module: "server/management/logs-usage-routes", mutates: true },
   { method: "PUT", path: "/api/debug", module: "server/management/logs-usage-routes", mutates: true },
+  { method: "PUT", path: "/api/debug/sol-request-capture", module: "server/management/logs-usage-routes", mutates: true },
   { method: "PUT", path: "/api/storage/cleanup-policy", module: "server/management/logs-usage-routes", mutates: true },
   // server/management/model-routes
   { method: "GET", path: "/api/aliases", module: "server/management/model-routes", mutates: false },

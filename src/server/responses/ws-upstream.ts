@@ -135,6 +135,7 @@ export function codexWsUpstreamFetch(
   beforeDispatch?: (headers: Headers) => void,
   nativeControl?: NativeResponseControl,
   beforeContinuation?: () => Promise<void>,
+  onPhysicalRequest?: (input: Parameters<typeof globalThis.fetch>[0], init: RequestInit) => void,
 ): Promise<Response> {
   const prepared = prepareCodexWsRequest(url, init);
   if (!prepared) return sseFallback(url, prepareCodexHttpInit(url, init));
@@ -198,6 +199,7 @@ export function codexWsUpstreamFetch(
   } catch {
     return sseFallback(url, init);
   }
+  onPhysicalRequest?.(url, { ...init, body: frameText });
   return codexWsExchange({
     session, url, init, prepared, sseFallback, onQuota, beforeDispatch,
     nativeControl: control,

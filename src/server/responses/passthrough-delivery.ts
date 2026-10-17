@@ -108,6 +108,7 @@ import { inspectResponseLogJson } from "../request-log";
 import { restoreRoutedCustomCallsInJson } from "../../responses/custom-tool-compat";
 import { restoreRoutedToolSearchCallsInJson } from "../../responses/tool-search-compat";
 import { responsesJsonToSseStream } from "../responses-json-events";
+import { captureSolUpstreamPayload, captureSolUpstreamResponseHeaders } from "./sol-upstream-capture";
 
 /** One responsibility of the Responses request pipeline; state owners are explicit. */
 export async function deliverPassthroughResponse(
@@ -186,6 +187,14 @@ export async function deliverPassthroughResponse(
   const { parsed, route, subagentQuotaFailureModel, clientRequestedStream, translatorBudget } = requestState;
   const { openAiSidecar } = sidecarState;
   const { requestBindings } = transportState;
+  const budgetRequestId = (options.sendBudget as { logicalRequestId?: unknown } | undefined)?.logicalRequestId;
+  const solCaptureRequestId = logCtx.logicalRequestId ?? logCtx.executionBudget?.logicalRequestId
+    ?? (typeof budgetRequestId === "string" ? budgetRequestId : undefined);
+  captureSolUpstreamResponseHeaders(route.providerName, route.modelId, solCaptureRequestId, upstreamResponse);
+  const noteInspectedPayloadWithSolTelemetry = (payload: unknown): void => {
+    captureSolUpstreamPayload(route.providerName, route.modelId, solCaptureRequestId, payload);
+    noteInspectedPayload(payload);
+  };
 
     const headers = sanitizePassthroughHeaders(upstreamResponse.headers, codexSafetyBufferingOptions);
     const resolvedModel = headers.get("openai-model")?.trim();
@@ -572,7 +581,7 @@ export async function deliverPassthroughResponse(
           onTerminal: reportNativeTerminal,
           logCtx,
           onCompletedResponse: rememberPassthroughResponse && responseEffects.plaintextV2AgentMessageToolNames.size === 0 ? rememberPassthroughResponseChecked : undefined,
-          onParsedPayload: noteInspectedPayload,
+          onParsedPayload: noteInspectedPayloadWithSolTelemetry,
           onFirstOutput: options.onFirstOutput,
           pinCompletedResponseIdToFirstSeen: githubCopilotRepairEnabled,
         });
@@ -639,7 +648,7 @@ export async function deliverPassthroughResponse(
         drainBounds: { ms: 15_000, bytes: 32 * 1024 * 1024 },
         upstream,
         pinCompletedResponseIdToFirstSeen: githubCopilotRepairEnabled,
-        onParsedPayload: noteInspectedPayload,
+        onParsedPayload: noteInspectedPayloadWithSolTelemetry,
       };
       if (recordTerminalOutcomes) {
         // A real terminal was parsed from the (teed) inspection stream — record it as the outcome
@@ -724,6 +733,7 @@ export async function deliverPassthroughResponse(
         return formatErrorResponse(502, "upstream_error", "upstream JSON response stalled before completing");
       }
       const text = bounded.text;
+      try { captureSolUpstreamPayload(route.providerName, route.modelId, solCaptureRequestId, JSON.parse(text)); } catch { /* non-JSON body */ }
       inspectResponseLogJson(logCtx, text);
       let plaintextV2RestoreFailed = false;
       let clientJson = (() => {

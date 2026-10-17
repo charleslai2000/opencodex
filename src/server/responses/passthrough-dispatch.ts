@@ -86,6 +86,8 @@ import {
   safeHostLabel,
   storedPoolReplayDispatchNotifier,
 } from "./fetch-helpers";
+import { addSolCacheComparison, captureSolUpstreamRequest } from "./sol-upstream-capture";
+import type { SolCacheComparisonDecision } from "./sol-upstream-capture";
 import { classifyPoolRecoveryDispatch } from "../../routing/probe-lease";
 import { clientCancelledResponse } from "./core-errors";
 import {
@@ -807,6 +809,30 @@ export async function preparePassthroughExchange(
     };
     const initialBodyRefusal = refuseOversizedOutboundBody(request);
     if (initialBodyRefusal) return initialBodyRefusal;
+    const inboundCacheFields = parsed._rawBody && typeof parsed._rawBody === "object" && !Array.isArray(parsed._rawBody)
+      ? parsed._rawBody as Record<string, unknown>
+      : {};
+    const solConversationKey = logCtx.conversationId
+      ?? req.headers.get("thread-id")?.trim()
+      ?? req.headers.get("session-id")?.trim()
+      ?? parsed._clientThreadId;
+    let solComparisonDecision: SolCacheComparisonDecision | undefined;
+    const solDiagnosticBody = (): string => {
+      if (!isCanonicalOpenAiForwardProvider(route.provider)) return request.body;
+      const diagnostic = addSolCacheComparison(route.providerName, route.modelId, solConversationKey, request.body);
+      solComparisonDecision = diagnostic.decision;
+      return diagnostic.body;
+    };
+    const onPhysicalSolRequest = (input: Parameters<typeof fetch>[0], init: RequestInit): void => {
+      const budgetRequestId = (options.sendBudget as { logicalRequestId?: unknown } | undefined)?.logicalRequestId;
+      captureSolUpstreamRequest(route.providerName, route.modelId, input, init,
+        logCtx.logicalRequestId ?? logCtx.executionBudget?.logicalRequestId
+          ?? (typeof budgetRequestId === "string" ? budgetRequestId : undefined), {
+        promptCacheKey: inboundCacheFields.prompt_cache_key,
+        promptCacheOptions: inboundCacheFields.prompt_cache_options,
+        comparisonDecision: solComparisonDecision,
+      }, solConversationKey);
+    };
     try {
       // Transient-5xx pre-stream retry (devlog/_plan/260716_claudecode_hardening/010):
       // the ChatGPT backend emits transient 502/520s that an immediate retry absorbs.
@@ -823,7 +849,7 @@ export async function preparePassthroughExchange(
           return fetchWithHeaderTimeout(request.url, applyUpstreamRecoveryInit({
             method: request.method,
             headers: request.headers,
-            body: request.body,
+            body: solDiagnosticBody(),
           }, recovery), upstream.signal, connectMs, parsed.stream,
             providerFetch(route.provider, options.codexWsRuntimeIdentity, {
               nativeControl: nativeResponseControlEligible(route.provider, options.nativeControl) && options.inboundTransport === "websocket" && !options.comboAttempt
@@ -832,6 +858,7 @@ export async function preparePassthroughExchange(
               dispatchOverride: oauthDispatch(request),
               providerName: route.providerName,
               modelId: route.modelId,
+              onPhysicalRequest: onPhysicalSolRequest,
               onCodexWsQuota: codexWsQuotaObserver(admissionState.authCtx, route.provider, route.modelId),
               beforeDispatch: isCanonicalOpenAiForwardProvider(route.provider)
                 ? createCodexReserveDispatchGuard(admissionState.authCtx, options.codexAuthPolicy ?? config, route.modelId, options.admission, options.visionDescribeTerminal === true) : undefined,
@@ -923,7 +950,7 @@ export async function preparePassthroughExchange(
             return fetchWithHeaderTimeout(request.url, applyUpstreamRecoveryInit({
               method: request.method,
               headers: request.headers,
-              body: request.body,
+              body: solDiagnosticBody(),
             }, innerRecovery), upstream.signal, connectMs, parsed.stream,
               providerFetch(route.provider, options.codexWsRuntimeIdentity, {
               nativeControl: nativeResponseControlEligible(route.provider, options.nativeControl) && options.inboundTransport === "websocket" && !options.comboAttempt
@@ -932,6 +959,7 @@ export async function preparePassthroughExchange(
               dispatchOverride: oauthDispatch(request),
                 providerName: route.providerName,
                 modelId: route.modelId,
+                onPhysicalRequest: onPhysicalSolRequest,
                 onCodexWsQuota: codexWsQuotaObserver(admissionState.authCtx, route.provider, route.modelId),
                 beforeDispatch: isCanonicalOpenAiForwardProvider(route.provider)
                   ? createCodexReserveDispatchGuard(admissionState.authCtx, options.codexAuthPolicy ?? config, route.modelId, options.admission, options.visionDescribeTerminal === true) : undefined,
@@ -1023,7 +1051,7 @@ export async function preparePassthroughExchange(
         transportState.noteRoutedAttemptSend(passthroughEstimate, "oauth-401");
         upstreamResponse = await fetchWithHeaderTimeout(
           request.url,
-          { method: request.method, headers: request.headers, body: request.body },
+          { method: request.method, headers: request.headers, body: solDiagnosticBody() },
           upstream.signal,
           connectMs,
           parsed.stream,
@@ -1041,6 +1069,7 @@ export async function preparePassthroughExchange(
               dispatchOverride: oauthDispatch(request),
               providerName: route.providerName,
               modelId: route.modelId,
+              onPhysicalRequest: onPhysicalSolRequest,
               onCodexWsQuota: codexWsQuotaObserver(admissionState.authCtx, route.provider, route.modelId),
               beforeDispatch: isCanonicalOpenAiForwardProvider(route.provider)
                 ? createCodexReserveDispatchGuard(admissionState.authCtx, options.codexAuthPolicy ?? config, route.modelId, options.admission, options.visionDescribeTerminal === true) : undefined,
@@ -1156,7 +1185,7 @@ export async function preparePassthroughExchange(
             return fetchWithHeaderTimeout(request.url, applyUpstreamRecoveryInit({
               method: request.method,
               headers: request.headers,
-              body: request.body,
+              body: solDiagnosticBody(),
             }, recovery), upstream.signal, connectMs, parsed.stream,
               providerFetch(route.provider, options.codexWsRuntimeIdentity, {
               nativeControl: nativeResponseControlEligible(route.provider, options.nativeControl) && options.inboundTransport === "websocket" && !options.comboAttempt
@@ -1165,6 +1194,7 @@ export async function preparePassthroughExchange(
               dispatchOverride: oauthDispatch(request),
                 providerName: route.providerName,
                 modelId: route.modelId,
+                onPhysicalRequest: onPhysicalSolRequest,
                 onCodexWsQuota: codexWsQuotaObserver(admissionState.authCtx, route.provider, route.modelId),
                 beforeDispatch: isCanonicalOpenAiForwardProvider(route.provider)
                   ? createCodexReserveDispatchGuard(admissionState.authCtx, options.codexAuthPolicy ?? config, route.modelId, options.admission, options.visionDescribeTerminal === true) : undefined,
@@ -1288,7 +1318,7 @@ export async function preparePassthroughExchange(
             return fetchWithHeaderTimeout(request.url, applyUpstreamRecoveryInit({
               method: request.method,
               headers: request.headers,
-              body: request.body,
+              body: solDiagnosticBody(),
             }, recovery), upstream.signal, connectMs, parsed.stream,
               providerFetch(route.provider, options.codexWsRuntimeIdentity, {
               nativeControl: nativeResponseControlEligible(route.provider, options.nativeControl) && options.inboundTransport === "websocket" && !options.comboAttempt
@@ -1297,6 +1327,7 @@ export async function preparePassthroughExchange(
               dispatchOverride: oauthDispatch(request),
                 providerName: route.providerName,
                 modelId: route.modelId,
+                onPhysicalRequest: onPhysicalSolRequest,
                 onCodexWsQuota: codexWsQuotaObserver(admissionState.authCtx, route.provider, route.modelId),
                 beforeDispatch: isCanonicalOpenAiForwardProvider(route.provider)
                   ? createCodexReserveDispatchGuard(admissionState.authCtx, options.codexAuthPolicy ?? config, route.modelId, options.admission, options.visionDescribeTerminal === true) : undefined,

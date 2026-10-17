@@ -121,6 +121,8 @@ export interface ProviderFetchOptions {
   onCodexWsQuota?: CodexWsQuotaObserver;
   /** Synchronous admission at actual credential dispatch, after pacing/backoff. */
   beforeDispatch?: (headers: Headers) => void;
+  /** Optional route-owned diagnostic invoked immediately before the physical HTTP send. */
+  onPhysicalRequest?: (input: Parameters<typeof globalThis.fetch>[0], init: RequestInit) => void;
   /** Revalidate/rebuild a queued request at its physical send boundary, after pacing. */
   dispatchOverride?: (input: Parameters<typeof globalThis.fetch>[0], init: RequestInit, execute: typeof globalThis.fetch) => Promise<Response>;
 }
@@ -153,6 +155,7 @@ export function providerFetch(
       // wins regardless of what any caller or hook put in the header.
       options.beforeDispatch?.(new Headers(init?.headers ?? (input instanceof Request ? input.headers : undefined)));
       const dispatchInit = { ...withUpstreamHttpVersion(input, init, provider), timeout: 0 };
+      options.onPhysicalRequest?.(input, dispatchInit);
       return options.dispatchOverride
         ? options.dispatchOverride(input, dispatchInit, dispatch)
         : dispatch(input, dispatchInit);
@@ -170,7 +173,7 @@ export function providerFetch(
       // request over HTTP, and dropping the provider's `upstreamHttpVersion`
       // there would silently negotiate a transport the operator ruled out.
       return codexWsUpstreamFetch(input, init, httpFetch, runtime, options.onCodexWsQuota, options.beforeDispatch, options.nativeControl,
-        () => waitForPacing(init.signal ?? undefined));
+        () => waitForPacing(init.signal ?? undefined), options.onPhysicalRequest);
     }
     return httpFetch(input, init);
   };

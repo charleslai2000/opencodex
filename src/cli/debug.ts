@@ -2,7 +2,7 @@ import { findLiveProxy, probeHostname } from "../server/proxy-liveness";
 import { DEBUG_ENV, type DebugSettingsView } from "../lib/debug-settings";
 import { runningProxyUpdateHeaders } from "../oauth/login-cli";
 
-type DebugScope = "provider" | "usage" | "injection" | "claude";
+type DebugScope = "provider" | "usage" | "injection" | "claude" | "sol";
 
 async function requireLiveProxy() {
   const live = await findLiveProxy();
@@ -43,6 +43,26 @@ async function putDebugSettings(body: Record<string, unknown>): Promise<DebugSet
     process.exit(1);
   }
   return await res.json() as DebugSettingsView;
+}
+
+async function handleSolCapture(action: string): Promise<void> {
+  const live = await requireLiveProxy();
+  const url = `http://${probeHostname(live.hostname)}:${live.port}/api/debug/sol-request-capture`;
+  try {
+    const response = action === "status"
+      ? await fetch(url, { headers: runningProxyUpdateHeaders() })
+      : await fetch(url, { method: "PUT", headers: runningProxyUpdateHeaders(), body: JSON.stringify({ action: action === "on" ? "start" : "stop" }) });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const status = await response.json() as { enabled: boolean; expiresAt: number | null; captured: number; maxRequests: number; files: string[] };
+    console.log(`Sol raw upstream request capture: ${status.enabled ? "ON" : "off"}`);
+    console.log(`  captured=${status.captured}/${status.maxRequests}`);
+    if (status.expiresAt) console.log(`  expires=${new Date(status.expiresAt).toLocaleTimeString()}`);
+    if (status.files.length) console.log(`  file=${status.files.join(", ")}`);
+    if (action === "on") console.log("  Automatic stop: 10 minutes or 12 requests; exact gpt-6.1-sol only.");
+  } catch (err) {
+    console.error(`Sol capture control failed: ${err instanceof Error ? err.message : String(err)}`);
+    process.exit(1);
+  }
 }
 
 function printScopeStatus(scope: DebugScope, view: DebugSettingsView): void {
@@ -144,6 +164,15 @@ async function printUsageLogs(follow: boolean): Promise<void> {
 async function handleScopeCommand(scope: DebugScope, actionArgv: string[]): Promise<void> {
   const action = (actionArgv[0] ?? "status").trim().toLowerCase();
 
+  if (scope === "sol") {
+    if (!["on", "off", "status"].includes(action)) {
+      console.error("Usage: ocx debug sol on|off|status");
+      process.exit(1);
+    }
+    await handleSolCapture(action);
+    return;
+  }
+
   if (action === "on" || action === "off") {
     const enabled = action === "on";
     const body = scope === "provider" ? { debug: enabled }
@@ -193,6 +222,7 @@ function printTopLevelHelp(): void {
   console.log("  ocx debug usage on|off|status|reset|logs [-f]");
   console.log("  ocx debug injection on|off|status|reset");
   console.log("  ocx debug claude on|off|status|reset");
+  console.log("  ocx debug sol on|off|status");
   console.log("");
   console.log("Env defaults on start:");
   console.log("  provider → OCX_DEBUG=1 (legacy OCX_DEBUG_FRAMES still works)");
@@ -204,7 +234,7 @@ function printTopLevelHelp(): void {
 export async function handleDebugCommand(argv: string[]): Promise<void> {
   const sub = (argv[0] ?? "").trim().toLowerCase();
 
-  if (sub === "provider" || sub === "usage" || sub === "injection" || sub === "claude") {
+  if (sub === "provider" || sub === "usage" || sub === "injection" || sub === "claude" || sub === "sol") {
     await handleScopeCommand(sub, argv.slice(1));
     return;
   }

@@ -64,6 +64,11 @@ import {
   setDebugSettings,
   type DebugFlag,
 } from "../../lib/debug-settings";
+import {
+  getSolRequestCaptureStatus,
+  startSolRequestCapture,
+  stopSolRequestCapture,
+} from "../responses/sol-upstream-capture";
 import type { OcxClaudeCodeConfig, OcxConfig, OcxCustomModel, OcxProviderConfig } from "../../types";
 import { drainAndShutdown } from "../lifecycle";
 import { filterRequestLogs, filteredRequestLogCount, getRequestLogEntries, type RequestLogEntry } from "../request-log";
@@ -130,6 +135,18 @@ export async function handleLogsUsageRoutes(ctx: ManagementContext): Promise<Res
 
   if (url.pathname === "/api/debug" && req.method === "GET") {
     return jsonResponse(getDebugSettings());
+  }
+
+  if (url.pathname === "/api/debug/sol-request-capture" && req.method === "GET") {
+    return jsonResponse(getSolRequestCaptureStatus());
+  }
+
+  if (url.pathname === "/api/debug/sol-request-capture" && req.method === "PUT") {
+    let body: { action?: unknown };
+    try { body = await readManagementJsonBody(req); } catch (error) { rethrowManagementBodyTooLarge(error); return jsonResponse({ error: "invalid JSON body" }, 400); }
+    if (body.action === "start") return jsonResponse(startSolRequestCapture());
+    if (body.action === "stop") return jsonResponse(stopSolRequestCapture());
+    return jsonResponse({ error: "action must be start or stop" }, 400);
   }
 
   if (url.pathname === "/api/debug/logs" && req.method === "GET") {
