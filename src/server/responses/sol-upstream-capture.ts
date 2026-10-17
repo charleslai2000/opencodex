@@ -283,7 +283,8 @@ export function captureSolUpstreamPayload(
   // usage block but no event `type`; treat them as completed for comparison
   // chaining so a following Luna/Sol request can reference the prior response.
   const completed = root.type === "response.completed"
-    || (root.type === undefined && typeof response.id === "string" && usageBlock !== undefined);
+    || (typeof response.id === "string" && usageBlock !== undefined
+      && root.type !== "response.failed" && root.type !== "response.incomplete");
   const terminal = completed || root.type === "response.failed" || root.type === "response.incomplete";
   if (!usageBlock && diagnostics === undefined && !(terminal && typeof response.id === "string")) return;
   const conversationKey = capturedLogicalConversations.get(logicalRequestId);
@@ -299,6 +300,9 @@ export function captureSolUpstreamPayload(
   }
   appendCaptureRow(logicalRequestId, {
     phase: "response_usage",
+    ...(typeof root.type === "string" ? { responseEventType: root.type } : {}),
+    ...(typeof response.object === "string" ? { responseObjectType: response.object } : {}),
+    responseCompletionDetected: completed,
     ...(typeof response.id === "string" ? { responseId: response.id } : {}),
     ...(typeof response.model === "string" ? { responseModel: response.model } : {}),
     ...(usageBlock ? { usage: usageBlock } : {}),

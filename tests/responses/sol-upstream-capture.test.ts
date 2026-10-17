@@ -87,6 +87,7 @@ describe("Sol upstream comparison capture", () => {
       { method: "POST", body: body(firstInput, "gpt-6-luna") }, "lr-luna-first", undefined, "conversation-luna",
     );
     captureSolUpstreamPayload("openai", "gpt-6-luna", "lr-luna-first", {
+      type: "response",
       id: "resp-luna-first",
       object: "response",
       usage: { input_tokens: 100, input_tokens_details: { cached_tokens: 0 } },
