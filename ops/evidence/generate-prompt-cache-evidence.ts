@@ -382,11 +382,22 @@ const machineReport = {
     compactionRequestCount: lunaCaptureRequests.filter(row => row.compactionRequest === true).length,
     requestIdValuesPresent: lunaCaptureRequests.filter(row => row.xRequestId !== null).length,
     responseTransports: Object.fromEntries([...new Set(lunaCaptureRequests.map(row => row.responseTransport ?? "unknown"))].map(transport => [transport, lunaCaptureRequests.filter(row => (row.responseTransport ?? "unknown") === transport).length])),
+    responseStatusCounts: Object.fromEntries([...new Set(lunaCaptureRequests.map(row => row.responseStatus ?? "missing"))].map(status => [String(status), lunaCaptureRequests.filter(row => (row.responseStatus ?? "missing") === status).length])),
+    responseModels: Object.fromEntries([...new Set(lunaCaptureRequests.map(row => row.responseModel ?? "missing"))].map(model => [String(model), lunaCaptureRequests.filter(row => (row.responseModel ?? "missing") === model).length])),
     detectedCandidateEvents: lunaEventCandidates.length,
     completeLinkedEvents: lunaEventCandidates.filter(event => event.classification === "SERVER_REUSE_FAILURE_SUSPECTED").length,
     chainsObserved: lunaChains.size,
     classificationWhenNoEvent: lunaEventCandidates.some(event => event.classification === "SERVER_REUSE_FAILURE_SUSPECTED") ? null : "INCONCLUSIVE",
     events: lunaEventCandidates,
+  },
+  collectorDeployment: {
+    captureSourceCommit: "2cce4fa8c885011d3dcfcad2e406744d4f950b4c",
+    fixedSourceCommit: "5dc21abb95b159db04a1fde2577a35e468bf6b85",
+    activeArtifact: "/opt/opencodex-2.59.0-5dc21abb",
+    activeArtifactTreeSha256: "b28cf7dabd4e961a1e7e29f64126f0d10f04f0e140bb8fe8237e5a75b0318bba",
+    packageSha256: "6c3e3d95bf425fce229da5deeeb51327266c79e0328f28c6761af0150bd8b63e",
+    deployedHealthAndReadiness: 200,
+    fixedCollectorWasLiveForThisCapture: false,
   },
   privacy: {
     rawRequestBodiesContainPrompts: true,
@@ -451,7 +462,7 @@ For GPT-6 Luna, a later 12-request capture recorded eight physical request bodie
 
 A subsequent event-based capture was deployed from commit 2cce4fa8c885011d3dcfcad2e406744d4f950b4c and observed ordinary Luna traffic only. It stopped at 60 physical requests (37,503,128 bytes). The collector's live state reported zero completed events, but an independent offline pass of the immutable final requests found two complete linked high→cold→recovery sequences, each followed by two requests, with ordered-prefix and non-input-config checks all true. Both cold usage rows report cached_tokens=0:
 ${supportEventBriefs}
-This mismatch exposed an orphan-cold state bug in the collector; the follow-up fix was tested against an orphan-cold regression but was not re-run against live traffic. No model requests were generated for testing.
+This mismatch exposed an orphan-cold state bug in the collector; commit 5dc21abb95b159db04a1fde2577a35e468bf6b85 fixes the stale candidate and passes an orphan-cold regression test. It was deployed after this capture, so the fixed collector has not yet been observed on a subsequent natural Luna window. No model requests were generated for testing.
 
 The Luna final window reported 1,500,524 input tokens, 1,088,256 cached tokens, and 412,268 uncached tokens across eleven usage rows. One of twelve requests had no captured usage block. Across all captured Luna usage rows, cache_write_tokens was present and zero. For the two fully observed Sol triples, the cold request had 7,424 and 12,800 more uncached input tokens than the immediately preceding 12,800-cached warm reference. This is a token-category delta only, not an API-cost or subscription-Credits calculation.
 
@@ -496,7 +507,7 @@ The deployed collector captured ${machineReport.lunaEventCapture.requests} Luna 
 
 ${lunaEventsMarkdown}
 
-The 60-request capture used Codex WebSocket transport for the selected events; each event request had physicalAttempt=1 and compactionRequest=false. The conversation-key hash is absent, so direct thread/session continuity cannot be confirmed from this capture. All responses visible to the hook lacked x-request-id; because the WebSocket adapter synthesizes the Response and does not expose its upgrade handshake headers, origin-level absence remains unproven. Request/config hashes, comparison IDs, response/usage associations, attempt number, compaction flag, conversation-key hash, response transport and diagnostics are retained per request in support-evidence.json without prompt text.
+The 60-request capture returned ${JSON.stringify(machineReport.lunaEventCapture.responseStatusCounts)} across response status and used ${JSON.stringify(machineReport.lunaEventCapture.responseTransports)}. The selected events had physicalAttempt=1 and compactionRequest=false. The conversation-key hash is absent, so direct thread/session continuity cannot be confirmed from this capture. All responses visible to the hook lacked x-request-id; because the WebSocket adapter synthesizes the Response and does not expose its upgrade handshake headers, origin-level absence remains unproven. Request/config hashes, comparison IDs, response/usage associations, attempt number, compaction flag, conversation-key hash, response transport and diagnostics are retained per request in support-evidence.json without prompt text.
 
 ## Final request comparison and parameter checks
 
@@ -534,7 +545,7 @@ Raw request bodies contain prompts, tool definitions, and may contain user-provi
 
 ## Collector and test status
 
-The existing captures were made by OpenCodeX source commit 7dd65c5cef62535b1b98fae2e3558585342b9681, release artifact /opt/opencodex-2.59.0-7dd65c5c. The later event-capture implementation is recorded in the current repository HEAD; its event-based stop behavior must be verified against new natural Luna traffic before it is considered operationally validated. No real model requests were issued to generate this report.
+The original captures were made by OpenCodeX source commit 7dd65c5cef62535b1b98fae2e3558585342b9681, release artifact /opt/opencodex-2.59.0-7dd65c5c. The 60-request event capture ran commit 2cce4fa8c885011d3dcfcad2e406744d4f950b4c; the stale-candidate fix is now deployed as commit 5dc21abb95b159db04a1fde2577a35e468bf6b85 at /opt/opencodex-2.59.0-5dc21abb (artifact tree SHA-256 ${machineReport.collectorDeployment.activeArtifactTreeSha256}). Deployment health/readiness both returned 200. The fixed stop behavior passed unit regression tests but has not yet been re-observed on live Luna traffic. This report generator performed offline parsing only and did not initiate any model requests.
 
 ## English summary for OpenAI Support
 
