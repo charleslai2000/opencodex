@@ -35,7 +35,12 @@ import upstreamModelsSnapshot from "../data/upstream-models.json";
 import { generatedModelMetadata, readCatalog, readCodexCatalogPath } from "./parsing";
 import type { CatalogModel, RawEntry } from "./parsing";
 import { UPSTREAM_NATIVE_ENTRIES } from "./metadata";
-import { nativeOpenAiCapabilitySourceSlug, SELF_DESCRIBED_NATIVE_OPENAI_MODELS, NATIVE_RESERVE_MODEL } from "./native-models";
+import {
+  nativeOpenAiCapabilitySourceSlug,
+  NATIVE_OPENAI_MAX_EFFORT_MODELS,
+  SELF_DESCRIBED_NATIVE_OPENAI_MODELS,
+  NATIVE_RESERVE_MODEL,
+} from "./native-models";
 import { isReserveCatalogProjection } from "./reserve";
 import { loadBundledCodexCatalog } from "./bundled";
 import type { BundledCatalogDeps, ReadonlyRawCatalog } from "./bundled";
@@ -52,6 +57,9 @@ import {
 export function nativeEffortClamp(slug: string, effort: string | undefined): string | null {
   if (!effort || (effort !== "max" && effort !== "ultra")) return null;
   if (slug.includes("/")) return null; // routed models map efforts in their adapters
+  // GPT-6 Luna is not present in the pinned native catalog snapshot, but its live registry
+  // ladder includes `max`. Preserve that real wire rung without treating `ultra` as supported.
+  if (effort === "max" && NATIVE_OPENAI_MAX_EFFORT_MODELS.has(slug)) return null;
   const entry = UPSTREAM_NATIVE_ENTRIES.get(slug);
   const levels = Array.isArray(entry?.supported_reasoning_levels)
     ? entry.supported_reasoning_levels as Array<{ effort?: string }>

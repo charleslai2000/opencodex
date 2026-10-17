@@ -381,6 +381,8 @@ The shared Responses path follows the [bounded multipart recovery contract](suba
 Ultra is always advertised in the catalog regardless of the `multi_agent_v2` toggle. The v2 toggle
 controls only the multi-agent collab surface, not ultra visibility. The `nativeEffortClamp` function
 wire-clamps ultra/max to each model's real top rung (e.g. gpt-5.5 ultra → xhigh on the wire).
+GPT-6 Luna's registry-declared `max` rung is preserved on the OpenAI Responses wire; `ultra` remains
+clamped to `xhigh` until Luna's native catalog metadata declares it.
 
 For routed models, `modelSuppressSyntheticMax` is a catalog-only per-model setting. A true value
 prevents `src/codex/catalog/effort.ts` from adding a missing synthetic `max` and prevents

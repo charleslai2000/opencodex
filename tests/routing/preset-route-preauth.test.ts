@@ -80,8 +80,8 @@ describe("frozen OpenAI preset route-preauth qualification", () => {
   const expected: Record<string, Record<string, [string, string]>> = {
     lead: { low: ["gpt-6-luna", "low"], medium: ["gpt-6-luna", "medium"], high: ["gpt-6-luna", "high"] },
     worker: { low: ["gpt-6-luna", "low"], medium: ["gpt-6-luna", "medium"], high: ["gpt-6-luna", "high"] },
-    // The logical route is Luna/max; the OpenAI Responses wire normalizes max to xhigh.
-    expert: { low: ["gpt-6-luna", "xhigh"], medium: ["gpt-6.1-sol", "medium"], high: ["gpt-6.1-sol", "xhigh"] },
+    // Luna's logical max route is preserved on the OpenAI Responses wire.
+    expert: { low: ["gpt-6-luna", "max"], medium: ["gpt-6.1-sol", "medium"], high: ["gpt-6.1-sol", "xhigh"] },
     bot: { low: ["@preset/lstack-ling-3-0-flash", "low"], medium: ["@preset/lstack-ling-3-0-flash", "medium"], high: ["@preset/lstack-ling-3-0-flash", "high"] },
   };
 

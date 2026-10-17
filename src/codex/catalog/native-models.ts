@@ -82,6 +82,11 @@ export const SELF_DESCRIBED_NATIVE_OPENAI_MODELS: ReadonlySet<string> = new Set(
   NATIVE_GPT6_ASTRA_MODEL,
 ]);
 
+/** Native OpenAI models that accept the `max` reasoning value on the Responses wire. */
+export const NATIVE_OPENAI_MAX_EFFORT_MODELS: ReadonlySet<string> = new Set([
+  "gpt-6-luna",
+]);
+
 /**
  * Native ids whose capability metadata is inherited from another pinned native row.
  *
