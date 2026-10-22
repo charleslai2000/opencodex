@@ -343,8 +343,13 @@ async function handleChatCompletionsWithBudget(
   const openCodeSession = req.headers.get("x-opencode-session");
   if (openCodeSession) headers.set("x-opencode-session", openCodeSession);
   for (const name of FORWARD_HEADERS) {
-    if (routeMayChangeCredentialDomain && (name === "authorization" || name === "chatgpt-account-id")) continue;
-    if (name === "authorization" && !callerAuthorizationRoute) continue;
+    // A typed bearer admission is our proxy key, not caller-owned upstream auth. Retain it
+    // only across this in-process Chat→Responses bridge so Direct auth can substitute the
+    // stored main credential; the Responses auth resolver removes/substitutes it before IO.
+    // Other route-changing caller credentials still cross no credential-domain boundary.
+    if (routeMayChangeCredentialDomain && name === "chatgpt-account-id") continue;
+    if (routeMayChangeCredentialDomain && name === "authorization" && logIds?.admission?.source !== "bearer") continue;
+    if (name === "authorization" && !callerAuthorizationRoute && logIds?.admission?.source !== "bearer") continue;
     const value = req.headers.get(name);
     if (value) headers.set(name, value);
   }

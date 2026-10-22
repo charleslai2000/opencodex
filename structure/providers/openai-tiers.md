@@ -624,12 +624,14 @@ root session. Two keys therefore cannot observe or overwrite each other's owners
 resolve to one ChatGPT workspace, and rotating a key mints a new principal instead of inheriting
 the previous holder's sessions. `resolveContextPrincipal` resolves that principal from the opencodex API key the request
 presents, on both the recording and the relay path so the two agree. A remote bind supplies it
-through admission. A loopback bind admits without reading a token, so the key is resolved from the
-request only for a loopback admission; this adds identity where the caller volunteered it rather
-than admitting anyone new, and changes neither admission nor which credential goes upstream. The
-built-in loopback injection cannot carry that header, so the relay is unavailable through the
-default Codex integration and refuses instead of inferring an owner. Making loopback callers
-identifiable is an open maintainer decision, not a gap to be closed by relaxing the refusal.
+through admission. A loopback bind remains anonymous when no configured token is presented. If a
+caller voluntarily presents a configured opencodex Bearer token, `src/server/auth-cors.ts` retains
+its typed principal; an unknown token remains loopback-anonymous. This does not widen admission.
+`src/server/chat-completions.ts` preserves that configured identity across the in-process
+Chat-to-Responses bridge, where the Responses credential resolver can substitute the stored Direct
+credential before upstream dispatch. The proxy token itself is not forwarded upstream. The built-in
+loopback injection cannot carry that header, so the context relay remains unavailable through the
+default Codex integration and refuses instead of inferring an owner.
 
 A workspace id identifies an organization, so an entry also binds the stable user claim carried by
 the accepted credential. That claim is read without signature verification, which is why upstream

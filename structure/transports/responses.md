@@ -20,8 +20,10 @@ both key and forward modes. A configured provider header with that name wins cas
 when the caller omits it, the adapter invents no client identity. This does not widen the canonical
 forward credential/metadata allowlist or copy any other caller header.
 
-`ocx debug openai on` starts a Luna-only local capture of ordinary requests; it stops after two complete
-high→low→recovery events with two following turns per event, or at 15 minutes, 60 requests, or 128 MiB.
+`ocx debug openai on` starts a Luna-only local capture of ordinary requests; a cold low-cache event
+qualifies only after two consecutive warm observations establish a baseline. Capture stops after two
+complete high→low→recovery events with two following turns per event, or at 15 minutes, 60 requests,
+or 128 MiB.
 Files live under
 `OPENCODEX_HOME/openai-upstream-capture/` with owner-only permissions. The capture excludes headers,
 except for the response request-id value, and is not exposed through the management API. Each entry

@@ -2088,6 +2088,58 @@ describe("server local API auth", () => {
     }
   }, { timeout: SERVER_BUDGET_MS });
 
+  test("bearer-authenticated Chat policy bridge substitutes stored Direct credentials", async () => {
+    if (existsSync(TEST_DIR)) removeTreeWithRetry(TEST_DIR);
+    mkdirSync(TEST_DIR, { recursive: true });
+    process.env.OPENCODEX_HOME = TEST_DIR;
+    process.env.CODEX_HOME = TEST_DIR;
+    writeFileSync(join(TEST_DIR, "auth.json"), JSON.stringify({
+      tokens: { access_token: "stored-direct-access", account_id: "stored-account" },
+    }));
+    const outbound: Array<{ url: string; authorization: string | null; accountId: string | null }> = [];
+    globalThis.fetch = (async (input, init) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+      const headers = new Headers(init?.headers);
+      outbound.push({ url, authorization: headers.get("authorization"), accountId: headers.get("chatgpt-account-id") });
+      return Response.json({ id: "policy-direct-ok", object: "response", status: "completed", output: [
+        { id: "msg", type: "message", role: "assistant", content: [{ type: "output_text", text: "POLICY_DIRECT_OK" }] },
+      ] });
+    }) as typeof fetch;
+    saveConfig({
+      port: 0,
+      hostname: "0.0.0.0",
+      defaultProvider: "openai",
+      openaiProviderTierVersion: 2,
+      apiKeys: [{ id: "policy-bearer", name: "Policy bearer", key: "policy-bearer-secret", createdAt: "2026-07-17" }],
+      providers: {
+        openai: canonicalDirect,
+        openrouter: { adapter: "openai-chat", baseUrl: "https://unused.example/v1", apiKey: "unused" },
+        deepseek: { adapter: "openai-chat", baseUrl: "https://unused.example/v1", apiKey: "unused" },
+      },
+      routingProfiles: { lead: {
+        alias: "lead",
+        candidates: [{ provider: "openai", model: "gpt-test" }],
+        unknownEvidence: { capability: "allow", health: "allow", quota: "allow", cost: "allow" },
+      } },
+    });
+    const server = startServer(0);
+    try {
+      const response = await originalGlobalFetch(`http://127.0.0.1:${server.port}/v1/chat/completions`, {
+        method: "POST",
+        headers: { "content-type": "application/json", authorization: "Bearer policy-bearer-secret" },
+        body: JSON.stringify({ model: "lead", messages: [{ role: "user", content: "test" }], stream: false }),
+      });
+      const responseText = await response.text();
+      expect({ status: response.status, body: responseText }).toEqual({ status: 200, body: expect.stringContaining("POLICY_DIRECT_OK") });
+      const sends = outbound.filter(row => row.url.includes("chatgpt.com/backend-api/codex/responses"));
+      expect(sends).toHaveLength(1);
+      expect(sends[0]?.authorization).toBe("Bearer stored-direct-access");
+      expect(sends[0]?.accountId).toBe("stored-account");
+    } finally {
+      await server.stop(true);
+    }
+  });
+
   test("internal web-search and vision never forward a non-ChatGPT bearer as Direct sidecar auth", async () => {
     if (existsSync(TEST_DIR)) removeTreeWithRetry(TEST_DIR);
     mkdirSync(TEST_DIR, { recursive: true });

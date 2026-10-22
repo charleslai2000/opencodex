@@ -1,0 +1,1438 @@
+{
+  "scope": {
+    "model": "gpt-6-luna",
+    "endpointType": "Responses API via Codex WebSocket adapter where recorded",
+    "sourceRecordCount": 6
+  },
+  "captureSummary": {
+    "requestCount": 168,
+    "usageCount": 166,
+    "responseHeaderCount": 167,
+    "missingUsageCount": 2
+  },
+  "captureWindows": [
+    {
+      "requestCount": 12,
+      "startUtc": "2026-10-17T17:28:39.715Z",
+      "endUtc": "2026-10-17T17:29:21.748Z",
+      "requestsPerMinute": 17.13
+    },
+    {
+      "requestCount": 12,
+      "startUtc": "2026-10-17T17:33:53.641Z",
+      "endUtc": "2026-10-17T17:34:59.831Z",
+      "requestsPerMinute": 10.88
+    },
+    {
+      "requestCount": 12,
+      "startUtc": "2026-10-17T17:36:29.262Z",
+      "endUtc": "2026-10-17T17:37:10.270Z",
+      "requestsPerMinute": 17.56
+    },
+    {
+      "requestCount": 12,
+      "startUtc": "2026-10-17T17:42:46.750Z",
+      "endUtc": "2026-10-17T17:43:37.157Z",
+      "requestsPerMinute": 14.28
+    },
+    {
+      "requestCount": 60,
+      "startUtc": "2026-10-17T18:17:26.788Z",
+      "endUtc": "2026-10-17T18:23:58.932Z",
+      "requestsPerMinute": 9.18
+    },
+    {
+      "requestCount": 60,
+      "startUtc": "2026-10-17T18:32:43.521Z",
+      "endUtc": "2026-10-17T18:37:24.277Z",
+      "requestsPerMinute": 12.82
+    }
+  ],
+  "events": [
+    {
+      "event": 1,
+      "classification": "SUSTAINED_RECOVERY_THROUGH_TWO_FOLLOWUPS",
+      "recoveryPattern": "SUSTAINED_RECOVERY_THROUGH_TWO_FOLLOWUPS",
+      "postRecoveryCachedTokens": [
+        94080,
+        72832
+      ],
+      "postRecoveryCacheRates": [
+        0.9643,
+        0.743267
+      ],
+      "recoverySustainedAt70PercentAcrossBothFollowups": true,
+      "requests": [
+        {
+          "inputTokens": 94229,
+          "cachedTokens": 91776,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0004",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:21:51.440Z",
+          "role": "warm_reference_1",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0005",
+          "comparisonIdPresentInCapturedRequestBody": true,
+          "comparisonIdMatchesCaptureMetadata": true,
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": null,
+          "inputItemCounts": null,
+          "orderedPrefixComparison": null,
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": null,
+          "keyConfigurationChecksToPrevious": null,
+          "requestBodyFingerprints": {
+            "inputItemCount": 176,
+            "inputSha256": "64fdb1d4ad717283ff61a29c273955eea92849599f684f026063488194c38fd4",
+            "nonInputConfigurationSha256ExcludingComparisonId": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0005",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 17,
+            "instructionsPresent": true,
+            "cacheConfigSha256": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 94548,
+          "cachedTokens": 91136,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0006",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:22:13.255Z",
+          "role": "warm_reference_2",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0004",
+          "comparisonIdPresentInCapturedRequestBody": true,
+          "comparisonIdMatchesCaptureMetadata": true,
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 176,
+            "currentItems": 179
+          },
+          "orderedPrefixComparison": {
+            "matches": true,
+            "comparedItemCount": 176,
+            "previousPrefixSha256": "64fdb1d4ad717283ff61a29c273955eea92849599f684f026063488194c38fd4",
+            "currentPrefixSha256": "64fdb1d4ad717283ff61a29c273955eea92849599f684f026063488194c38fd4"
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "keyConfigurationChecksToPrevious": {
+            "modelEqual": true,
+            "instructionsEqual": true,
+            "toolsEqual": true,
+            "serviceTierEqual": true,
+            "reasoningEqual": true,
+            "verbosityEqual": true,
+            "formatEqual": true,
+            "promptCacheKeyEqual": true,
+            "promptCacheOptionsEqualExcludingComparisonId": true,
+            "comparisonResponseIdEqual": false
+          },
+          "requestBodyFingerprints": {
+            "inputItemCount": 179,
+            "inputSha256": "37567b0c7b07e4a117947bcfd0e70979c9880a9dc809ff1593d4bcd7b9ea3797",
+            "nonInputConfigurationSha256ExcludingComparisonId": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0004",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 17,
+            "instructionsPresent": true,
+            "cacheConfigSha256": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 96574,
+          "cachedTokens": 0,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0001",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:22:17.309Z",
+          "role": "cold",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0006",
+          "comparisonIdPresentInCapturedRequestBody": true,
+          "comparisonIdMatchesCaptureMetadata": true,
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 179,
+            "currentItems": 181
+          },
+          "orderedPrefixComparison": {
+            "matches": true,
+            "comparedItemCount": 179,
+            "previousPrefixSha256": "37567b0c7b07e4a117947bcfd0e70979c9880a9dc809ff1593d4bcd7b9ea3797",
+            "currentPrefixSha256": "37567b0c7b07e4a117947bcfd0e70979c9880a9dc809ff1593d4bcd7b9ea3797"
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "keyConfigurationChecksToPrevious": {
+            "modelEqual": true,
+            "instructionsEqual": true,
+            "toolsEqual": true,
+            "serviceTierEqual": true,
+            "reasoningEqual": true,
+            "verbosityEqual": true,
+            "formatEqual": true,
+            "promptCacheKeyEqual": true,
+            "promptCacheOptionsEqualExcludingComparisonId": true,
+            "comparisonResponseIdEqual": false
+          },
+          "requestBodyFingerprints": {
+            "inputItemCount": 181,
+            "inputSha256": "7fc8ad43f0959760ae097a4623961d27a79fca2360636d6ce245ad801790f9d6",
+            "nonInputConfigurationSha256ExcludingComparisonId": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0006",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 17,
+            "instructionsPresent": true,
+            "cacheConfigSha256": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 96902,
+          "cachedTokens": 87936,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0007",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:22:20.770Z",
+          "role": "recovery",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0001",
+          "comparisonIdPresentInCapturedRequestBody": true,
+          "comparisonIdMatchesCaptureMetadata": true,
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 181,
+            "currentItems": 183
+          },
+          "orderedPrefixComparison": {
+            "matches": true,
+            "comparedItemCount": 181,
+            "previousPrefixSha256": "7fc8ad43f0959760ae097a4623961d27a79fca2360636d6ce245ad801790f9d6",
+            "currentPrefixSha256": "7fc8ad43f0959760ae097a4623961d27a79fca2360636d6ce245ad801790f9d6"
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "keyConfigurationChecksToPrevious": {
+            "modelEqual": true,
+            "instructionsEqual": true,
+            "toolsEqual": true,
+            "serviceTierEqual": true,
+            "reasoningEqual": true,
+            "verbosityEqual": true,
+            "formatEqual": true,
+            "promptCacheKeyEqual": true,
+            "promptCacheOptionsEqualExcludingComparisonId": true,
+            "comparisonResponseIdEqual": false
+          },
+          "requestBodyFingerprints": {
+            "inputItemCount": 183,
+            "inputSha256": "362136ce72243ca1bbd3fb1577ff6d3389391307c7c2cf79767305e2a219ae5e",
+            "nonInputConfigurationSha256ExcludingComparisonId": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0001",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 17,
+            "instructionsPresent": true,
+            "cacheConfigSha256": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 97563,
+          "cachedTokens": 94080,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0008",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:22:27.592Z",
+          "role": "post_recovery_1",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0007",
+          "comparisonIdPresentInCapturedRequestBody": true,
+          "comparisonIdMatchesCaptureMetadata": true,
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 183,
+            "currentItems": 185
+          },
+          "orderedPrefixComparison": {
+            "matches": true,
+            "comparedItemCount": 183,
+            "previousPrefixSha256": "362136ce72243ca1bbd3fb1577ff6d3389391307c7c2cf79767305e2a219ae5e",
+            "currentPrefixSha256": "362136ce72243ca1bbd3fb1577ff6d3389391307c7c2cf79767305e2a219ae5e"
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "keyConfigurationChecksToPrevious": {
+            "modelEqual": true,
+            "instructionsEqual": true,
+            "toolsEqual": true,
+            "serviceTierEqual": true,
+            "reasoningEqual": true,
+            "verbosityEqual": true,
+            "formatEqual": true,
+            "promptCacheKeyEqual": true,
+            "promptCacheOptionsEqualExcludingComparisonId": true,
+            "comparisonResponseIdEqual": false
+          },
+          "requestBodyFingerprints": {
+            "inputItemCount": 185,
+            "inputSha256": "cd8b3d6a0221d906ff054e870fe67b87c6fd495b78e7db9eaf91654309784539",
+            "nonInputConfigurationSha256ExcludingComparisonId": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0007",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 17,
+            "instructionsPresent": true,
+            "cacheConfigSha256": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 97989,
+          "cachedTokens": 72832,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0009",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:22:33.518Z",
+          "role": "post_recovery_2",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0008",
+          "comparisonIdPresentInCapturedRequestBody": true,
+          "comparisonIdMatchesCaptureMetadata": true,
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 185,
+            "currentItems": 187
+          },
+          "orderedPrefixComparison": {
+            "matches": true,
+            "comparedItemCount": 185,
+            "previousPrefixSha256": "cd8b3d6a0221d906ff054e870fe67b87c6fd495b78e7db9eaf91654309784539",
+            "currentPrefixSha256": "cd8b3d6a0221d906ff054e870fe67b87c6fd495b78e7db9eaf91654309784539"
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "keyConfigurationChecksToPrevious": {
+            "modelEqual": true,
+            "instructionsEqual": true,
+            "toolsEqual": true,
+            "serviceTierEqual": true,
+            "reasoningEqual": true,
+            "verbosityEqual": true,
+            "formatEqual": true,
+            "promptCacheKeyEqual": true,
+            "promptCacheOptionsEqualExcludingComparisonId": true,
+            "comparisonResponseIdEqual": false
+          },
+          "requestBodyFingerprints": {
+            "inputItemCount": 187,
+            "inputSha256": "f394d38727a5511c49c1050d3043446d2358bf550bd564ccd254ab7fdc524bca",
+            "nonInputConfigurationSha256ExcludingComparisonId": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0008",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 17,
+            "instructionsPresent": true,
+            "cacheConfigSha256": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        }
+      ],
+      "coldCachedTokensAreRawUpstreamUsageZero": true,
+      "coldUncachedInputTokens": 96574,
+      "secondsWarmToCold": 4.054,
+      "secondsColdToRecovery": 3.461,
+      "inputPrefixStableAcrossSixRequests": true,
+      "nonInputConfigStableIgnoringComparisonId": true,
+      "diagnosticOptionCouldBeConfounder": true
+    },
+    {
+      "event": 2,
+      "classification": "TRANSIENT_RECOVERY_THEN_ZERO_HIT",
+      "recoveryPattern": "TRANSIENT_RECOVERY_THEN_ZERO_HIT",
+      "postRecoveryCachedTokens": [
+        0,
+        0
+      ],
+      "postRecoveryCacheRates": [
+        0.0,
+        0.0
+      ],
+      "recoverySustainedAt70PercentAcrossBothFollowups": false,
+      "requests": [
+        {
+          "inputTokens": 98411,
+          "cachedTokens": 74240,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0010",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:22:42.740Z",
+          "role": "warm_reference_1",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0011",
+          "comparisonIdPresentInCapturedRequestBody": true,
+          "comparisonIdMatchesCaptureMetadata": true,
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": null,
+          "inputItemCounts": null,
+          "orderedPrefixComparison": null,
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": null,
+          "keyConfigurationChecksToPrevious": null,
+          "requestBodyFingerprints": {
+            "inputItemCount": 191,
+            "inputSha256": "e79f671f184027fa81f7bd91a1b10d99873abc80a582c869254bf4a725dcd211",
+            "nonInputConfigurationSha256ExcludingComparisonId": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0011",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 17,
+            "instructionsPresent": true,
+            "cacheConfigSha256": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 98856,
+          "cachedTokens": 92672,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0012",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:22:47.861Z",
+          "role": "warm_reference_2",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0010",
+          "comparisonIdPresentInCapturedRequestBody": true,
+          "comparisonIdMatchesCaptureMetadata": true,
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 191,
+            "currentItems": 193
+          },
+          "orderedPrefixComparison": {
+            "matches": true,
+            "comparedItemCount": 191,
+            "previousPrefixSha256": "e79f671f184027fa81f7bd91a1b10d99873abc80a582c869254bf4a725dcd211",
+            "currentPrefixSha256": "e79f671f184027fa81f7bd91a1b10d99873abc80a582c869254bf4a725dcd211"
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "keyConfigurationChecksToPrevious": {
+            "modelEqual": true,
+            "instructionsEqual": true,
+            "toolsEqual": true,
+            "serviceTierEqual": true,
+            "reasoningEqual": true,
+            "verbosityEqual": true,
+            "formatEqual": true,
+            "promptCacheKeyEqual": true,
+            "promptCacheOptionsEqualExcludingComparisonId": true,
+            "comparisonResponseIdEqual": false
+          },
+          "requestBodyFingerprints": {
+            "inputItemCount": 193,
+            "inputSha256": "11a67f85c6d049c910c35d10b03082cf7bb40c6248fe5208b3b7612585e09c0a",
+            "nonInputConfigurationSha256ExcludingComparisonId": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0010",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 17,
+            "instructionsPresent": true,
+            "cacheConfigSha256": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 99264,
+          "cachedTokens": 0,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0002",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:22:52.335Z",
+          "role": "cold",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0012",
+          "comparisonIdPresentInCapturedRequestBody": true,
+          "comparisonIdMatchesCaptureMetadata": true,
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 193,
+            "currentItems": 195
+          },
+          "orderedPrefixComparison": {
+            "matches": true,
+            "comparedItemCount": 193,
+            "previousPrefixSha256": "11a67f85c6d049c910c35d10b03082cf7bb40c6248fe5208b3b7612585e09c0a",
+            "currentPrefixSha256": "11a67f85c6d049c910c35d10b03082cf7bb40c6248fe5208b3b7612585e09c0a"
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "keyConfigurationChecksToPrevious": {
+            "modelEqual": true,
+            "instructionsEqual": true,
+            "toolsEqual": true,
+            "serviceTierEqual": true,
+            "reasoningEqual": true,
+            "verbosityEqual": true,
+            "formatEqual": true,
+            "promptCacheKeyEqual": true,
+            "promptCacheOptionsEqualExcludingComparisonId": true,
+            "comparisonResponseIdEqual": false
+          },
+          "requestBodyFingerprints": {
+            "inputItemCount": 195,
+            "inputSha256": "23aa302ff46216a112a5b22cdb6520990a4f025b5c68f9ff35063141097459d3",
+            "nonInputConfigurationSha256ExcludingComparisonId": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0012",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 17,
+            "instructionsPresent": true,
+            "cacheConfigSha256": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 101263,
+          "cachedTokens": 98688,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0013",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:22:58.564Z",
+          "role": "recovery",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0002",
+          "comparisonIdPresentInCapturedRequestBody": true,
+          "comparisonIdMatchesCaptureMetadata": true,
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 195,
+            "currentItems": 198
+          },
+          "orderedPrefixComparison": {
+            "matches": true,
+            "comparedItemCount": 195,
+            "previousPrefixSha256": "23aa302ff46216a112a5b22cdb6520990a4f025b5c68f9ff35063141097459d3",
+            "currentPrefixSha256": "23aa302ff46216a112a5b22cdb6520990a4f025b5c68f9ff35063141097459d3"
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "keyConfigurationChecksToPrevious": {
+            "modelEqual": true,
+            "instructionsEqual": true,
+            "toolsEqual": true,
+            "serviceTierEqual": true,
+            "reasoningEqual": true,
+            "verbosityEqual": true,
+            "formatEqual": true,
+            "promptCacheKeyEqual": true,
+            "promptCacheOptionsEqualExcludingComparisonId": true,
+            "comparisonResponseIdEqual": false
+          },
+          "requestBodyFingerprints": {
+            "inputItemCount": 198,
+            "inputSha256": "9644f08447f1e423f47ad832eecd7b508a303a20bf6557092851dccc3eba03b6",
+            "nonInputConfigurationSha256ExcludingComparisonId": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0002",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 17,
+            "instructionsPresent": true,
+            "cacheConfigSha256": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 102574,
+          "cachedTokens": 0,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0014",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:23:09.614Z",
+          "role": "post_recovery_1",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0013",
+          "comparisonIdPresentInCapturedRequestBody": true,
+          "comparisonIdMatchesCaptureMetadata": true,
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 198,
+            "currentItems": 200
+          },
+          "orderedPrefixComparison": {
+            "matches": true,
+            "comparedItemCount": 198,
+            "previousPrefixSha256": "9644f08447f1e423f47ad832eecd7b508a303a20bf6557092851dccc3eba03b6",
+            "currentPrefixSha256": "9644f08447f1e423f47ad832eecd7b508a303a20bf6557092851dccc3eba03b6"
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "keyConfigurationChecksToPrevious": {
+            "modelEqual": true,
+            "instructionsEqual": true,
+            "toolsEqual": true,
+            "serviceTierEqual": true,
+            "reasoningEqual": true,
+            "verbosityEqual": true,
+            "formatEqual": true,
+            "promptCacheKeyEqual": true,
+            "promptCacheOptionsEqualExcludingComparisonId": true,
+            "comparisonResponseIdEqual": false
+          },
+          "requestBodyFingerprints": {
+            "inputItemCount": 200,
+            "inputSha256": "f52f7db438a02c90ea3bcc466e2fd7cb7b8655bdf4ad73f376a47256c9684509",
+            "nonInputConfigurationSha256ExcludingComparisonId": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0013",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 17,
+            "instructionsPresent": true,
+            "cacheConfigSha256": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 103613,
+          "cachedTokens": 0,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0015",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:23:22.115Z",
+          "role": "post_recovery_2",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0014",
+          "comparisonIdPresentInCapturedRequestBody": true,
+          "comparisonIdMatchesCaptureMetadata": true,
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 200,
+            "currentItems": 202
+          },
+          "orderedPrefixComparison": {
+            "matches": true,
+            "comparedItemCount": 200,
+            "previousPrefixSha256": "f52f7db438a02c90ea3bcc466e2fd7cb7b8655bdf4ad73f376a47256c9684509",
+            "currentPrefixSha256": "f52f7db438a02c90ea3bcc466e2fd7cb7b8655bdf4ad73f376a47256c9684509"
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "keyConfigurationChecksToPrevious": {
+            "modelEqual": true,
+            "instructionsEqual": true,
+            "toolsEqual": true,
+            "serviceTierEqual": true,
+            "reasoningEqual": true,
+            "verbosityEqual": true,
+            "formatEqual": true,
+            "promptCacheKeyEqual": true,
+            "promptCacheOptionsEqualExcludingComparisonId": true,
+            "comparisonResponseIdEqual": false
+          },
+          "requestBodyFingerprints": {
+            "inputItemCount": 202,
+            "inputSha256": "b4cc42c7a13dd5f0d99c214500b93285b0dbec0c8deb1a351383886faa7e9783",
+            "nonInputConfigurationSha256ExcludingComparisonId": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0014",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 17,
+            "instructionsPresent": true,
+            "cacheConfigSha256": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        }
+      ],
+      "coldCachedTokensAreRawUpstreamUsageZero": true,
+      "coldUncachedInputTokens": 99264,
+      "secondsWarmToCold": 4.474,
+      "secondsColdToRecovery": 6.229,
+      "inputPrefixStableAcrossSixRequests": true,
+      "nonInputConfigStableIgnoringComparisonId": true,
+      "diagnosticOptionCouldBeConfounder": true
+    },
+    {
+      "event": 3,
+      "classification": "TRANSIENT_RECOVERY_THEN_ZERO_HIT",
+      "recoveryPattern": "TRANSIENT_RECOVERY_THEN_ZERO_HIT",
+      "postRecoveryCachedTokens": [
+        0,
+        0
+      ],
+      "postRecoveryCacheRates": [
+        0.0,
+        0.0
+      ],
+      "recoverySustainedAt70PercentAcrossBothFollowups": false,
+      "requests": [
+        {
+          "inputTokens": 144658,
+          "cachedTokens": 143616,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0016",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:33:05.217Z",
+          "role": "warm_reference_1",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0017",
+          "comparisonIdPresentInCapturedRequestBody": true,
+          "comparisonIdMatchesCaptureMetadata": true,
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": null,
+          "inputItemCounts": null,
+          "orderedPrefixComparison": null,
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": null,
+          "keyConfigurationChecksToPrevious": null,
+          "requestBodyFingerprints": {
+            "inputItemCount": 378,
+            "inputSha256": "2c20a55b33228e38c5709ebba170ebfabe8d847dc37a9e5e42c04848b237ff76",
+            "nonInputConfigurationSha256ExcludingComparisonId": "7c5123ea2013c5fc319210a56df6708ffdd4fe4f9a38d012f0a2297e1eb023fc"
+          },
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0017",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 14,
+            "instructionsPresent": true,
+            "cacheConfigSha256": "7c5123ea2013c5fc319210a56df6708ffdd4fe4f9a38d012f0a2297e1eb023fc"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 144801,
+          "cachedTokens": 124672,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0018",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:33:12.678Z",
+          "role": "warm_reference_2",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0016",
+          "comparisonIdPresentInCapturedRequestBody": true,
+          "comparisonIdMatchesCaptureMetadata": true,
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 378,
+            "currentItems": 381
+          },
+          "orderedPrefixComparison": {
+            "matches": true,
+            "comparedItemCount": 378,
+            "previousPrefixSha256": "2c20a55b33228e38c5709ebba170ebfabe8d847dc37a9e5e42c04848b237ff76",
+            "currentPrefixSha256": "2c20a55b33228e38c5709ebba170ebfabe8d847dc37a9e5e42c04848b237ff76"
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "keyConfigurationChecksToPrevious": {
+            "modelEqual": true,
+            "instructionsEqual": true,
+            "toolsEqual": true,
+            "serviceTierEqual": true,
+            "reasoningEqual": true,
+            "verbosityEqual": true,
+            "formatEqual": true,
+            "promptCacheKeyEqual": true,
+            "promptCacheOptionsEqualExcludingComparisonId": true,
+            "comparisonResponseIdEqual": false
+          },
+          "requestBodyFingerprints": {
+            "inputItemCount": 381,
+            "inputSha256": "269bc77b250fef76a4c83e9c719c427fe4432530ea4ad137fef88016cb3888ca",
+            "nonInputConfigurationSha256ExcludingComparisonId": "7c5123ea2013c5fc319210a56df6708ffdd4fe4f9a38d012f0a2297e1eb023fc"
+          },
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0016",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 14,
+            "instructionsPresent": true,
+            "cacheConfigSha256": "7c5123ea2013c5fc319210a56df6708ffdd4fe4f9a38d012f0a2297e1eb023fc"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 144924,
+          "cachedTokens": 0,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0003",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:33:17.014Z",
+          "role": "cold",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0018",
+          "comparisonIdPresentInCapturedRequestBody": true,
+          "comparisonIdMatchesCaptureMetadata": true,
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 381,
+            "currentItems": 383
+          },
+          "orderedPrefixComparison": {
+            "matches": true,
+            "comparedItemCount": 381,
+            "previousPrefixSha256": "269bc77b250fef76a4c83e9c719c427fe4432530ea4ad137fef88016cb3888ca",
+            "currentPrefixSha256": "269bc77b250fef76a4c83e9c719c427fe4432530ea4ad137fef88016cb3888ca"
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "keyConfigurationChecksToPrevious": {
+            "modelEqual": true,
+            "instructionsEqual": true,
+            "toolsEqual": true,
+            "serviceTierEqual": true,
+            "reasoningEqual": true,
+            "verbosityEqual": true,
+            "formatEqual": true,
+            "promptCacheKeyEqual": true,
+            "promptCacheOptionsEqualExcludingComparisonId": true,
+            "comparisonResponseIdEqual": false
+          },
+          "requestBodyFingerprints": {
+            "inputItemCount": 383,
+            "inputSha256": "17f05d66a6e0007ebe4928dc3825832b319bfc5e69e97b125ae7eddfa6c6226a",
+            "nonInputConfigurationSha256ExcludingComparisonId": "7c5123ea2013c5fc319210a56df6708ffdd4fe4f9a38d012f0a2297e1eb023fc"
+          },
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0018",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 14,
+            "instructionsPresent": true,
+            "cacheConfigSha256": "7c5123ea2013c5fc319210a56df6708ffdd4fe4f9a38d012f0a2297e1eb023fc"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 145029,
+          "cachedTokens": 144256,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0019",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:33:21.483Z",
+          "role": "recovery",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0003",
+          "comparisonIdPresentInCapturedRequestBody": true,
+          "comparisonIdMatchesCaptureMetadata": true,
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 383,
+            "currentItems": 385
+          },
+          "orderedPrefixComparison": {
+            "matches": true,
+            "comparedItemCount": 383,
+            "previousPrefixSha256": "17f05d66a6e0007ebe4928dc3825832b319bfc5e69e97b125ae7eddfa6c6226a",
+            "currentPrefixSha256": "17f05d66a6e0007ebe4928dc3825832b319bfc5e69e97b125ae7eddfa6c6226a"
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "keyConfigurationChecksToPrevious": {
+            "modelEqual": true,
+            "instructionsEqual": true,
+            "toolsEqual": true,
+            "serviceTierEqual": true,
+            "reasoningEqual": true,
+            "verbosityEqual": true,
+            "formatEqual": true,
+            "promptCacheKeyEqual": true,
+            "promptCacheOptionsEqualExcludingComparisonId": true,
+            "comparisonResponseIdEqual": false
+          },
+          "requestBodyFingerprints": {
+            "inputItemCount": 385,
+            "inputSha256": "2a04c81cc7462c03c449adfabd7c6be23371fc645508a01bad4c2f2113759c70",
+            "nonInputConfigurationSha256ExcludingComparisonId": "7c5123ea2013c5fc319210a56df6708ffdd4fe4f9a38d012f0a2297e1eb023fc"
+          },
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0003",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 14,
+            "instructionsPresent": true,
+            "cacheConfigSha256": "7c5123ea2013c5fc319210a56df6708ffdd4fe4f9a38d012f0a2297e1eb023fc"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 145116,
+          "cachedTokens": 0,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0020",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:33:28.859Z",
+          "role": "post_recovery_1",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0019",
+          "comparisonIdPresentInCapturedRequestBody": true,
+          "comparisonIdMatchesCaptureMetadata": true,
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 385,
+            "currentItems": 388
+          },
+          "orderedPrefixComparison": {
+            "matches": true,
+            "comparedItemCount": 385,
+            "previousPrefixSha256": "2a04c81cc7462c03c449adfabd7c6be23371fc645508a01bad4c2f2113759c70",
+            "currentPrefixSha256": "2a04c81cc7462c03c449adfabd7c6be23371fc645508a01bad4c2f2113759c70"
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "keyConfigurationChecksToPrevious": {
+            "modelEqual": true,
+            "instructionsEqual": true,
+            "toolsEqual": true,
+            "serviceTierEqual": true,
+            "reasoningEqual": true,
+            "verbosityEqual": true,
+            "formatEqual": true,
+            "promptCacheKeyEqual": true,
+            "promptCacheOptionsEqualExcludingComparisonId": true,
+            "comparisonResponseIdEqual": false
+          },
+          "requestBodyFingerprints": {
+            "inputItemCount": 388,
+            "inputSha256": "d0918f76c118a07b206d19e1deb2c0544f74aec49d9acba74f8d08c36dcbf66a",
+            "nonInputConfigurationSha256ExcludingComparisonId": "7c5123ea2013c5fc319210a56df6708ffdd4fe4f9a38d012f0a2297e1eb023fc"
+          },
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0019",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 14,
+            "instructionsPresent": true,
+            "cacheConfigSha256": "7c5123ea2013c5fc319210a56df6708ffdd4fe4f9a38d012f0a2297e1eb023fc"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 145957,
+          "cachedTokens": 0,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0021",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:33:37.544Z",
+          "role": "post_recovery_2",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0020",
+          "comparisonIdPresentInCapturedRequestBody": true,
+          "comparisonIdMatchesCaptureMetadata": true,
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 388,
+            "currentItems": 391
+          },
+          "orderedPrefixComparison": {
+            "matches": true,
+            "comparedItemCount": 388,
+            "previousPrefixSha256": "d0918f76c118a07b206d19e1deb2c0544f74aec49d9acba74f8d08c36dcbf66a",
+            "currentPrefixSha256": "d0918f76c118a07b206d19e1deb2c0544f74aec49d9acba74f8d08c36dcbf66a"
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "keyConfigurationChecksToPrevious": {
+            "modelEqual": true,
+            "instructionsEqual": true,
+            "toolsEqual": true,
+            "serviceTierEqual": true,
+            "reasoningEqual": true,
+            "verbosityEqual": true,
+            "formatEqual": true,
+            "promptCacheKeyEqual": true,
+            "promptCacheOptionsEqualExcludingComparisonId": true,
+            "comparisonResponseIdEqual": false
+          },
+          "requestBodyFingerprints": {
+            "inputItemCount": 391,
+            "inputSha256": "57c3665cc6996fa7f8a9d27871d67cc4f8675e008d19c2728237a17d669009f8",
+            "nonInputConfigurationSha256ExcludingComparisonId": "7c5123ea2013c5fc319210a56df6708ffdd4fe4f9a38d012f0a2297e1eb023fc"
+          },
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0020",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 14,
+            "instructionsPresent": true,
+            "cacheConfigSha256": "7c5123ea2013c5fc319210a56df6708ffdd4fe4f9a38d012f0a2297e1eb023fc"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        }
+      ],
+      "coldCachedTokensAreRawUpstreamUsageZero": true,
+      "coldUncachedInputTokens": 144924,
+      "secondsWarmToCold": 4.336,
+      "secondsColdToRecovery": 4.469,
+      "inputPrefixStableAcrossSixRequests": true,
+      "nonInputConfigStableIgnoringComparisonId": true,
+      "diagnosticOptionCouldBeConfounder": true
+    }
+  ],
+  "additionalThresholdCandidates": [],
+  "sessionAndTransport": {
+    "selectedEventRows": 18,
+    "selectedEventRowsWithConversationKeyPresent": 0,
+    "eventCaptureRowsWithConversationKeyPresent": 0,
+    "collectorStoredRawConversationKey": false,
+    "threadId": "UNKNOWN",
+    "turnId": "UNKNOWN",
+    "PiSessionId": "UNKNOWN",
+    "webSocketConnectionId": "UNKNOWN",
+    "existingServiceLogScan": {
+      "windowUtc": [
+        "2026-10-17T18:16:00Z",
+        "2026-10-17T18:38:00Z"
+      ],
+      "threadOrSessionMarkers": 0,
+      "webSocketConnectionOrReconnectMarkers": 0,
+      "retryCompactionOrRerouteMarkers": 0
+    },
+    "reconnectEvidence": "UNKNOWN",
+    "rerouteEvidence": "UNKNOWN",
+    "retry": "No retry indicated for the selected requests (physicalAttempt=1); global retry behavior UNKNOWN",
+    "compaction": "Selected requests report compactionRequest=false; other compaction state UNKNOWN",
+    "responseTransport": [
+      "codex-websocket"
+    ]
+  },
+  "interpretation": {
+    "diagnosticsUnavailableIsNotTreatedAsCause": true,
+    "comparisonOptionConfounding": "The comparison_response_id values vary by turn; prefix/config equality below explicitly excludes this field. Since it is a request metadata change, these captures cannot rule out the diagnostic option affecting cache eligibility.",
+    "rootCause": "UNKNOWN; observations are consistent with suspected upstream cache reuse failure, but do not establish server-side eviction, routing, or billing cause.",
+    "creditsImpact": "UNKNOWN; token deltas are not a Credits or billing loss calculation."
+  },
+  "deterministicReplay": {
+    "completeThresholdEventsDetected": 3,
+    "targetStableEvents": 3,
+    "allThreeStableEventsRecognized": true,
+    "additionalThresholdCandidates": 0,
+    "chainGroupingScope": "capture window plus capture-local chain ID",
+    "allThreeColdUsageRowsReportZero": true
+  }
+}

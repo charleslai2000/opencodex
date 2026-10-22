@@ -1,0 +1,176 @@
+{
+  "schemaVersion": 1,
+  "packageCreatedUtc": "2026-10-17T18:41:35.367Z",
+  "rawEvidenceRoots": [
+    "<capture-root>",
+    "<capture-root>"
+  ],
+  "originalDataPolicy": "Original JSONL files remain in place, read-only, and are not copied into this package.",
+  "files": [
+    {
+      "group": "luna",
+      "absolutePath": "<capture-root>/requests-1792258109379.jsonl",
+      "bytes": 8804784,
+      "mode": "400",
+      "sha256": "f6573e4d2189357356b0f027752fd1ffb92d81d6ef049e0707e4c65df343412e",
+      "requestCount": 12,
+      "responseHeaderCount": 12,
+      "usageCount": 12,
+      "captureUtcRange": [
+        "2026-10-17T17:28:39.715Z",
+        "2026-10-17T17:29:21.748Z"
+      ],
+      "requestBodiesContainPrompts": true
+    },
+    {
+      "group": "luna",
+      "absolutePath": "<capture-root>/requests-1792258428577.jsonl",
+      "bytes": 14692871,
+      "mode": "400",
+      "sha256": "18d2b70f47a4cb66a6f73d0fb0597f0e7f917544bf01d9b8fefca4695e83c8fe",
+      "requestCount": 12,
+      "responseHeaderCount": 12,
+      "usageCount": 12,
+      "captureUtcRange": [
+        "2026-10-17T17:33:53.641Z",
+        "2026-10-17T17:34:59.831Z"
+      ],
+      "requestBodiesContainPrompts": true
+    },
+    {
+      "group": "luna",
+      "absolutePath": "<capture-root>/requests-1792258580815.jsonl",
+      "bytes": 12317703,
+      "mode": "400",
+      "sha256": "2337f7d900dd673d8dfc9d4f6ee6530c93cd6882187a4ed42d50adbdf8c5e3a6",
+      "requestCount": 12,
+      "responseHeaderCount": 12,
+      "usageCount": 12,
+      "captureUtcRange": [
+        "2026-10-17T17:36:29.262Z",
+        "2026-10-17T17:37:10.270Z"
+      ],
+      "requestBodiesContainPrompts": true
+    },
+    {
+      "group": "luna",
+      "absolutePath": "<capture-root>/requests-1792258957703.jsonl",
+      "bytes": 5958872,
+      "mode": "400",
+      "sha256": "e13f47b6e4ef3602e6b3f0ca84e76a95f15fc7970d359c145b683d6732f34ac8",
+      "requestCount": 12,
+      "responseHeaderCount": 11,
+      "usageCount": 11,
+      "captureUtcRange": [
+        "2026-10-17T17:42:46.750Z",
+        "2026-10-17T17:43:37.157Z"
+      ],
+      "requestBodiesContainPrompts": true
+    },
+    {
+      "group": "luna",
+      "absolutePath": "<capture-root>/requests-1792260966652.jsonl",
+      "bytes": 37503128,
+      "mode": "400",
+      "sha256": "fc214d1efd15bd32214f033496e4f959f2117bd005c4322b7da6bc9ae70a0746",
+      "requestCount": 60,
+      "responseHeaderCount": 60,
+      "usageCount": 59,
+      "captureUtcRange": [
+        "2026-10-17T18:17:26.788Z",
+        "2026-10-17T18:23:58.932Z"
+      ],
+      "requestBodiesContainPrompts": true
+    },
+    {
+      "group": "luna",
+      "absolutePath": "<capture-root>/requests-1792261959127.jsonl",
+      "bytes": 39250311,
+      "mode": "400",
+      "sha256": "3b5ae9fc5113b55e4382f37224a91f48aff8b435899c02983b0fe5d89970004a",
+      "requestCount": 60,
+      "responseHeaderCount": 60,
+      "usageCount": 60,
+      "captureUtcRange": [
+        "2026-10-17T18:32:43.521Z",
+        "2026-10-17T18:37:24.277Z"
+      ],
+      "requestBodiesContainPrompts": true
+    },
+    {
+      "group": "sol",
+      "absolutePath": "<capture-root>/requests-1792254216896.jsonl",
+      "bytes": 3937850,
+      "mode": "400",
+      "sha256": "116dfa8d3818b22bbe630c03af5be293a62e620161f7327cefd6651436a93c91",
+      "requestCount": 3,
+      "responseHeaderCount": 0,
+      "usageCount": 0,
+      "captureUtcRange": [
+        "2026-10-17T16:26:17.455Z",
+        "2026-10-17T16:26:41.907Z"
+      ],
+      "requestBodiesContainPrompts": true
+    },
+    {
+      "group": "sol",
+      "absolutePath": "<capture-root>/requests-1792254410486.jsonl",
+      "bytes": 16467734,
+      "mode": "400",
+      "sha256": "aea8502a5248061a72ed0aefb92d41e399997407869a8afd93dafbde29599a31",
+      "requestCount": 12,
+      "responseHeaderCount": 0,
+      "usageCount": 0,
+      "captureUtcRange": [
+        "2026-10-17T16:26:53.831Z",
+        "2026-10-17T16:31:18.337Z"
+      ],
+      "requestBodiesContainPrompts": true
+    },
+    {
+      "group": "sol",
+      "absolutePath": "<capture-root>/requests-1792254877656.jsonl",
+      "bytes": 2324461,
+      "mode": "400",
+      "sha256": "a0f1a08e33ece77b91a17eba392c7d0179321932350ff21318ffebb0c1be703b",
+      "requestCount": 3,
+      "responseHeaderCount": 0,
+      "usageCount": 0,
+      "captureUtcRange": [
+        "2026-10-17T16:34:51.025Z",
+        "2026-10-17T16:37:55.449Z"
+      ],
+      "requestBodiesContainPrompts": true
+    },
+    {
+      "group": "sol",
+      "absolutePath": "<capture-root>/requests-1792255847449.jsonl",
+      "bytes": 2808711,
+      "mode": "400",
+      "sha256": "31379715ce5455d3ab38a4ee1577d6d7d819882fc47f3dc90f635d6750b2b557",
+      "requestCount": 12,
+      "responseHeaderCount": 12,
+      "usageCount": 12,
+      "captureUtcRange": [
+        "2026-10-17T16:51:40.226Z",
+        "2026-10-17T16:53:01.142Z"
+      ],
+      "requestBodiesContainPrompts": true
+    },
+    {
+      "group": "sol",
+      "absolutePath": "<capture-root>/requests-1792256408422.jsonl",
+      "bytes": 6442098,
+      "mode": "400",
+      "sha256": "f813e066b625628f0af55e36a320fb7c923d28560ac3fbb00b29c5a35b23462c",
+      "requestCount": 12,
+      "responseHeaderCount": 12,
+      "usageCount": 12,
+      "captureUtcRange": [
+        "2026-10-17T17:00:08.485Z",
+        "2026-10-17T17:02:45.964Z"
+      ],
+      "requestBodiesContainPrompts": true
+    }
+  ]
+}

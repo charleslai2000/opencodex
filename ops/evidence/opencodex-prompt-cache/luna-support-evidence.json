@@ -1,0 +1,977 @@
+{
+  "scope": {
+    "model": "gpt-6-luna",
+    "endpointType": "Responses API via Codex WebSocket adapter where recorded",
+    "sourceRecordCount": 6
+  },
+  "captureSummary": {
+    "requestCount": 168,
+    "usageCount": 166,
+    "responseHeaderCount": 167,
+    "missingUsageCount": 2
+  },
+  "captureWindows": [
+    {
+      "requestCount": 12,
+      "startUtc": "2026-10-17T17:28:39.715Z",
+      "endUtc": "2026-10-17T17:29:21.748Z",
+      "requestsPerMinute": 17.13
+    },
+    {
+      "requestCount": 12,
+      "startUtc": "2026-10-17T17:33:53.641Z",
+      "endUtc": "2026-10-17T17:34:59.831Z",
+      "requestsPerMinute": 10.88
+    },
+    {
+      "requestCount": 12,
+      "startUtc": "2026-10-17T17:36:29.262Z",
+      "endUtc": "2026-10-17T17:37:10.270Z",
+      "requestsPerMinute": 17.56
+    },
+    {
+      "requestCount": 12,
+      "startUtc": "2026-10-17T17:42:46.750Z",
+      "endUtc": "2026-10-17T17:43:37.157Z",
+      "requestsPerMinute": 14.28
+    },
+    {
+      "requestCount": 60,
+      "startUtc": "2026-10-17T18:17:26.788Z",
+      "endUtc": "2026-10-17T18:23:58.932Z",
+      "requestsPerMinute": 9.18
+    },
+    {
+      "requestCount": 60,
+      "startUtc": "2026-10-17T18:32:43.521Z",
+      "endUtc": "2026-10-17T18:37:24.277Z",
+      "requestsPerMinute": 12.82
+    }
+  ],
+  "events": [
+    {
+      "event": 1,
+      "classification": "SERVER_REUSE_FAILURE_SUSPECTED",
+      "requests": [
+        {
+          "inputTokens": 144658,
+          "cachedTokens": 143616,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0016",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:33:05.217Z",
+          "role": "warm_reference_1",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0017",
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": null,
+          "inputItemCounts": null,
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": null,
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0017",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 14,
+            "cacheConfigSha256": "7c5123ea2013c5fc319210a56df6708ffdd4fe4f9a38d012f0a2297e1eb023fc"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 144801,
+          "cachedTokens": 124672,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0018",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:33:12.678Z",
+          "role": "warm_reference_2",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0016",
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 378,
+            "currentItems": 381
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0016",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 14,
+            "cacheConfigSha256": "7c5123ea2013c5fc319210a56df6708ffdd4fe4f9a38d012f0a2297e1eb023fc"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 144924,
+          "cachedTokens": 0,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0003",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:33:17.014Z",
+          "role": "cold",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0018",
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 381,
+            "currentItems": 383
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0018",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 14,
+            "cacheConfigSha256": "7c5123ea2013c5fc319210a56df6708ffdd4fe4f9a38d012f0a2297e1eb023fc"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 145029,
+          "cachedTokens": 144256,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0019",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:33:21.483Z",
+          "role": "recovery",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0003",
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 383,
+            "currentItems": 385
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0003",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 14,
+            "cacheConfigSha256": "7c5123ea2013c5fc319210a56df6708ffdd4fe4f9a38d012f0a2297e1eb023fc"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 145116,
+          "cachedTokens": 0,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0020",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:33:28.859Z",
+          "role": "post_recovery_1",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0019",
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 385,
+            "currentItems": 388
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0019",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 14,
+            "cacheConfigSha256": "7c5123ea2013c5fc319210a56df6708ffdd4fe4f9a38d012f0a2297e1eb023fc"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 145957,
+          "cachedTokens": 0,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0021",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:33:37.544Z",
+          "role": "post_recovery_2",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0020",
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 388,
+            "currentItems": 391
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0020",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 14,
+            "cacheConfigSha256": "7c5123ea2013c5fc319210a56df6708ffdd4fe4f9a38d012f0a2297e1eb023fc"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        }
+      ],
+      "coldCachedTokensAreRawUpstreamUsageZero": true,
+      "coldUncachedInputTokens": 144924,
+      "secondsWarmToCold": 4.336,
+      "secondsColdToRecovery": 4.469,
+      "inputPrefixStableAcrossSixRequests": true,
+      "nonInputConfigStableIgnoringComparisonId": true,
+      "diagnosticOptionCouldBeConfounder": true
+    },
+    {
+      "event": 2,
+      "classification": "SERVER_REUSE_FAILURE_SUSPECTED",
+      "requests": [
+        {
+          "inputTokens": 94229,
+          "cachedTokens": 91776,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0004",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:21:51.440Z",
+          "role": "warm_reference_1",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0005",
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": null,
+          "inputItemCounts": null,
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": null,
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0005",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 17,
+            "cacheConfigSha256": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 94548,
+          "cachedTokens": 91136,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0006",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:22:13.255Z",
+          "role": "warm_reference_2",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0004",
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 176,
+            "currentItems": 179
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0004",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 17,
+            "cacheConfigSha256": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 96574,
+          "cachedTokens": 0,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0001",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:22:17.309Z",
+          "role": "cold",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0006",
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 179,
+            "currentItems": 181
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0006",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 17,
+            "cacheConfigSha256": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 96902,
+          "cachedTokens": 87936,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0007",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:22:20.770Z",
+          "role": "recovery",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0001",
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 181,
+            "currentItems": 183
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0001",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 17,
+            "cacheConfigSha256": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 97563,
+          "cachedTokens": 94080,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0008",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:22:27.592Z",
+          "role": "post_recovery_1",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0007",
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 183,
+            "currentItems": 185
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0007",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 17,
+            "cacheConfigSha256": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 97989,
+          "cachedTokens": 72832,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0009",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:22:33.518Z",
+          "role": "post_recovery_2",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0008",
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 185,
+            "currentItems": 187
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0008",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 17,
+            "cacheConfigSha256": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        }
+      ],
+      "coldCachedTokensAreRawUpstreamUsageZero": true,
+      "coldUncachedInputTokens": 96574,
+      "secondsWarmToCold": 4.054,
+      "secondsColdToRecovery": 3.461,
+      "inputPrefixStableAcrossSixRequests": true,
+      "nonInputConfigStableIgnoringComparisonId": true,
+      "diagnosticOptionCouldBeConfounder": true
+    },
+    {
+      "event": 3,
+      "classification": "SERVER_REUSE_FAILURE_SUSPECTED",
+      "requests": [
+        {
+          "inputTokens": 98411,
+          "cachedTokens": 74240,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0010",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:22:42.740Z",
+          "role": "warm_reference_1",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0011",
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": null,
+          "inputItemCounts": null,
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": null,
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0011",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 17,
+            "cacheConfigSha256": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 98856,
+          "cachedTokens": 92672,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0012",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:22:47.861Z",
+          "role": "warm_reference_2",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0010",
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 191,
+            "currentItems": 193
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0010",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 17,
+            "cacheConfigSha256": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 99264,
+          "cachedTokens": 0,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0002",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:22:52.335Z",
+          "role": "cold",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0012",
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 193,
+            "currentItems": 195
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0012",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 17,
+            "cacheConfigSha256": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 101263,
+          "cachedTokens": 98688,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0013",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:22:58.564Z",
+          "role": "recovery",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0002",
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 195,
+            "currentItems": 198
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0002",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 17,
+            "cacheConfigSha256": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 102574,
+          "cachedTokens": 0,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0014",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:23:09.614Z",
+          "role": "post_recovery_1",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0013",
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 198,
+            "currentItems": 200
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0013",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 17,
+            "cacheConfigSha256": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        },
+        {
+          "inputTokens": 103613,
+          "cachedTokens": 0,
+          "cacheWriteTokens": 0,
+          "usageFieldsPresent": {
+            "input_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "responseId": "resp_REDACTED_0015",
+          "requestId": null,
+          "diagnostics": {
+            "type": "unavailable"
+          },
+          "utc": "2026-10-17T18:23:22.115Z",
+          "role": "post_recovery_2",
+          "endpointType": "/backend-api/codex/responses",
+          "model": "gpt-6-luna",
+          "responseModel": "gpt-6-luna",
+          "comparisonResponseId": "resp_REDACTED_0014",
+          "comparisonIdReferencesPreviousCapturedResponse": true,
+          "prefixEqualsPreviousRequest": true,
+          "inputItemCounts": {
+            "priorItems": 200,
+            "currentItems": 202
+          },
+          "nonInputConfigEqualsPreviousIgnoringComparisonId": true,
+          "cacheConfiguration": {
+            "promptCacheKeyPresent": false,
+            "promptCacheOptionNames": [
+              "comparison_response_id"
+            ],
+            "comparisonResponseId": "resp_REDACTED_0014",
+            "model": "gpt-6-luna",
+            "serviceTier": null,
+            "reasoningEffort": "medium",
+            "verbosity": null,
+            "textFormatType": null,
+            "toolsPresent": true,
+            "toolsCount": 17,
+            "cacheConfigSha256": "504579f1ca7d18f91cdabcc563b7d86a663ad94453e0818ab06bb9ea5a2bd54d"
+          },
+          "conversationKeyPresent": false,
+          "physicalAttempt": 1,
+          "compactionRequest": false,
+          "responseTransport": "codex-websocket",
+          "responseStatus": 200
+        }
+      ],
+      "coldCachedTokensAreRawUpstreamUsageZero": true,
+      "coldUncachedInputTokens": 99264,
+      "secondsWarmToCold": 4.474,
+      "secondsColdToRecovery": 6.229,
+      "inputPrefixStableAcrossSixRequests": true,
+      "nonInputConfigStableIgnoringComparisonId": true,
+      "diagnosticOptionCouldBeConfounder": true
+    }
+  ],
+  "sessionAndTransport": {
+    "conversationKeyPresent": false,
+    "threadId": "UNKNOWN",
+    "turnId": "UNKNOWN",
+    "PiSessionId": "UNKNOWN",
+    "webSocketConnectionId": "UNKNOWN",
+    "reconnectEvidence": "UNKNOWN",
+    "rerouteEvidence": "UNKNOWN",
+    "retry": "No retry indicated for the selected requests (physicalAttempt=1); global retry behavior UNKNOWN",
+    "compaction": "Selected requests report compactionRequest=false; other compaction state UNKNOWN",
+    "responseTransport": [
+      "codex-websocket"
+    ]
+  },
+  "interpretation": {
+    "diagnosticsUnavailableIsNotTreatedAsCause": true,
+    "comparisonOptionConfounding": "The comparison_response_id values vary by turn; prefix/config equality below explicitly excludes this field. Since it is a request metadata change, these captures cannot rule out the diagnostic option affecting cache eligibility.",
+    "rootCause": "UNKNOWN; observations are consistent with suspected upstream cache reuse failure, but do not establish server-side eviction, routing, or billing cause.",
+    "creditsImpact": "UNKNOWN; token deltas are not a Credits or billing loss calculation."
+  },
+  "deterministicReplay": {
+    "completeEventsDetected": 3,
+    "expectedCompleteEvents": 3,
+    "allColdRowsHaveUsageZero": true,
+    "eventChains": [
+      1,
+      2,
+      3
+    ]
+  }
+}

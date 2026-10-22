@@ -496,7 +496,9 @@ export function captureSolUpstreamPayload(
     } else if (history.length >= 2) {
       const warm = history.at(-1)!;
       const beforeWarm = history.at(-2)!;
-      if (warm.cacheRate >= WARM_CACHE_RATE && observation.cacheRate <= COLD_CACHE_RATE
+      // Require a sustained warm baseline, not a lone warm observation after a cold turn.
+      if (beforeWarm.cacheRate >= WARM_CACHE_RATE && warm.cacheRate >= WARM_CACHE_RATE
+        && observation.cacheRate <= COLD_CACHE_RATE
         && observation.comparisonResponseId === warm.responseId) {
         activeCacheEventsByChain.set(chainId, { beforeWarm, warm, cold: observation, postRecovery: [] });
       }

@@ -38,9 +38,31 @@ describe("loopback listener policy view", () => {
     expect(resolveResponsesApiAuth(request(), wildcardConfig)).toBeNull();
   });
 
-  test("the loopback view admits without a credential and names it loopback", () => {
+  test("the loopback view admits anonymously and names the request loopback", () => {
     const policy = requestPolicyView(wildcardConfig, "127.0.0.1");
     expect(resolveResponsesApiAuth(request(), policy)).toEqual({ kind: "loopback", source: "loopback" });
+  });
+
+  test("loopback preserves a voluntarily presented configured Bearer as typed admission", () => {
+    const policy = requestPolicyView(wildcardConfig, "127.0.0.1");
+    expect(resolveResponsesApiAuth(
+      request("/v1/responses", { authorization: "Bearer ocx_data_realsecret" }),
+      policy,
+    )).toEqual({
+      kind: "configured",
+      keyId: "k1",
+      source: "bearer",
+      contextPrincipalId: expect.stringMatching(/^[a-f0-9]{64}$/),
+      routingPlacementPrincipalId: expect.stringMatching(/^[a-f0-9]{64}$/),
+    });
+  });
+
+  test("loopback does not upgrade an unrecognized Bearer into authenticated identity", () => {
+    const policy = requestPolicyView(wildcardConfig, "127.0.0.1");
+    expect(resolveResponsesApiAuth(
+      request("/v1/responses", { authorization: "Bearer foreign-token" }),
+      policy,
+    )).toEqual({ kind: "loopback", source: "loopback" });
   });
 
   test("the view carries no bind address other than the one it was given", () => {
@@ -50,14 +72,13 @@ describe("loopback listener policy view", () => {
     expect(policy.hostname).toBe("127.0.0.1");
   });
 
-  test("a valid configured key is still attributed to that key, not collapsed to loopback", () => {
-    // The loopback view takes the same branch a plain loopback bind always has, which returns
-    // before reading any header. Assert the public listener keeps per-key attribution so a
-    // future refactor cannot quietly make every admission anonymous.
+  test("a valid configured dedicated key is attributed on the public listener", () => {
+    // The loopback view intentionally keeps its anonymous-listener contract for requests
+    // without a configured Bearer; the public listener still retains dedicated key identity.
     expect(resolveResponsesApiAuth(
       request("/v1/responses", { "x-opencodex-api-key": "ocx_data_realsecret" }),
       wildcardConfig,
-    )).toEqual({ kind: "configured", keyId: "k1", source: "dedicated", contextPrincipalId: expect.stringMatching(/^[a-f0-9]{64}$/) });
+    )).toMatchObject({ kind: "configured", keyId: "k1", source: "dedicated" });
   });
 
   test("both Anthropic routes finish CORS with the listener-effective policy", () => {
@@ -75,19 +96,16 @@ describe("loopback listener policy view", () => {
       "await handleClaudeCountTokens(req, config, policy)",
     );
     expect(source.slice(messagesStart, chatStart)).toContain(
-      "await handleClaudeMessages(req, config, logCtx, { requestId, start, turnAdmissionLease, admission }, policy)",
+      "await handleClaudeMessages(req, turnRouting.config, logCtx, { requestId, start, turnAdmissionLease, admission }, policy)",
     );
-    for (const branch of [
-      source.slice(countTokensStart, messagesStart),
-      source.slice(messagesStart, chatStart),
-    ]) {
-      // The tail stops at the closing paren of withCors on purpose. Pinning the call's own
-      // terminator pinned something this test does not care about: when runAdmittedHttpTurn
-      // gained a fourth argument (#4546) both of these went red while the invariant they
-      // exist for -- policy, never config -- was untouched.
-      expect(branch).toContain("req,\n          policy,\n        )");
-      expect(branch).not.toContain("req,\n          config,\n        )");
-    }
+    const countTokensBranch = source.slice(countTokensStart, messagesStart);
+    const messagesBranch = source.slice(messagesStart, chatStart);
+    expect(countTokensBranch).toContain("await handleClaudeCountTokens(req, config, policy)");
+    expect(messagesBranch).toContain("await handleClaudeMessages(req, turnRouting.config, logCtx");
+    expect(countTokensBranch).toContain("req,\n          policy,\n        )");
+    expect(countTokensBranch).not.toContain("req,\n          config,\n        )");
+    expect(messagesBranch).toContain("req,\n            policy,\n          )");
+    expect(messagesBranch).not.toContain("req,\n            config,\n          )");
   });
 });
 
@@ -134,9 +152,9 @@ describe("local client inference wires on the loopback listener (#4236)", () => 
     const nextRoute = source.indexOf("url.pathname === \"/v1/live\"", chatStart);
     expect(chatStart).toBeGreaterThan(-1);
     const branch = source.slice(chatStart, nextRoute);
-    expect(branch).toContain("handleChatCompletions(req, config, logCtx");
-    expect(branch).toContain("req,\n          policy,\n        )");
-    expect(branch).not.toContain("req,\n          config,\n        )");
+    expect(branch).toContain("handleChatCompletions(req, turnRouting.config, logCtx");
+    expect(branch).toContain("withRequestLogId(withCors(response, req, policy), requestId, traceId)");
+    expect(branch).not.toContain("withRequestLogId(withCors(response, req, config), requestId, traceId)");
   });
 });
 

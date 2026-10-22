@@ -558,8 +558,17 @@ export function hasForwardableCodexBearer(headers: Headers, config: OcxConfig): 
  * decision, but it names the admission instead of collapsing it to a boolean.
  */
 export function resolveApiAuth(req: Request, config: RequestPolicyView): DataPlaneAdmission | null {
-  // A loopback bind never reads a token at all, so there is no key to name.
-  if (!isApiAuthRequired(config)) return { kind: "loopback", source: "loopback" };
+  // Loopback remains anonymously admitted, but when a caller voluntarily presents a
+  // configured Bearer, retain that typed identity. Authenticated reverse proxies may
+  // terminate the public listener and forward only to this loopback backend; collapsing
+  // their verified Bearer to anonymous loopback admission loses the typed handoff needed
+  // by downstream credential substitution for Direct routes.
+  if (!isApiAuthRequired(config)) {
+    const bearer = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim();
+    return bearer
+      ? resolveDataPlaneAdmissionSecret(bearer, config, "bearer") ?? { kind: "loopback", source: "loopback" }
+      : { kind: "loopback", source: "loopback" };
+  }
   const dedicated = req.headers.get("x-opencodex-api-key")?.trim();
   if (dedicated) return resolveDataPlaneAdmissionSecret(dedicated, config, "dedicated");
   const bearer = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim();
@@ -585,7 +594,17 @@ export function requireApiAuth(req: Request, config: RequestPolicyView, _kind: "
  * domains can never be confused.
  */
 export function resolveResponsesApiAuth(req: Request, config: RequestPolicyView): DataPlaneAdmission | null {
-  if (!isApiAuthRequired(config)) return { kind: "loopback", source: "loopback" };
+  // Preserve a voluntarily presented configured Bearer as typed admission even on the
+  // loopback backend. This does not make loopback require a token; anonymous requests
+  // retain the existing loopback admission. The typed Bearer is what allows Direct to
+  // substitute the stored main credential instead of mistaking the proxy key for a
+  // caller-owned ChatGPT token or dropping its identity across route selection.
+  if (!isApiAuthRequired(config)) {
+    const bearer = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim();
+    return bearer
+      ? resolveDataPlaneAdmissionSecret(bearer, config, "bearer") ?? { kind: "loopback", source: "loopback" }
+      : { kind: "loopback", source: "loopback" };
+  }
   // The dedicated header still WINS, because it is unambiguous.
   const dedicated = req.headers.get("x-opencodex-api-key")?.trim();
   if (dedicated) return resolveDataPlaneAdmissionSecret(dedicated, config, "dedicated");

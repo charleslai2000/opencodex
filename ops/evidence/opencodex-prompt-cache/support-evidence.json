@@ -1,0 +1,2733 @@
+{
+  "schemaVersion": 1,
+  "generatedUtc": "2026-10-17T18:41:35.366Z",
+  "scope": "offline analysis of locally collected evidence; this script initiated no model requests",
+  "rawFiles": [
+    {
+      "group": "luna",
+      "absolutePath": "<capture-root>/requests-1792258109379.jsonl",
+      "bytes": 8804784,
+      "mode": "400",
+      "sha256": "f6573e4d2189357356b0f027752fd1ffb92d81d6ef049e0707e4c65df343412e",
+      "requestCount": 12,
+      "responseHeaderCount": 12,
+      "usageCount": 12,
+      "captureUtcRange": [
+        "2026-10-17T17:28:39.715Z",
+        "2026-10-17T17:29:21.748Z"
+      ],
+      "requestBodiesContainPrompts": true
+    },
+    {
+      "group": "luna",
+      "absolutePath": "<capture-root>/requests-1792258428577.jsonl",
+      "bytes": 14692871,
+      "mode": "400",
+      "sha256": "18d2b70f47a4cb66a6f73d0fb0597f0e7f917544bf01d9b8fefca4695e83c8fe",
+      "requestCount": 12,
+      "responseHeaderCount": 12,
+      "usageCount": 12,
+      "captureUtcRange": [
+        "2026-10-17T17:33:53.641Z",
+        "2026-10-17T17:34:59.831Z"
+      ],
+      "requestBodiesContainPrompts": true
+    },
+    {
+      "group": "luna",
+      "absolutePath": "<capture-root>/requests-1792258580815.jsonl",
+      "bytes": 12317703,
+      "mode": "400",
+      "sha256": "2337f7d900dd673d8dfc9d4f6ee6530c93cd6882187a4ed42d50adbdf8c5e3a6",
+      "requestCount": 12,
+      "responseHeaderCount": 12,
+      "usageCount": 12,
+      "captureUtcRange": [
+        "2026-10-17T17:36:29.262Z",
+        "2026-10-17T17:37:10.270Z"
+      ],
+      "requestBodiesContainPrompts": true
+    },
+    {
+      "group": "luna",
+      "absolutePath": "<capture-root>/requests-1792258957703.jsonl",
+      "bytes": 5958872,
+      "mode": "400",
+      "sha256": "e13f47b6e4ef3602e6b3f0ca84e76a95f15fc7970d359c145b683d6732f34ac8",
+      "requestCount": 12,
+      "responseHeaderCount": 11,
+      "usageCount": 11,
+      "captureUtcRange": [
+        "2026-10-17T17:42:46.750Z",
+        "2026-10-17T17:43:37.157Z"
+      ],
+      "requestBodiesContainPrompts": true
+    },
+    {
+      "group": "luna",
+      "absolutePath": "<capture-root>/requests-1792260966652.jsonl",
+      "bytes": 37503128,
+      "mode": "400",
+      "sha256": "fc214d1efd15bd32214f033496e4f959f2117bd005c4322b7da6bc9ae70a0746",
+      "requestCount": 60,
+      "responseHeaderCount": 60,
+      "usageCount": 59,
+      "captureUtcRange": [
+        "2026-10-17T18:17:26.788Z",
+        "2026-10-17T18:23:58.932Z"
+      ],
+      "requestBodiesContainPrompts": true
+    },
+    {
+      "group": "luna",
+      "absolutePath": "<capture-root>/requests-1792261959127.jsonl",
+      "bytes": 39250311,
+      "mode": "400",
+      "sha256": "3b5ae9fc5113b55e4382f37224a91f48aff8b435899c02983b0fe5d89970004a",
+      "requestCount": 60,
+      "responseHeaderCount": 60,
+      "usageCount": 60,
+      "captureUtcRange": [
+        "2026-10-17T18:32:43.521Z",
+        "2026-10-17T18:37:24.277Z"
+      ],
+      "requestBodiesContainPrompts": true
+    },
+    {
+      "group": "sol",
+      "absolutePath": "<capture-root>/requests-1792254216896.jsonl",
+      "bytes": 3937850,
+      "mode": "400",
+      "sha256": "116dfa8d3818b22bbe630c03af5be293a62e620161f7327cefd6651436a93c91",
+      "requestCount": 3,
+      "responseHeaderCount": 0,
+      "usageCount": 0,
+      "captureUtcRange": [
+        "2026-10-17T16:26:17.455Z",
+        "2026-10-17T16:26:41.907Z"
+      ],
+      "requestBodiesContainPrompts": true
+    },
+    {
+      "group": "sol",
+      "absolutePath": "<capture-root>/requests-1792254410486.jsonl",
+      "bytes": 16467734,
+      "mode": "400",
+      "sha256": "aea8502a5248061a72ed0aefb92d41e399997407869a8afd93dafbde29599a31",
+      "requestCount": 12,
+      "responseHeaderCount": 0,
+      "usageCount": 0,
+      "captureUtcRange": [
+        "2026-10-17T16:26:53.831Z",
+        "2026-10-17T16:31:18.337Z"
+      ],
+      "requestBodiesContainPrompts": true
+    },
+    {
+      "group": "sol",
+      "absolutePath": "<capture-root>/requests-1792254877656.jsonl",
+      "bytes": 2324461,
+      "mode": "400",
+      "sha256": "a0f1a08e33ece77b91a17eba392c7d0179321932350ff21318ffebb0c1be703b",
+      "requestCount": 3,
+      "responseHeaderCount": 0,
+      "usageCount": 0,
+      "captureUtcRange": [
+        "2026-10-17T16:34:51.025Z",
+        "2026-10-17T16:37:55.449Z"
+      ],
+      "requestBodiesContainPrompts": true
+    },
+    {
+      "group": "sol",
+      "absolutePath": "<capture-root>/requests-1792255847449.jsonl",
+      "bytes": 2808711,
+      "mode": "400",
+      "sha256": "31379715ce5455d3ab38a4ee1577d6d7d819882fc47f3dc90f635d6750b2b557",
+      "requestCount": 12,
+      "responseHeaderCount": 12,
+      "usageCount": 12,
+      "captureUtcRange": [
+        "2026-10-17T16:51:40.226Z",
+        "2026-10-17T16:53:01.142Z"
+      ],
+      "requestBodiesContainPrompts": true
+    },
+    {
+      "group": "sol",
+      "absolutePath": "<capture-root>/requests-1792256408422.jsonl",
+      "bytes": 6442098,
+      "mode": "400",
+      "sha256": "f813e066b625628f0af55e36a320fb7c923d28560ac3fbb00b29c5a35b23462c",
+      "requestCount": 12,
+      "responseHeaderCount": 12,
+      "usageCount": 12,
+      "captureUtcRange": [
+        "2026-10-17T17:00:08.485Z",
+        "2026-10-17T17:02:45.964Z"
+      ],
+      "requestBodiesContainPrompts": true
+    }
+  ],
+  "totals": {
+    "sol": {
+      "requests": 42,
+      "usageRows": 24,
+      "missingUsageRows": 18,
+      "inputTokens": {
+        "tokens": 2037048,
+        "rowsPresent": 24,
+        "rowsMissing": 0
+      },
+      "cachedTokens": {
+        "tokens": 678272,
+        "rowsPresent": 24,
+        "rowsMissing": 0
+      },
+      "uncachedTokens": {
+        "tokens": 1358776,
+        "rowsPresent": 24,
+        "rowsMissing": 0
+      },
+      "cacheWriteTokens": {
+        "tokens": 0,
+        "rowsPresent": 24,
+        "rowsMissing": 0
+      },
+      "usageRawFieldMissing": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "cache_write_tokens": 0
+      },
+      "responseIdsPresent": 24,
+      "requestIdHeaderPresent": 0,
+      "comparisonIdsPresent": 0,
+      "diagnosticsRows": 0
+    },
+    "luna": {
+      "requests": 168,
+      "usageRows": 166,
+      "missingUsageRows": 2,
+      "inputTokens": {
+        "tokens": 29730739,
+        "rowsPresent": 166,
+        "rowsMissing": 0
+      },
+      "cachedTokens": {
+        "tokens": 15063552,
+        "rowsPresent": 166,
+        "rowsMissing": 0
+      },
+      "uncachedTokens": {
+        "tokens": 14667187,
+        "rowsPresent": 166,
+        "rowsMissing": 0
+      },
+      "cacheWriteTokens": {
+        "tokens": 0,
+        "rowsPresent": 166,
+        "rowsMissing": 0
+      },
+      "usageRawFieldMissing": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "cache_write_tokens": 0
+      },
+      "responseIdsPresent": 166,
+      "requestIdHeaderPresent": 0,
+      "comparisonIdsPresent": 106,
+      "diagnosticsRows": 104
+    }
+  },
+  "solCacheEvents": [
+    {
+      "label": "Sol W-C-W 1",
+      "model": "gpt-6.1-sol",
+      "coldRequestUtc": "2026-10-17T16:51:57.460Z",
+      "expectedCachedTokensReference": 12800,
+      "actualAdditionalUncachedTokensVsReference": 7424,
+      "recoveryUtc": "2026-10-17T16:52:02.480Z",
+      "recoveryConfirmed": true,
+      "hasTwoPreColdRows": true,
+      "hasTwoPostRecoveryRows": false,
+      "sequence": [
+        {
+          "sequenceIndex": 2,
+          "role": "neighbor",
+          "utc": "2026-10-17T16:51:44.714Z",
+          "logicalRequestId": "lr-mvcmw2pn-d",
+          "responseId": "resp_REDACTED_0022",
+          "inputTokens": 47482,
+          "outputTokens": 32,
+          "cachedTokens": 12800,
+          "uncachedTokens": 34682,
+          "cacheWriteTokens": 0,
+          "rawUsageFieldPresence": {
+            "input_tokens": true,
+            "output_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "diagnostics": null,
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium",
+            "summary": "auto"
+          },
+          "serviceTier": null,
+          "toolsCount": 25,
+          "inputItems": 49,
+          "inputSha256": "ac0119d5ec5529f26e90b090c5bdcddeccaaa92a1ef1e84e821053a32dde629b",
+          "appendOnlyFromPreviousRawRequest": null,
+          "nonInputBodyFieldsEqualToPrevious": null,
+          "comparisonResponseId": null
+        },
+        {
+          "sequenceIndex": 3,
+          "role": "neighbor",
+          "utc": "2026-10-17T16:51:50.741Z",
+          "logicalRequestId": "lr-mvcmw7d7-f",
+          "responseId": "resp_REDACTED_0023",
+          "inputTokens": 47802,
+          "outputTokens": 99,
+          "cachedTokens": 12800,
+          "uncachedTokens": 35002,
+          "cacheWriteTokens": 0,
+          "rawUsageFieldPresence": {
+            "input_tokens": true,
+            "output_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "diagnostics": null,
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium",
+            "summary": "auto"
+          },
+          "serviceTier": null,
+          "toolsCount": 25,
+          "inputItems": 51,
+          "inputSha256": "7322d012b9190e0a364e7d83a58d37a354d414df40ea611d8ebd0beb2fb98841",
+          "appendOnlyFromPreviousRawRequest": true,
+          "nonInputBodyFieldsEqualToPrevious": true,
+          "comparisonResponseId": null
+        },
+        {
+          "sequenceIndex": 4,
+          "role": "cold",
+          "utc": "2026-10-17T16:51:57.460Z",
+          "logicalRequestId": "lr-mvcmwcjs-h",
+          "responseId": "resp_REDACTED_0024",
+          "inputTokens": 47927,
+          "outputTokens": 43,
+          "cachedTokens": 5376,
+          "uncachedTokens": 42551,
+          "cacheWriteTokens": 0,
+          "rawUsageFieldPresence": {
+            "input_tokens": true,
+            "output_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "diagnostics": null,
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium",
+            "summary": "auto"
+          },
+          "serviceTier": null,
+          "toolsCount": 25,
+          "inputItems": 53,
+          "inputSha256": "25d8839005a29294bce3a05899e405e6e725bc31ff4926e9af30152d59dcbb94",
+          "appendOnlyFromPreviousRawRequest": true,
+          "nonInputBodyFieldsEqualToPrevious": true,
+          "comparisonResponseId": null
+        },
+        {
+          "sequenceIndex": 5,
+          "role": "neighbor",
+          "utc": "2026-10-17T16:52:02.480Z",
+          "logicalRequestId": "lr-mvcmwgf9-i",
+          "responseId": "resp_REDACTED_0025",
+          "inputTokens": 49650,
+          "outputTokens": 175,
+          "cachedTokens": 12800,
+          "uncachedTokens": 36850,
+          "cacheWriteTokens": 0,
+          "rawUsageFieldPresence": {
+            "input_tokens": true,
+            "output_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "diagnostics": null,
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium",
+            "summary": "auto"
+          },
+          "serviceTier": null,
+          "toolsCount": 25,
+          "inputItems": 55,
+          "inputSha256": "3294f58dded219d32649d274839475c96119b722ca49d979ac2254b15c58f57e",
+          "appendOnlyFromPreviousRawRequest": true,
+          "nonInputBodyFieldsEqualToPrevious": true,
+          "comparisonResponseId": null
+        },
+        {
+          "sequenceIndex": 6,
+          "role": "neighbor",
+          "utc": "2026-10-17T16:52:13.911Z",
+          "logicalRequestId": "lr-mvcmwp8i-j",
+          "responseId": "resp_REDACTED_0026",
+          "inputTokens": 50127,
+          "outputTokens": 28,
+          "cachedTokens": 12800,
+          "uncachedTokens": 37327,
+          "cacheWriteTokens": 0,
+          "rawUsageFieldPresence": {
+            "input_tokens": true,
+            "output_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "diagnostics": null,
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium",
+            "summary": "auto"
+          },
+          "serviceTier": null,
+          "toolsCount": 25,
+          "inputItems": 59,
+          "inputSha256": "51c17098c4dfac35bfce9dd0f90fd193f71c459a5cfcdc0acc06743520d40a16",
+          "appendOnlyFromPreviousRawRequest": true,
+          "nonInputBodyFieldsEqualToPrevious": true,
+          "comparisonResponseId": null
+        }
+      ],
+      "classification": "confirmed_warm_cold_warm"
+    },
+    {
+      "label": "Sol W-C-W 2",
+      "model": "gpt-6.1-sol",
+      "coldRequestUtc": "2026-10-17T16:52:21.166Z",
+      "expectedCachedTokensReference": 12800,
+      "actualAdditionalUncachedTokensVsReference": 12800,
+      "recoveryUtc": "2026-10-17T16:52:26.526Z",
+      "recoveryConfirmed": true,
+      "hasTwoPreColdRows": true,
+      "hasTwoPostRecoveryRows": false,
+      "sequence": [
+        {
+          "sequenceIndex": 5,
+          "role": "neighbor",
+          "utc": "2026-10-17T16:52:02.480Z",
+          "logicalRequestId": "lr-mvcmwgf9-i",
+          "responseId": "resp_REDACTED_0025",
+          "inputTokens": 49650,
+          "outputTokens": 175,
+          "cachedTokens": 12800,
+          "uncachedTokens": 36850,
+          "cacheWriteTokens": 0,
+          "rawUsageFieldPresence": {
+            "input_tokens": true,
+            "output_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "diagnostics": null,
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium",
+            "summary": "auto"
+          },
+          "serviceTier": null,
+          "toolsCount": 25,
+          "inputItems": 55,
+          "inputSha256": "3294f58dded219d32649d274839475c96119b722ca49d979ac2254b15c58f57e",
+          "appendOnlyFromPreviousRawRequest": null,
+          "nonInputBodyFieldsEqualToPrevious": null,
+          "comparisonResponseId": null
+        },
+        {
+          "sequenceIndex": 6,
+          "role": "neighbor",
+          "utc": "2026-10-17T16:52:13.911Z",
+          "logicalRequestId": "lr-mvcmwp8i-j",
+          "responseId": "resp_REDACTED_0026",
+          "inputTokens": 50127,
+          "outputTokens": 28,
+          "cachedTokens": 12800,
+          "uncachedTokens": 37327,
+          "cacheWriteTokens": 0,
+          "rawUsageFieldPresence": {
+            "input_tokens": true,
+            "output_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "diagnostics": null,
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium",
+            "summary": "auto"
+          },
+          "serviceTier": null,
+          "toolsCount": 25,
+          "inputItems": 59,
+          "inputSha256": "51c17098c4dfac35bfce9dd0f90fd193f71c459a5cfcdc0acc06743520d40a16",
+          "appendOnlyFromPreviousRawRequest": true,
+          "nonInputBodyFieldsEqualToPrevious": true,
+          "comparisonResponseId": null
+        },
+        {
+          "sequenceIndex": 7,
+          "role": "cold",
+          "utc": "2026-10-17T16:52:21.166Z",
+          "logicalRequestId": "lr-mvcmwuu9-k",
+          "responseId": "resp_REDACTED_0027",
+          "inputTokens": 51237,
+          "outputTokens": 29,
+          "cachedTokens": 0,
+          "uncachedTokens": 51237,
+          "cacheWriteTokens": 0,
+          "rawUsageFieldPresence": {
+            "input_tokens": true,
+            "output_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "diagnostics": null,
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium",
+            "summary": "auto"
+          },
+          "serviceTier": null,
+          "toolsCount": 25,
+          "inputItems": 61,
+          "inputSha256": "83b54dde1fe31d5630e47c2a7adad049847a6956c60487e88fd7ef0dcbbc52e1",
+          "appendOnlyFromPreviousRawRequest": true,
+          "nonInputBodyFieldsEqualToPrevious": true,
+          "comparisonResponseId": null
+        },
+        {
+          "sequenceIndex": 8,
+          "role": "neighbor",
+          "utc": "2026-10-17T16:52:26.526Z",
+          "logicalRequestId": "lr-mvcmwyz6-l",
+          "responseId": "resp_REDACTED_0028",
+          "inputTokens": 52594,
+          "outputTokens": 145,
+          "cachedTokens": 12800,
+          "uncachedTokens": 39794,
+          "cacheWriteTokens": 0,
+          "rawUsageFieldPresence": {
+            "input_tokens": true,
+            "output_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "diagnostics": null,
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium",
+            "summary": "auto"
+          },
+          "serviceTier": null,
+          "toolsCount": 25,
+          "inputItems": 63,
+          "inputSha256": "cbb64394f8930587a7db6f1940f47f27266ac2836e3f7a06da4717c1bddb3fc2",
+          "appendOnlyFromPreviousRawRequest": true,
+          "nonInputBodyFieldsEqualToPrevious": true,
+          "comparisonResponseId": null
+        },
+        {
+          "sequenceIndex": 9,
+          "role": "neighbor",
+          "utc": "2026-10-17T16:52:33.081Z",
+          "logicalRequestId": "lr-mvcmx417-m",
+          "responseId": "resp_REDACTED_0029",
+          "inputTokens": 61722,
+          "outputTokens": 44,
+          "cachedTokens": 12800,
+          "uncachedTokens": 48922,
+          "cacheWriteTokens": 0,
+          "rawUsageFieldPresence": {
+            "input_tokens": true,
+            "output_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "diagnostics": null,
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium",
+            "summary": "auto"
+          },
+          "serviceTier": null,
+          "toolsCount": 25,
+          "inputItems": 70,
+          "inputSha256": "3b9c90dddd4dba7199098de0eda33c228527ad9c70372a22817b95299eaaffd1",
+          "appendOnlyFromPreviousRawRequest": true,
+          "nonInputBodyFieldsEqualToPrevious": true,
+          "comparisonResponseId": null
+        }
+      ],
+      "classification": "confirmed_warm_cold_warm"
+    },
+    {
+      "label": "Sol W-C-C-W 3",
+      "model": "gpt-6.1-sol",
+      "coldRequestUtc": "2026-10-17T17:00:43.390Z",
+      "expectedCachedTokensReference": 103680,
+      "actualAdditionalUncachedTokensVsReference": 90880,
+      "recoveryUtc": "2026-10-17T17:01:02.613Z",
+      "recoveryConfirmed": true,
+      "hasTwoPreColdRows": true,
+      "hasTwoPostRecoveryRows": false,
+      "sequence": [
+        {
+          "sequenceIndex": 2,
+          "role": "neighbor",
+          "utc": "2026-10-17T17:00:14.483Z",
+          "logicalRequestId": "lr-mvcn701n-4",
+          "responseId": "resp_REDACTED_0030",
+          "inputTokens": 109944,
+          "outputTokens": 376,
+          "cachedTokens": 85248,
+          "uncachedTokens": 24696,
+          "cacheWriteTokens": 0,
+          "rawUsageFieldPresence": {
+            "input_tokens": true,
+            "output_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "diagnostics": null,
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium",
+            "summary": "auto"
+          },
+          "serviceTier": null,
+          "toolsCount": 25,
+          "inputItems": 189,
+          "inputSha256": "2f206c402a738a2f112a9fb4e9d5578d661cf255aeb907cc53db3a4772cce11b",
+          "appendOnlyFromPreviousRawRequest": null,
+          "nonInputBodyFieldsEqualToPrevious": null,
+          "comparisonResponseId": null
+        },
+        {
+          "sequenceIndex": 3,
+          "role": "neighbor",
+          "utc": "2026-10-17T17:00:27.144Z",
+          "logicalRequestId": "lr-mvcn79ta-7",
+          "responseId": "resp_REDACTED_0031",
+          "inputTokens": 112785,
+          "outputTokens": 619,
+          "cachedTokens": 103680,
+          "uncachedTokens": 9105,
+          "cacheWriteTokens": 0,
+          "rawUsageFieldPresence": {
+            "input_tokens": true,
+            "output_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "diagnostics": null,
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium",
+            "summary": "auto"
+          },
+          "serviceTier": null,
+          "toolsCount": 25,
+          "inputItems": 200,
+          "inputSha256": "f129f67714003648af2fa14c7b403fc798b2b98f575f8f1e6f6e4b2e6908f977",
+          "appendOnlyFromPreviousRawRequest": true,
+          "nonInputBodyFieldsEqualToPrevious": true,
+          "comparisonResponseId": null
+        },
+        {
+          "sequenceIndex": 4,
+          "role": "cold",
+          "utc": "2026-10-17T17:00:43.390Z",
+          "logicalRequestId": "lr-mvcn7mcj-b",
+          "responseId": "resp_REDACTED_0032",
+          "inputTokens": 113366,
+          "outputTokens": 47,
+          "cachedTokens": 12800,
+          "uncachedTokens": 100566,
+          "cacheWriteTokens": 0,
+          "rawUsageFieldPresence": {
+            "input_tokens": true,
+            "output_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "diagnostics": null,
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium",
+            "summary": "auto"
+          },
+          "serviceTier": null,
+          "toolsCount": 25,
+          "inputItems": 202,
+          "inputSha256": "f404c8afa17a03bd86eb7503059f44c226db2e8646e5d9dcea74639b44af2471",
+          "appendOnlyFromPreviousRawRequest": true,
+          "nonInputBodyFieldsEqualToPrevious": true,
+          "comparisonResponseId": null
+        },
+        {
+          "sequenceIndex": 5,
+          "role": "neighbor",
+          "utc": "2026-10-17T17:00:51.613Z",
+          "logicalRequestId": "lr-mvcn7sp4-d",
+          "responseId": "resp_REDACTED_0033",
+          "inputTokens": 113862,
+          "outputTokens": 291,
+          "cachedTokens": 12800,
+          "uncachedTokens": 101062,
+          "cacheWriteTokens": 0,
+          "rawUsageFieldPresence": {
+            "input_tokens": true,
+            "output_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "diagnostics": null,
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium",
+            "summary": "auto"
+          },
+          "serviceTier": null,
+          "toolsCount": 25,
+          "inputItems": 205,
+          "inputSha256": "68d0caf37c1f2d8f64925c370fba9d26f6880080f9377698669edb424528cb17",
+          "appendOnlyFromPreviousRawRequest": true,
+          "nonInputBodyFieldsEqualToPrevious": true,
+          "comparisonResponseId": null
+        },
+        {
+          "sequenceIndex": 6,
+          "role": "neighbor",
+          "utc": "2026-10-17T17:01:02.613Z",
+          "logicalRequestId": "lr-mvcn816l-h",
+          "responseId": "resp_REDACTED_0034",
+          "inputTokens": 114179,
+          "outputTokens": 463,
+          "cachedTokens": 102272,
+          "uncachedTokens": 11907,
+          "cacheWriteTokens": 0,
+          "rawUsageFieldPresence": {
+            "input_tokens": true,
+            "output_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "diagnostics": null,
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium",
+            "summary": "auto"
+          },
+          "serviceTier": null,
+          "toolsCount": 25,
+          "inputItems": 208,
+          "inputSha256": "46addd15e048873fbead0cfcdc1c56273ca9fc55e252cf892af436bbc1bbe720",
+          "appendOnlyFromPreviousRawRequest": true,
+          "nonInputBodyFieldsEqualToPrevious": true,
+          "comparisonResponseId": null
+        }
+      ],
+      "classification": "confirmed_warm_cold_warm"
+    },
+    {
+      "label": "Sol W-C-C-W 4",
+      "model": "gpt-6.1-sol",
+      "coldRequestUtc": "2026-10-17T17:01:34.988Z",
+      "expectedCachedTokensReference": 89216,
+      "actualAdditionalUncachedTokensVsReference": 76416,
+      "recoveryUtc": "2026-10-17T17:01:57.706Z",
+      "recoveryConfirmed": true,
+      "hasTwoPreColdRows": true,
+      "hasTwoPostRecoveryRows": false,
+      "sequence": [
+        {
+          "sequenceIndex": 6,
+          "role": "neighbor",
+          "utc": "2026-10-17T17:01:02.613Z",
+          "logicalRequestId": "lr-mvcn816l-h",
+          "responseId": "resp_REDACTED_0034",
+          "inputTokens": 114179,
+          "outputTokens": 463,
+          "cachedTokens": 102272,
+          "uncachedTokens": 11907,
+          "cacheWriteTokens": 0,
+          "rawUsageFieldPresence": {
+            "input_tokens": true,
+            "output_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "diagnostics": null,
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium",
+            "summary": "auto"
+          },
+          "serviceTier": null,
+          "toolsCount": 25,
+          "inputItems": 208,
+          "inputSha256": "46addd15e048873fbead0cfcdc1c56273ca9fc55e252cf892af436bbc1bbe720",
+          "appendOnlyFromPreviousRawRequest": null,
+          "nonInputBodyFieldsEqualToPrevious": null,
+          "comparisonResponseId": null
+        },
+        {
+          "sequenceIndex": 7,
+          "role": "neighbor",
+          "utc": "2026-10-17T17:01:22.167Z",
+          "logicalRequestId": "lr-mvcn8g9u-l",
+          "responseId": "resp_REDACTED_0035",
+          "inputTokens": 114642,
+          "outputTokens": 253,
+          "cachedTokens": 89216,
+          "uncachedTokens": 25426,
+          "cacheWriteTokens": 0,
+          "rawUsageFieldPresence": {
+            "input_tokens": true,
+            "output_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "diagnostics": null,
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium",
+            "summary": "auto"
+          },
+          "serviceTier": null,
+          "toolsCount": 25,
+          "inputItems": 210,
+          "inputSha256": "979d3a3ce02d333d686346c1f690ad9bbbef573d0d975bc78f046c732c191883",
+          "appendOnlyFromPreviousRawRequest": true,
+          "nonInputBodyFieldsEqualToPrevious": true,
+          "comparisonResponseId": null
+        },
+        {
+          "sequenceIndex": 8,
+          "role": "cold",
+          "utc": "2026-10-17T17:01:34.988Z",
+          "logicalRequestId": "lr-mvcn8q5y-n",
+          "responseId": "resp_REDACTED_0036",
+          "inputTokens": 116359,
+          "outputTokens": 274,
+          "cachedTokens": 12800,
+          "uncachedTokens": 103559,
+          "cacheWriteTokens": 0,
+          "rawUsageFieldPresence": {
+            "input_tokens": true,
+            "output_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "diagnostics": null,
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium",
+            "summary": "auto"
+          },
+          "serviceTier": null,
+          "toolsCount": 25,
+          "inputItems": 212,
+          "inputSha256": "87bb9c7623255dcdb5f02c652d8ff3a46a65f84d22bde9a6dd624505d3a8f12a",
+          "appendOnlyFromPreviousRawRequest": true,
+          "nonInputBodyFieldsEqualToPrevious": true,
+          "comparisonResponseId": null
+        },
+        {
+          "sequenceIndex": 9,
+          "role": "neighbor",
+          "utc": "2026-10-17T17:01:46.116Z",
+          "logicalRequestId": "lr-mvcn8yr0-q",
+          "responseId": "resp_REDACTED_0037",
+          "inputTokens": 117468,
+          "outputTokens": 282,
+          "cachedTokens": 12800,
+          "uncachedTokens": 104668,
+          "cacheWriteTokens": 0,
+          "rawUsageFieldPresence": {
+            "input_tokens": true,
+            "output_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "diagnostics": null,
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium",
+            "summary": "auto"
+          },
+          "serviceTier": null,
+          "toolsCount": 25,
+          "inputItems": 214,
+          "inputSha256": "c6f034d3dc311a25c9a4d77651a720b5c2194f2fe496bc0fa13d16b8f9914fef",
+          "appendOnlyFromPreviousRawRequest": true,
+          "nonInputBodyFieldsEqualToPrevious": true,
+          "comparisonResponseId": null
+        },
+        {
+          "sequenceIndex": 10,
+          "role": "neighbor",
+          "utc": "2026-10-17T17:01:57.706Z",
+          "logicalRequestId": "lr-mvcn97or-t",
+          "responseId": "resp_REDACTED_0038",
+          "inputTokens": 118115,
+          "outputTokens": 157,
+          "cachedTokens": 82304,
+          "uncachedTokens": 35811,
+          "cacheWriteTokens": 0,
+          "rawUsageFieldPresence": {
+            "input_tokens": true,
+            "output_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "diagnostics": null,
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium",
+            "summary": "auto"
+          },
+          "serviceTier": null,
+          "toolsCount": 25,
+          "inputItems": 216,
+          "inputSha256": "7c77dc12d568d5826bc4d52c813de77362858619beaadd9ed5f05bdd85ca5b31",
+          "appendOnlyFromPreviousRawRequest": true,
+          "nonInputBodyFieldsEqualToPrevious": true,
+          "comparisonResponseId": null
+        }
+      ],
+      "classification": "confirmed_warm_cold_warm"
+    },
+    {
+      "label": "Sol partial recovery at capture end",
+      "model": "gpt-6.1-sol",
+      "coldRequestUtc": "2026-10-17T17:02:09.919Z",
+      "expectedCachedTokensReference": 82304,
+      "actualAdditionalUncachedTokensVsReference": 76928,
+      "recoveryUtc": null,
+      "recoveryConfirmed": false,
+      "hasTwoPreColdRows": true,
+      "hasTwoPostRecoveryRows": false,
+      "sequence": [
+        {
+          "sequenceIndex": 9,
+          "role": "neighbor",
+          "utc": "2026-10-17T17:01:46.116Z",
+          "logicalRequestId": "lr-mvcn8yr0-q",
+          "responseId": "resp_REDACTED_0037",
+          "inputTokens": 117468,
+          "outputTokens": 282,
+          "cachedTokens": 12800,
+          "uncachedTokens": 104668,
+          "cacheWriteTokens": 0,
+          "rawUsageFieldPresence": {
+            "input_tokens": true,
+            "output_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "diagnostics": null,
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium",
+            "summary": "auto"
+          },
+          "serviceTier": null,
+          "toolsCount": 25,
+          "inputItems": 214,
+          "inputSha256": "c6f034d3dc311a25c9a4d77651a720b5c2194f2fe496bc0fa13d16b8f9914fef",
+          "appendOnlyFromPreviousRawRequest": null,
+          "nonInputBodyFieldsEqualToPrevious": null,
+          "comparisonResponseId": null
+        },
+        {
+          "sequenceIndex": 10,
+          "role": "neighbor",
+          "utc": "2026-10-17T17:01:57.706Z",
+          "logicalRequestId": "lr-mvcn97or-t",
+          "responseId": "resp_REDACTED_0038",
+          "inputTokens": 118115,
+          "outputTokens": 157,
+          "cachedTokens": 82304,
+          "uncachedTokens": 35811,
+          "cacheWriteTokens": 0,
+          "rawUsageFieldPresence": {
+            "input_tokens": true,
+            "output_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "diagnostics": null,
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium",
+            "summary": "auto"
+          },
+          "serviceTier": null,
+          "toolsCount": 25,
+          "inputItems": 216,
+          "inputSha256": "7c77dc12d568d5826bc4d52c813de77362858619beaadd9ed5f05bdd85ca5b31",
+          "appendOnlyFromPreviousRawRequest": true,
+          "nonInputBodyFieldsEqualToPrevious": true,
+          "comparisonResponseId": null
+        },
+        {
+          "sequenceIndex": 11,
+          "role": "cold",
+          "utc": "2026-10-17T17:02:09.919Z",
+          "logicalRequestId": "lr-mvcn9h44-u",
+          "responseId": "resp_REDACTED_0039",
+          "inputTokens": 118915,
+          "outputTokens": 2229,
+          "cachedTokens": 5376,
+          "uncachedTokens": 113539,
+          "cacheWriteTokens": 0,
+          "rawUsageFieldPresence": {
+            "input_tokens": true,
+            "output_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "diagnostics": null,
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium",
+            "summary": "auto"
+          },
+          "serviceTier": null,
+          "toolsCount": 25,
+          "inputItems": 219,
+          "inputSha256": "66bd0ed39d6ed84028d730e3481cbc9d3bcce8e68c7406d417ba47c52dbb0be0",
+          "appendOnlyFromPreviousRawRequest": true,
+          "nonInputBodyFieldsEqualToPrevious": true,
+          "comparisonResponseId": null
+        },
+        {
+          "sequenceIndex": 12,
+          "role": "neighbor",
+          "utc": "2026-10-17T17:02:45.964Z",
+          "logicalRequestId": "lr-mvcna8xf-z",
+          "responseId": "resp_REDACTED_0040",
+          "inputTokens": 121097,
+          "outputTokens": 207,
+          "cachedTokens": 12800,
+          "uncachedTokens": 108297,
+          "cacheWriteTokens": 0,
+          "rawUsageFieldPresence": {
+            "input_tokens": true,
+            "output_tokens": true,
+            "cached_tokens": true,
+            "cache_write_tokens": true
+          },
+          "diagnostics": null,
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium",
+            "summary": "auto"
+          },
+          "serviceTier": null,
+          "toolsCount": 25,
+          "inputItems": 222,
+          "inputSha256": "24af459c9211a456f8101cda0227e29d8a73ef8198067dd35e7db72b1e908744",
+          "appendOnlyFromPreviousRawRequest": true,
+          "nonInputBodyFieldsEqualToPrevious": true,
+          "comparisonResponseId": null
+        }
+      ],
+      "classification": "partial_drop_recovery_not_fully_observed"
+    }
+  ],
+  "lunaFinalWindow": {
+    "file": "<capture-root>/requests-1792258957703.jsonl",
+    "requests": [
+      {
+        "file": "<capture-root>/requests-1792258957703.jsonl",
+        "index": 1,
+        "utc": "2026-10-17T17:42:46.750Z",
+        "logicalRequestId": "lr-mvcoppae-1",
+        "cacheEventChainId": null,
+        "conversationKeyHash": null,
+        "model": "gpt-6-luna",
+        "endpoint": "/backend-api/codex/responses",
+        "comparisonDecision": "no_prior_response",
+        "comparisonResponseId": null,
+        "physicalAttempt": null,
+        "compactionRequest": null,
+        "comparisonBodyMatchesField": false,
+        "comparisonReferencesEarlierCapturedResponse": null,
+        "inputTokens": 267361,
+        "outputTokens": 118,
+        "cachedTokens": 172032,
+        "uncachedTokens": 95329,
+        "cacheWriteTokens": 0,
+        "rawUsageFieldPresence": {
+          "input_tokens": true,
+          "output_tokens": true,
+          "cached_tokens": true,
+          "cache_write_tokens": true
+        },
+        "responseId": "resp_REDACTED_0061",
+        "responseModel": "gpt-6-luna",
+        "xRequestId": null,
+        "responseTransport": null,
+        "responseStatus": 200,
+        "promptCacheDiagnostics": null,
+        "bodySha256": "b8826024ea5e31a8e2e157cd70cd6d3098eacaa9720a8c4db48ddbb48804dbd1",
+        "inputItems": 556,
+        "inputSha256": "c9d08d567831101f3ea0c72b113f6e268ea4fa22c5ffee143e7ac4702664af8f",
+        "stableFieldsSha256": "1bcd8d9a39544aa9d112c1100fe8842d5545e640a8832d3c922ebbdb19caddb0",
+        "reasoning": {
+          "effort": "medium",
+          "summary": "auto"
+        },
+        "serviceTier": null,
+        "verbosity": null,
+        "textFormat": null,
+        "toolsCount": 14
+      },
+      {
+        "file": "<capture-root>/requests-1792258957703.jsonl",
+        "index": 2,
+        "utc": "2026-10-17T17:42:50.018Z",
+        "logicalRequestId": "lr-mvcoprwy-2",
+        "cacheEventChainId": null,
+        "conversationKeyHash": null,
+        "model": "gpt-6-luna",
+        "endpoint": "/backend-api/codex/responses",
+        "comparisonDecision": "no_prior_response",
+        "comparisonResponseId": null,
+        "physicalAttempt": null,
+        "compactionRequest": null,
+        "comparisonBodyMatchesField": false,
+        "comparisonReferencesEarlierCapturedResponse": null,
+        "inputTokens": 22376,
+        "outputTokens": 71,
+        "cachedTokens": 0,
+        "uncachedTokens": 22376,
+        "cacheWriteTokens": 0,
+        "rawUsageFieldPresence": {
+          "input_tokens": true,
+          "output_tokens": true,
+          "cached_tokens": true,
+          "cache_write_tokens": true
+        },
+        "responseId": "resp_REDACTED_0062",
+        "responseModel": "gpt-6-luna",
+        "xRequestId": null,
+        "responseTransport": null,
+        "responseStatus": 200,
+        "promptCacheDiagnostics": null,
+        "bodySha256": "f3770810ee22856700d8f4ca6d7831ba2064cd4c083913a65e8144ca36266e66",
+        "inputItems": 23,
+        "inputSha256": "21f6af2303c8fc3cfab048728fb9cf45a5d6362a0b69a85d08cb1160aeaa3bc8",
+        "stableFieldsSha256": "0c6b0f99bfb12ac70a9981f56111d1b8e390d4a516cbec6ea78270829920f090",
+        "reasoning": {
+          "effort": "medium",
+          "summary": "auto"
+        },
+        "serviceTier": null,
+        "verbosity": null,
+        "textFormat": null,
+        "toolsCount": 25
+      },
+      {
+        "file": "<capture-root>/requests-1792258957703.jsonl",
+        "index": 3,
+        "utc": "2026-10-17T17:42:52.897Z",
+        "logicalRequestId": "lr-mvcopu4q-3",
+        "cacheEventChainId": null,
+        "conversationKeyHash": null,
+        "model": "gpt-6-luna",
+        "endpoint": "/backend-api/codex/responses",
+        "comparisonDecision": "continued_prefix_match",
+        "comparisonResponseId": "resp_REDACTED_0062",
+        "physicalAttempt": null,
+        "compactionRequest": null,
+        "comparisonBodyMatchesField": true,
+        "comparisonReferencesEarlierCapturedResponse": true,
+        "inputTokens": 22947,
+        "outputTokens": 165,
+        "cachedTokens": 0,
+        "uncachedTokens": 22947,
+        "cacheWriteTokens": 0,
+        "rawUsageFieldPresence": {
+          "input_tokens": true,
+          "output_tokens": true,
+          "cached_tokens": true,
+          "cache_write_tokens": true
+        },
+        "responseId": "resp_REDACTED_0063",
+        "responseModel": "gpt-6-luna",
+        "xRequestId": null,
+        "responseTransport": null,
+        "responseStatus": 200,
+        "promptCacheDiagnostics": {
+          "type": "unavailable"
+        },
+        "bodySha256": "20c4a1f23d9ee91154baa0f8f25b4af6a2843aaeac1f5937a6cc8416ec2e609e",
+        "inputItems": 25,
+        "inputSha256": "33269996d5f707a8a1b7075721e9b8b7ce588269fdab7a349c54c728e2c1ae4f",
+        "stableFieldsSha256": "0c6b0f99bfb12ac70a9981f56111d1b8e390d4a516cbec6ea78270829920f090",
+        "reasoning": {
+          "effort": "medium",
+          "summary": "auto"
+        },
+        "serviceTier": null,
+        "verbosity": null,
+        "textFormat": null,
+        "toolsCount": 25
+      },
+      {
+        "file": "<capture-root>/requests-1792258957703.jsonl",
+        "index": 4,
+        "utc": "2026-10-17T17:42:53.351Z",
+        "logicalRequestId": "lr-mvcopufr-4",
+        "cacheEventChainId": null,
+        "conversationKeyHash": null,
+        "model": "gpt-6-luna",
+        "endpoint": "/backend-api/codex/responses",
+        "comparisonDecision": "no_matching_prior_prefix",
+        "comparisonResponseId": null,
+        "physicalAttempt": null,
+        "compactionRequest": null,
+        "comparisonBodyMatchesField": false,
+        "comparisonReferencesEarlierCapturedResponse": null,
+        "inputTokens": 269565,
+        "outputTokens": 985,
+        "cachedTokens": 223360,
+        "uncachedTokens": 46205,
+        "cacheWriteTokens": 0,
+        "rawUsageFieldPresence": {
+          "input_tokens": true,
+          "output_tokens": true,
+          "cached_tokens": true,
+          "cache_write_tokens": true
+        },
+        "responseId": "resp_REDACTED_0064",
+        "responseModel": "gpt-6-luna",
+        "xRequestId": null,
+        "responseTransport": null,
+        "responseStatus": 200,
+        "promptCacheDiagnostics": null,
+        "bodySha256": "1478e1366c088e8eba513a846628cf348291bbf79262c8b1d4b342ff20a79cbd",
+        "inputItems": 558,
+        "inputSha256": "48b3e28ac58e5d44b2b62d55181d17dd88856b5f938ee9618788ff460c1a53a4",
+        "stableFieldsSha256": "1bcd8d9a39544aa9d112c1100fe8842d5545e640a8832d3c922ebbdb19caddb0",
+        "reasoning": {
+          "effort": "medium",
+          "summary": "auto"
+        },
+        "serviceTier": null,
+        "verbosity": null,
+        "textFormat": null,
+        "toolsCount": 14
+      },
+      {
+        "file": "<capture-root>/requests-1792258957703.jsonl",
+        "index": 5,
+        "utc": "2026-10-17T17:42:57.242Z",
+        "logicalRequestId": "lr-mvcopxho-5",
+        "cacheEventChainId": null,
+        "conversationKeyHash": null,
+        "model": "gpt-6-luna",
+        "endpoint": "/backend-api/codex/responses",
+        "comparisonDecision": "continued_prefix_match",
+        "comparisonResponseId": "resp_REDACTED_0063",
+        "physicalAttempt": null,
+        "compactionRequest": null,
+        "comparisonBodyMatchesField": true,
+        "comparisonReferencesEarlierCapturedResponse": true,
+        "inputTokens": 23371,
+        "outputTokens": 281,
+        "cachedTokens": 0,
+        "uncachedTokens": 23371,
+        "cacheWriteTokens": 0,
+        "rawUsageFieldPresence": {
+          "input_tokens": true,
+          "output_tokens": true,
+          "cached_tokens": true,
+          "cache_write_tokens": true
+        },
+        "responseId": "resp_REDACTED_0065",
+        "responseModel": "gpt-6-luna",
+        "xRequestId": null,
+        "responseTransport": null,
+        "responseStatus": 200,
+        "promptCacheDiagnostics": {
+          "type": "unavailable"
+        },
+        "bodySha256": "5feecb1035bce338308a22c1a6080073209223b72ee6f7fcfd7b6a6758266706",
+        "inputItems": 27,
+        "inputSha256": "927f52ac0123aa9b12b90cca8e746bfb9dc205aec669453cb6f0cd344be1e79b",
+        "stableFieldsSha256": "0c6b0f99bfb12ac70a9981f56111d1b8e390d4a516cbec6ea78270829920f090",
+        "reasoning": {
+          "effort": "medium",
+          "summary": "auto"
+        },
+        "serviceTier": null,
+        "verbosity": null,
+        "textFormat": null,
+        "toolsCount": 25
+      },
+      {
+        "file": "<capture-root>/requests-1792258957703.jsonl",
+        "index": 6,
+        "utc": "2026-10-17T17:43:02.377Z",
+        "logicalRequestId": "lr-mvcoq1gc-6",
+        "cacheEventChainId": null,
+        "conversationKeyHash": null,
+        "model": "gpt-6-luna",
+        "endpoint": "/backend-api/codex/responses",
+        "comparisonDecision": "continued_prefix_match",
+        "comparisonResponseId": "resp_REDACTED_0065",
+        "physicalAttempt": null,
+        "compactionRequest": null,
+        "comparisonBodyMatchesField": true,
+        "comparisonReferencesEarlierCapturedResponse": true,
+        "inputTokens": 24665,
+        "outputTokens": 38,
+        "cachedTokens": 9856,
+        "uncachedTokens": 14809,
+        "cacheWriteTokens": 0,
+        "rawUsageFieldPresence": {
+          "input_tokens": true,
+          "output_tokens": true,
+          "cached_tokens": true,
+          "cache_write_tokens": true
+        },
+        "responseId": "resp_REDACTED_0066",
+        "responseModel": "gpt-6-luna",
+        "xRequestId": null,
+        "responseTransport": null,
+        "responseStatus": 200,
+        "promptCacheDiagnostics": {
+          "type": "unavailable"
+        },
+        "bodySha256": "90759de7784872332cf9100db1ee0dab7e4ed140dc5a731377d60a8032afd2ad",
+        "inputItems": 30,
+        "inputSha256": "9280f2acee3e4f3b5899914356a5c57fb04c69a6996cdd8e838ac2dc9ca9793d",
+        "stableFieldsSha256": "0c6b0f99bfb12ac70a9981f56111d1b8e390d4a516cbec6ea78270829920f090",
+        "reasoning": {
+          "effort": "medium",
+          "summary": "auto"
+        },
+        "serviceTier": null,
+        "verbosity": null,
+        "textFormat": null,
+        "toolsCount": 25
+      },
+      {
+        "file": "<capture-root>/requests-1792258957703.jsonl",
+        "index": 7,
+        "utc": "2026-10-17T17:43:04.814Z",
+        "logicalRequestId": "lr-mvcoq3ah-7",
+        "cacheEventChainId": null,
+        "conversationKeyHash": null,
+        "model": "gpt-6-luna",
+        "endpoint": "/backend-api/codex/responses",
+        "comparisonDecision": "continued_prefix_match",
+        "comparisonResponseId": "resp_REDACTED_0064",
+        "physicalAttempt": null,
+        "compactionRequest": null,
+        "comparisonBodyMatchesField": true,
+        "comparisonReferencesEarlierCapturedResponse": true,
+        "inputTokens": 270590,
+        "outputTokens": 37,
+        "cachedTokens": 200064,
+        "uncachedTokens": 70526,
+        "cacheWriteTokens": 0,
+        "rawUsageFieldPresence": {
+          "input_tokens": true,
+          "output_tokens": true,
+          "cached_tokens": true,
+          "cache_write_tokens": true
+        },
+        "responseId": "resp_REDACTED_0067",
+        "responseModel": "gpt-6-luna",
+        "xRequestId": null,
+        "responseTransport": null,
+        "responseStatus": 200,
+        "promptCacheDiagnostics": {
+          "type": "unavailable"
+        },
+        "bodySha256": "c1d7755a50332f9dc5e4436c5baeb074afc9641de494eb7e345f686ef8c656ba",
+        "inputItems": 560,
+        "inputSha256": "377b917a577b4f816e10308f6aa1c6b4d8e53865d2f5d9d4adca15d0a72aa309",
+        "stableFieldsSha256": "1bcd8d9a39544aa9d112c1100fe8842d5545e640a8832d3c922ebbdb19caddb0",
+        "reasoning": {
+          "effort": "medium",
+          "summary": "auto"
+        },
+        "serviceTier": null,
+        "verbosity": null,
+        "textFormat": null,
+        "toolsCount": 14
+      },
+      {
+        "file": "<capture-root>/requests-1792258957703.jsonl",
+        "index": 8,
+        "utc": "2026-10-17T17:43:05.909Z",
+        "logicalRequestId": "lr-mvcoq46g-8",
+        "cacheEventChainId": null,
+        "conversationKeyHash": null,
+        "model": "gpt-6-luna",
+        "endpoint": "/backend-api/codex/responses",
+        "comparisonDecision": "continued_prefix_match",
+        "comparisonResponseId": "resp_REDACTED_0066",
+        "physicalAttempt": null,
+        "compactionRequest": null,
+        "comparisonBodyMatchesField": true,
+        "comparisonReferencesEarlierCapturedResponse": true,
+        "inputTokens": 27910,
+        "outputTokens": 447,
+        "cachedTokens": 0,
+        "uncachedTokens": 27910,
+        "cacheWriteTokens": 0,
+        "rawUsageFieldPresence": {
+          "input_tokens": true,
+          "output_tokens": true,
+          "cached_tokens": true,
+          "cache_write_tokens": true
+        },
+        "responseId": "resp_REDACTED_0068",
+        "responseModel": "gpt-6-luna",
+        "xRequestId": null,
+        "responseTransport": null,
+        "responseStatus": 200,
+        "promptCacheDiagnostics": {
+          "type": "unavailable"
+        },
+        "bodySha256": "a5a83a849709145f040a615ed2345f12fd891128f05b0ee9dfd19f9d6b3160ed",
+        "inputItems": 32,
+        "inputSha256": "535e1580ad7619a43800672f99e6c06eed79f6ff02d88a3ecc5a90de722252c8",
+        "stableFieldsSha256": "0c6b0f99bfb12ac70a9981f56111d1b8e390d4a516cbec6ea78270829920f090",
+        "reasoning": {
+          "effort": "medium",
+          "summary": "auto"
+        },
+        "serviceTier": null,
+        "verbosity": null,
+        "textFormat": null,
+        "toolsCount": 25
+      },
+      {
+        "file": "<capture-root>/requests-1792258957703.jsonl",
+        "index": 9,
+        "utc": "2026-10-17T17:43:10.421Z",
+        "logicalRequestId": "lr-mvcoq7lb-9",
+        "cacheEventChainId": null,
+        "conversationKeyHash": null,
+        "model": "gpt-6-luna",
+        "endpoint": "/backend-api/codex/responses",
+        "comparisonDecision": "continued_prefix_match",
+        "comparisonResponseId": "resp_REDACTED_0067",
+        "physicalAttempt": null,
+        "compactionRequest": null,
+        "comparisonBodyMatchesField": true,
+        "comparisonReferencesEarlierCapturedResponse": true,
+        "inputTokens": 271085,
+        "outputTokens": 150,
+        "cachedTokens": 213504,
+        "uncachedTokens": 57581,
+        "cacheWriteTokens": 0,
+        "rawUsageFieldPresence": {
+          "input_tokens": true,
+          "output_tokens": true,
+          "cached_tokens": true,
+          "cache_write_tokens": true
+        },
+        "responseId": "resp_REDACTED_0069",
+        "responseModel": "gpt-6-luna",
+        "xRequestId": null,
+        "responseTransport": null,
+        "responseStatus": 200,
+        "promptCacheDiagnostics": {
+          "type": "unavailable"
+        },
+        "bodySha256": "e4ca48b90d8f069d89d152e92682603699aaa662ccf3b2400a8e8fb3eaf01a5b",
+        "inputItems": 562,
+        "inputSha256": "cdf6349609e58f0299e0dfb72b83163dab2b9634a75dc6d267ca094060eed583",
+        "stableFieldsSha256": "1bcd8d9a39544aa9d112c1100fe8842d5545e640a8832d3c922ebbdb19caddb0",
+        "reasoning": {
+          "effort": "medium",
+          "summary": "auto"
+        },
+        "serviceTier": null,
+        "verbosity": null,
+        "textFormat": null,
+        "toolsCount": 14
+      },
+      {
+        "file": "<capture-root>/requests-1792258957703.jsonl",
+        "index": 10,
+        "utc": "2026-10-17T17:43:16.761Z",
+        "logicalRequestId": "lr-mvcoqci2-a",
+        "cacheEventChainId": null,
+        "conversationKeyHash": null,
+        "model": "gpt-6-luna",
+        "endpoint": "/backend-api/codex/responses",
+        "comparisonDecision": "continued_prefix_match",
+        "comparisonResponseId": "resp_REDACTED_0069",
+        "physicalAttempt": null,
+        "compactionRequest": null,
+        "comparisonBodyMatchesField": true,
+        "comparisonReferencesEarlierCapturedResponse": true,
+        "inputTokens": 271303,
+        "outputTokens": 152,
+        "cachedTokens": 269440,
+        "uncachedTokens": 1863,
+        "cacheWriteTokens": 0,
+        "rawUsageFieldPresence": {
+          "input_tokens": true,
+          "output_tokens": true,
+          "cached_tokens": true,
+          "cache_write_tokens": true
+        },
+        "responseId": "resp_REDACTED_0070",
+        "responseModel": "gpt-6-luna",
+        "xRequestId": null,
+        "responseTransport": null,
+        "responseStatus": 200,
+        "promptCacheDiagnostics": {
+          "type": "unavailable"
+        },
+        "bodySha256": "721eb0418fa253aed71e6fa15345c455a92dc31f86029cfd8b79b2d816633cb8",
+        "inputItems": 564,
+        "inputSha256": "9dc33f8ed2984c7ea43b5a2cc82c6c2765f987e24216f4ab9754cbe4bce7a100",
+        "stableFieldsSha256": "1bcd8d9a39544aa9d112c1100fe8842d5545e640a8832d3c922ebbdb19caddb0",
+        "reasoning": {
+          "effort": "medium",
+          "summary": "auto"
+        },
+        "serviceTier": null,
+        "verbosity": null,
+        "textFormat": null,
+        "toolsCount": 14
+      },
+      {
+        "file": "<capture-root>/requests-1792258957703.jsonl",
+        "index": 11,
+        "utc": "2026-10-17T17:43:30.037Z",
+        "logicalRequestId": "lr-mvcoqmsj-b",
+        "cacheEventChainId": null,
+        "conversationKeyHash": null,
+        "model": "gpt-6-luna",
+        "endpoint": "/backend-api/codex/responses",
+        "comparisonDecision": "no_matching_prior_prefix",
+        "comparisonResponseId": null,
+        "physicalAttempt": null,
+        "compactionRequest": null,
+        "comparisonBodyMatchesField": false,
+        "comparisonReferencesEarlierCapturedResponse": null,
+        "inputTokens": 29351,
+        "outputTokens": 131,
+        "cachedTokens": 0,
+        "uncachedTokens": 29351,
+        "cacheWriteTokens": 0,
+        "rawUsageFieldPresence": {
+          "input_tokens": true,
+          "output_tokens": true,
+          "cached_tokens": true,
+          "cache_write_tokens": true
+        },
+        "responseId": "resp_REDACTED_0071",
+        "responseModel": "gpt-6-luna",
+        "xRequestId": null,
+        "responseTransport": null,
+        "responseStatus": 200,
+        "promptCacheDiagnostics": null,
+        "bodySha256": "fcbfb9807478b7cf500fb614710aa118da9d2eed4294855449cdb18f0d18d650",
+        "inputItems": 34,
+        "inputSha256": "01a56a018e141835b690cacd07d1faf98c1f0aba200b38249e1749b337f78c91",
+        "stableFieldsSha256": "0c6b0f99bfb12ac70a9981f56111d1b8e390d4a516cbec6ea78270829920f090",
+        "reasoning": {
+          "effort": "medium",
+          "summary": "auto"
+        },
+        "serviceTier": null,
+        "verbosity": null,
+        "textFormat": null,
+        "toolsCount": 25
+      },
+      {
+        "file": "<capture-root>/requests-1792258957703.jsonl",
+        "index": 12,
+        "utc": "2026-10-17T17:43:37.157Z",
+        "logicalRequestId": "lr-mvcoqsa8-c",
+        "cacheEventChainId": null,
+        "conversationKeyHash": null,
+        "model": "gpt-6-luna",
+        "endpoint": "/backend-api/codex/responses",
+        "comparisonDecision": "continued_prefix_match",
+        "comparisonResponseId": "resp_REDACTED_0071",
+        "physicalAttempt": null,
+        "compactionRequest": null,
+        "comparisonBodyMatchesField": true,
+        "comparisonReferencesEarlierCapturedResponse": true,
+        "inputTokens": null,
+        "outputTokens": null,
+        "cachedTokens": null,
+        "uncachedTokens": null,
+        "cacheWriteTokens": null,
+        "rawUsageFieldPresence": null,
+        "responseId": null,
+        "responseModel": null,
+        "xRequestId": null,
+        "responseTransport": null,
+        "responseStatus": null,
+        "promptCacheDiagnostics": null,
+        "bodySha256": "eb5dca9678c1538de30f1c7eaa82aeccb734c4de2dc286307943134c4a48983d",
+        "inputItems": 37,
+        "inputSha256": "3da4024b3f7b50a669c79864311d4fe386fb7527c2ff9d5f268b9d5a91cbafed",
+        "stableFieldsSha256": "0c6b0f99bfb12ac70a9981f56111d1b8e390d4a516cbec6ea78270829920f090",
+        "reasoning": {
+          "effort": "medium",
+          "summary": "auto"
+        },
+        "serviceTier": null,
+        "verbosity": null,
+        "textFormat": null,
+        "toolsCount": 25
+      }
+    ],
+    "usageRows": 11,
+    "comparisonIdsInPhysicalRequestBodies": 8,
+    "comparisonIdsVerifiedAgainstEarlierCapturedResponseAndBody": 8,
+    "comparisonResponsesHttp200": 7,
+    "diagnosticsUnavailable": 7,
+    "xRequestIdValuesPresent": 0,
+    "missingUsageRequestIds": [
+      "lr-mvcoqsa8-c"
+    ]
+  },
+  "lunaEventCapture": {
+    "file": "<capture-root>/requests-1792261959127.jsonl",
+    "requests": 120,
+    "usageRows": 119,
+    "stopReason": "max_requests",
+    "captureRuns": [
+      {
+        "file": "<capture-root>/requests-1792260966652.jsonl",
+        "bytes": 37503128,
+        "utcRange": [
+          "2026-10-17T18:17:26.788Z",
+          "2026-10-17T18:23:58.932Z"
+        ],
+        "requests": 60,
+        "usageRows": 59,
+        "runtimeStopReason": "max_requests",
+        "runtimeCompletedEventsAtStop": 0,
+        "offlineCandidateEvents": 5,
+        "offlineCompleteLinkedEvents": 2,
+        "deployedCollectorCommit": "2cce4fa8c885011d3dcfcad2e406744d4f950b4c"
+      },
+      {
+        "file": "<capture-root>/requests-1792261959127.jsonl",
+        "bytes": 39250311,
+        "utcRange": [
+          "2026-10-17T18:32:43.521Z",
+          "2026-10-17T18:37:24.277Z"
+        ],
+        "requests": 60,
+        "usageRows": 60,
+        "runtimeStopReason": "max_requests",
+        "runtimeCompletedEventsAtStop": 0,
+        "offlineCandidateEvents": 3,
+        "offlineCompleteLinkedEvents": 1,
+        "deployedCollectorCommit": "5dc21abb95b159db04a1fde2577a35e468bf6b85"
+      }
+    ],
+    "targetEvents": 2,
+    "runtimeCompletedEventsAtStop": 0,
+    "runtimeStopReason": "max_requests",
+    "physicalAttemptCounts": {
+      "1": 120
+    },
+    "compactionRequestCount": 0,
+    "requestIdValuesPresent": 0,
+    "responseTransports": {
+      "codex-websocket": 120
+    },
+    "responseStatusCounts": {
+      "200": 120
+    },
+    "responseModels": {
+      "gpt-6-luna": 119,
+      "missing": 1
+    },
+    "detectedCandidateEvents": 8,
+    "completeLinkedEvents": 3,
+    "additionalUncachedTokensVsPriorWarmReferences": 308480,
+    "coldTurnUncachedTokens": 340762,
+    "chainsObserved": 22,
+    "classificationWhenNoEvent": null,
+    "events": [
+      {
+        "chainId": "luna-chain-3",
+        "captureFile": "<capture-root>/requests-1792260966652.jsonl",
+        "classification": "INCONCLUSIVE",
+        "additionalUncachedTokensVsPriorWarmReference": 336512,
+        "coldTurnUncachedTokens": 363260,
+        "sequence": [
+          {
+            "role": "warm",
+            "utc": "2026-10-17T18:19:26.441Z",
+            "logicalRequestId": "lr-mvcq0umu-h",
+            "responseId": "resp_REDACTED_0041",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 361750,
+            "cachedTokens": 354688,
+            "uncachedTokens": 7062,
+            "cacheWriteTokens": 0,
+            "inputSha256": "04f1695d0e14fa7b1d9558b9c5ebc08ecc832a5e8fd9439f44359333d2152be1",
+            "stableFieldsSha256": "1bcd8d9a39544aa9d112c1100fe8842d5545e640a8832d3c922ebbdb19caddb0",
+            "comparisonResponseId": "resp_REDACTED_0042",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          },
+          {
+            "role": "warm",
+            "utc": "2026-10-17T18:19:31.938Z",
+            "logicalRequestId": "lr-mvcq0yvj-i",
+            "responseId": "resp_REDACTED_0043",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 363059,
+            "cachedTokens": 336512,
+            "uncachedTokens": 26547,
+            "cacheWriteTokens": 0,
+            "inputSha256": "c70645dd0eeed00a55212f9eddb04a77d1e4a51feff0f0ed5783a2d2e1eb502c",
+            "stableFieldsSha256": "1bcd8d9a39544aa9d112c1100fe8842d5545e640a8832d3c922ebbdb19caddb0",
+            "comparisonResponseId": "resp_REDACTED_0041",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          },
+          {
+            "role": "cold",
+            "utc": "2026-10-17T18:19:38.522Z",
+            "logicalRequestId": "lr-mvcq13yk-j",
+            "responseId": "resp_REDACTED_0044",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 363260,
+            "cachedTokens": 0,
+            "uncachedTokens": 363260,
+            "cacheWriteTokens": 0,
+            "inputSha256": "d3d0ee0ea1e19055671a2602aa94e3464a92fe3b5973d1f34fd0c088b1b5fef4",
+            "stableFieldsSha256": "1bcd8d9a39544aa9d112c1100fe8842d5545e640a8832d3c922ebbdb19caddb0",
+            "comparisonResponseId": "resp_REDACTED_0043",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          },
+          {
+            "role": "recovery",
+            "utc": "2026-10-17T18:19:45.531Z",
+            "logicalRequestId": "lr-mvcq19d7-l",
+            "responseId": "resp_REDACTED_0045",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 363957,
+            "cachedTokens": 356480,
+            "uncachedTokens": 7477,
+            "cacheWriteTokens": 0,
+            "inputSha256": "0c6c0a07fdbeaa46045e69a9b39633404d84d790b3760bd985b82e1632ad1243",
+            "stableFieldsSha256": "1bcd8d9a39544aa9d112c1100fe8842d5545e640a8832d3c922ebbdb19caddb0",
+            "comparisonResponseId": "resp_REDACTED_0044",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          }
+        ],
+        "recoveryObserved": true,
+        "twoPostRecoveryRequests": false,
+        "orderedPrefixAndConfigChecks": [
+          {
+            "orderedInputPrefix": true,
+            "stableNonInputConfig": true
+          },
+          {
+            "orderedInputPrefix": true,
+            "stableNonInputConfig": true
+          },
+          {
+            "orderedInputPrefix": true,
+            "stableNonInputConfig": true
+          }
+        ]
+      },
+      {
+        "chainId": "luna-chain-6",
+        "captureFile": "<capture-root>/requests-1792260966652.jsonl",
+        "classification": "INCONCLUSIVE",
+        "additionalUncachedTokensVsPriorWarmReference": 72832,
+        "coldTurnUncachedTokens": 89269,
+        "sequence": [
+          {
+            "role": "warm",
+            "utc": "2026-10-17T18:20:32.389Z",
+            "logicalRequestId": "lr-mvcq29kg-t",
+            "responseId": "resp_REDACTED_0046",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 88046,
+            "cachedTokens": 77056,
+            "uncachedTokens": 10990,
+            "cacheWriteTokens": 0,
+            "inputSha256": "243a4a1acb57f422992e36cf80445a0bb61fa95ace088dd3ba06417e895ba92e",
+            "stableFieldsSha256": "e606dc4a636d830789d93375958634461b42cae4d62a22c0be8e75b673b178a8",
+            "comparisonResponseId": "resp_REDACTED_0047",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          },
+          {
+            "role": "warm",
+            "utc": "2026-10-17T18:20:46.280Z",
+            "logicalRequestId": "lr-mvcq2kad-u",
+            "responseId": "resp_REDACTED_0048",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 88746,
+            "cachedTokens": 72832,
+            "uncachedTokens": 15914,
+            "cacheWriteTokens": 0,
+            "inputSha256": "6f582ee63d28ec546a11c1a9e5b0878f2b6e2cb5dd0fd5fee1197fc54527dc0e",
+            "stableFieldsSha256": "e606dc4a636d830789d93375958634461b42cae4d62a22c0be8e75b673b178a8",
+            "comparisonResponseId": "resp_REDACTED_0046",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          },
+          {
+            "role": "cold",
+            "utc": "2026-10-17T18:20:50.790Z",
+            "logicalRequestId": "lr-mvcq2nrk-v",
+            "responseId": "resp_REDACTED_0049",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 89269,
+            "cachedTokens": 0,
+            "uncachedTokens": 89269,
+            "cacheWriteTokens": 0,
+            "inputSha256": "b4b73c126cc5d2dc1f3489ba49c1dc8e2f302ef697ffb070afeb046ec7c6ea48",
+            "stableFieldsSha256": "e606dc4a636d830789d93375958634461b42cae4d62a22c0be8e75b673b178a8",
+            "comparisonResponseId": "resp_REDACTED_0048",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          }
+        ],
+        "recoveryObserved": false,
+        "twoPostRecoveryRequests": false,
+        "orderedPrefixAndConfigChecks": [
+          {
+            "orderedInputPrefix": true,
+            "stableNonInputConfig": true
+          },
+          {
+            "orderedInputPrefix": true,
+            "stableNonInputConfig": true
+          }
+        ]
+      },
+      {
+        "chainId": "luna-chain-6",
+        "captureFile": "<capture-root>/requests-1792260966652.jsonl",
+        "classification": "INCONCLUSIVE",
+        "additionalUncachedTokensVsPriorWarmReference": 89728,
+        "coldTurnUncachedTokens": 91919,
+        "sequence": [
+          {
+            "role": "warm",
+            "utc": "2026-10-17T18:21:15.735Z",
+            "logicalRequestId": "lr-mvcq370e-11",
+            "responseId": "resp_REDACTED_0050",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 91313,
+            "cachedTokens": 90368,
+            "uncachedTokens": 945,
+            "cacheWriteTokens": 0,
+            "inputSha256": "4be631c50555bd1e70cc121410ac0d5480c58657495b03725f81faa2b4587185",
+            "stableFieldsSha256": "e606dc4a636d830789d93375958634461b42cae4d62a22c0be8e75b673b178a8",
+            "comparisonResponseId": "resp_REDACTED_0051",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          },
+          {
+            "role": "warm",
+            "utc": "2026-10-17T18:21:19.950Z",
+            "logicalRequestId": "lr-mvcq3a9j-12",
+            "responseId": "resp_REDACTED_0052",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 91453,
+            "cachedTokens": 89728,
+            "uncachedTokens": 1725,
+            "cacheWriteTokens": 0,
+            "inputSha256": "e7ed2083a167a4e4716b2fcdd3f918b599132e0f0aa5ab2a39a32e779d4b8e6c",
+            "stableFieldsSha256": "e606dc4a636d830789d93375958634461b42cae4d62a22c0be8e75b673b178a8",
+            "comparisonResponseId": "resp_REDACTED_0050",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          },
+          {
+            "role": "cold",
+            "utc": "2026-10-17T18:21:23.038Z",
+            "logicalRequestId": "lr-mvcq3cna-13",
+            "responseId": "resp_REDACTED_0053",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 91919,
+            "cachedTokens": 0,
+            "uncachedTokens": 91919,
+            "cacheWriteTokens": 0,
+            "inputSha256": "1c511846105089daf12c169a1d328fae23541607d4e8d50396a11ebbe19d7f3e",
+            "stableFieldsSha256": "e606dc4a636d830789d93375958634461b42cae4d62a22c0be8e75b673b178a8",
+            "comparisonResponseId": "resp_REDACTED_0052",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          }
+        ],
+        "recoveryObserved": false,
+        "twoPostRecoveryRequests": false,
+        "orderedPrefixAndConfigChecks": [
+          {
+            "orderedInputPrefix": true,
+            "stableNonInputConfig": true
+          },
+          {
+            "orderedInputPrefix": true,
+            "stableNonInputConfig": true
+          }
+        ]
+      },
+      {
+        "chainId": "luna-chain-6",
+        "captureFile": "<capture-root>/requests-1792260966652.jsonl",
+        "classification": "SERVER_REUSE_FAILURE_SUSPECTED",
+        "additionalUncachedTokensVsPriorWarmReference": 91136,
+        "coldTurnUncachedTokens": 96574,
+        "sequence": [
+          {
+            "role": "warm",
+            "utc": "2026-10-17T18:21:51.440Z",
+            "logicalRequestId": "lr-mvcq3yka-16",
+            "responseId": "resp_REDACTED_0004",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 94229,
+            "cachedTokens": 91776,
+            "uncachedTokens": 2453,
+            "cacheWriteTokens": 0,
+            "inputSha256": "2cf535479ae2248b150ce2a0ee79b447811383e5c9c84313d3b78cf8056cf75d",
+            "stableFieldsSha256": "e606dc4a636d830789d93375958634461b42cae4d62a22c0be8e75b673b178a8",
+            "comparisonResponseId": "resp_REDACTED_0005",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          },
+          {
+            "role": "warm",
+            "utc": "2026-10-17T18:22:13.255Z",
+            "logicalRequestId": "lr-mvcq4fe3-17",
+            "responseId": "resp_REDACTED_0006",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 94548,
+            "cachedTokens": 91136,
+            "uncachedTokens": 3412,
+            "cacheWriteTokens": 0,
+            "inputSha256": "bc1095a835b9ef8bf7a044f2f52de22d22d226eaa95420d0def416a06dd6d8df",
+            "stableFieldsSha256": "e606dc4a636d830789d93375958634461b42cae4d62a22c0be8e75b673b178a8",
+            "comparisonResponseId": "resp_REDACTED_0004",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          },
+          {
+            "role": "cold",
+            "utc": "2026-10-17T18:22:17.309Z",
+            "logicalRequestId": "lr-mvcq4iit-18",
+            "responseId": "resp_REDACTED_0001",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 96574,
+            "cachedTokens": 0,
+            "uncachedTokens": 96574,
+            "cacheWriteTokens": 0,
+            "inputSha256": "5bf571124fed707fd706a2d1778000d6838050e6fcbfc87bbba44c6afba058f1",
+            "stableFieldsSha256": "e606dc4a636d830789d93375958634461b42cae4d62a22c0be8e75b673b178a8",
+            "comparisonResponseId": "resp_REDACTED_0006",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          },
+          {
+            "role": "recovery",
+            "utc": "2026-10-17T18:22:20.770Z",
+            "logicalRequestId": "lr-mvcq4l70-19",
+            "responseId": "resp_REDACTED_0007",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 96902,
+            "cachedTokens": 87936,
+            "uncachedTokens": 8966,
+            "cacheWriteTokens": 0,
+            "inputSha256": "d9ff44d014cd31ebdff46809eeb1ed9cb4a859f86483be7eab53bae7e9d74ad6",
+            "stableFieldsSha256": "e606dc4a636d830789d93375958634461b42cae4d62a22c0be8e75b673b178a8",
+            "comparisonResponseId": "resp_REDACTED_0001",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          },
+          {
+            "role": "post_recovery_1",
+            "utc": "2026-10-17T18:22:27.592Z",
+            "logicalRequestId": "lr-mvcq4qgh-1a",
+            "responseId": "resp_REDACTED_0008",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 97563,
+            "cachedTokens": 94080,
+            "uncachedTokens": 3483,
+            "cacheWriteTokens": 0,
+            "inputSha256": "9b02601274ceb29873f48b44dad620256e102351baf824ccec617241d34ca42e",
+            "stableFieldsSha256": "e606dc4a636d830789d93375958634461b42cae4d62a22c0be8e75b673b178a8",
+            "comparisonResponseId": "resp_REDACTED_0007",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          },
+          {
+            "role": "post_recovery_2",
+            "utc": "2026-10-17T18:22:33.518Z",
+            "logicalRequestId": "lr-mvcq4v11-1b",
+            "responseId": "resp_REDACTED_0009",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 97989,
+            "cachedTokens": 72832,
+            "uncachedTokens": 25157,
+            "cacheWriteTokens": 0,
+            "inputSha256": "09aad062e5cdb3c31a9fe7692d47f9bd96ed05791566ddc19005652471d08133",
+            "stableFieldsSha256": "e606dc4a636d830789d93375958634461b42cae4d62a22c0be8e75b673b178a8",
+            "comparisonResponseId": "resp_REDACTED_0008",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          }
+        ],
+        "recoveryObserved": true,
+        "twoPostRecoveryRequests": true,
+        "orderedPrefixAndConfigChecks": [
+          {
+            "orderedInputPrefix": true,
+            "stableNonInputConfig": true
+          },
+          {
+            "orderedInputPrefix": true,
+            "stableNonInputConfig": true
+          },
+          {
+            "orderedInputPrefix": true,
+            "stableNonInputConfig": true
+          },
+          {
+            "orderedInputPrefix": true,
+            "stableNonInputConfig": true
+          },
+          {
+            "orderedInputPrefix": true,
+            "stableNonInputConfig": true
+          }
+        ]
+      },
+      {
+        "chainId": "luna-chain-6",
+        "captureFile": "<capture-root>/requests-1792260966652.jsonl",
+        "classification": "SERVER_REUSE_FAILURE_SUSPECTED",
+        "additionalUncachedTokensVsPriorWarmReference": 92672,
+        "coldTurnUncachedTokens": 99264,
+        "sequence": [
+          {
+            "role": "warm",
+            "utc": "2026-10-17T18:22:42.740Z",
+            "logicalRequestId": "lr-mvcq525a-1d",
+            "responseId": "resp_REDACTED_0010",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 98411,
+            "cachedTokens": 74240,
+            "uncachedTokens": 24171,
+            "cacheWriteTokens": 0,
+            "inputSha256": "4821d780ac4d98f7de2b53f198291d577c3c530f47097b3418e687faa1a47c21",
+            "stableFieldsSha256": "e606dc4a636d830789d93375958634461b42cae4d62a22c0be8e75b673b178a8",
+            "comparisonResponseId": "resp_REDACTED_0011",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          },
+          {
+            "role": "warm",
+            "utc": "2026-10-17T18:22:47.861Z",
+            "logicalRequestId": "lr-mvcq563h-1e",
+            "responseId": "resp_REDACTED_0012",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 98856,
+            "cachedTokens": 92672,
+            "uncachedTokens": 6184,
+            "cacheWriteTokens": 0,
+            "inputSha256": "087e4db1acc01d94468a75961b1e19614d7a96d524d8f38d7f6c21b110bef4d3",
+            "stableFieldsSha256": "e606dc4a636d830789d93375958634461b42cae4d62a22c0be8e75b673b178a8",
+            "comparisonResponseId": "resp_REDACTED_0010",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          },
+          {
+            "role": "cold",
+            "utc": "2026-10-17T18:22:52.335Z",
+            "logicalRequestId": "lr-mvcq59ju-1f",
+            "responseId": "resp_REDACTED_0002",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 99264,
+            "cachedTokens": 0,
+            "uncachedTokens": 99264,
+            "cacheWriteTokens": 0,
+            "inputSha256": "f7f66af513d101624ef5c0899bafb6b0c571ad2d92b0e053afda3e5cd664a6f8",
+            "stableFieldsSha256": "e606dc4a636d830789d93375958634461b42cae4d62a22c0be8e75b673b178a8",
+            "comparisonResponseId": "resp_REDACTED_0012",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          },
+          {
+            "role": "recovery",
+            "utc": "2026-10-17T18:22:58.564Z",
+            "logicalRequestId": "lr-mvcq5ect-1g",
+            "responseId": "resp_REDACTED_0013",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 101263,
+            "cachedTokens": 98688,
+            "uncachedTokens": 2575,
+            "cacheWriteTokens": 0,
+            "inputSha256": "22df14aa2a28e13be1725f6e4e7e3bb9c7fce3890a14e19feb9155b9cb5753eb",
+            "stableFieldsSha256": "e606dc4a636d830789d93375958634461b42cae4d62a22c0be8e75b673b178a8",
+            "comparisonResponseId": "resp_REDACTED_0002",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          },
+          {
+            "role": "post_recovery_1",
+            "utc": "2026-10-17T18:23:09.614Z",
+            "logicalRequestId": "lr-mvcq5mvi-1h",
+            "responseId": "resp_REDACTED_0014",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 102574,
+            "cachedTokens": 0,
+            "uncachedTokens": 102574,
+            "cacheWriteTokens": 0,
+            "inputSha256": "487024b05715f4c0b3402fb3bfaaff694aaf0e229155bff82683818daa0f0d55",
+            "stableFieldsSha256": "e606dc4a636d830789d93375958634461b42cae4d62a22c0be8e75b673b178a8",
+            "comparisonResponseId": "resp_REDACTED_0013",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          },
+          {
+            "role": "post_recovery_2",
+            "utc": "2026-10-17T18:23:22.115Z",
+            "logicalRequestId": "lr-mvcq5wix-1i",
+            "responseId": "resp_REDACTED_0015",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 103613,
+            "cachedTokens": 0,
+            "uncachedTokens": 103613,
+            "cacheWriteTokens": 0,
+            "inputSha256": "f3429fee0374c2c43130e6829a0553e345d01c11aa30beaf0dac5e775cc1c74b",
+            "stableFieldsSha256": "e606dc4a636d830789d93375958634461b42cae4d62a22c0be8e75b673b178a8",
+            "comparisonResponseId": "resp_REDACTED_0014",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          }
+        ],
+        "recoveryObserved": true,
+        "twoPostRecoveryRequests": true,
+        "orderedPrefixAndConfigChecks": [
+          {
+            "orderedInputPrefix": true,
+            "stableNonInputConfig": true
+          },
+          {
+            "orderedInputPrefix": true,
+            "stableNonInputConfig": true
+          },
+          {
+            "orderedInputPrefix": true,
+            "stableNonInputConfig": true
+          },
+          {
+            "orderedInputPrefix": true,
+            "stableNonInputConfig": true
+          },
+          {
+            "orderedInputPrefix": true,
+            "stableNonInputConfig": true
+          }
+        ]
+      },
+      {
+        "chainId": "luna-chain-1",
+        "captureFile": "<capture-root>/requests-1792261959127.jsonl",
+        "classification": "SERVER_REUSE_FAILURE_SUSPECTED",
+        "additionalUncachedTokensVsPriorWarmReference": 124672,
+        "coldTurnUncachedTokens": 144924,
+        "sequence": [
+          {
+            "role": "warm",
+            "utc": "2026-10-17T18:33:05.217Z",
+            "logicalRequestId": "lr-mvcqiefp-1g",
+            "responseId": "resp_REDACTED_0016",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 144658,
+            "cachedTokens": 143616,
+            "uncachedTokens": 1042,
+            "cacheWriteTokens": 0,
+            "inputSha256": "da2aa20a0c4877f6552aca773f661beaace7fc8885315e990ef7832fdd9bdacd",
+            "stableFieldsSha256": "a14c5ec273c6d149b81a6e9524153b2c7163f6be5f68432e4c510d33bd283f2f",
+            "comparisonResponseId": "resp_REDACTED_0017",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          },
+          {
+            "role": "warm",
+            "utc": "2026-10-17T18:33:12.678Z",
+            "logicalRequestId": "lr-mvcqik74-1h",
+            "responseId": "resp_REDACTED_0018",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 144801,
+            "cachedTokens": 124672,
+            "uncachedTokens": 20129,
+            "cacheWriteTokens": 0,
+            "inputSha256": "43b0e38fac36d7a5ec2632186e6f9c0821feacccbc43b5cc0f04eaa709adc013",
+            "stableFieldsSha256": "a14c5ec273c6d149b81a6e9524153b2c7163f6be5f68432e4c510d33bd283f2f",
+            "comparisonResponseId": "resp_REDACTED_0016",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          },
+          {
+            "role": "cold",
+            "utc": "2026-10-17T18:33:17.014Z",
+            "logicalRequestId": "lr-mvcqinjo-1j",
+            "responseId": "resp_REDACTED_0003",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 144924,
+            "cachedTokens": 0,
+            "uncachedTokens": 144924,
+            "cacheWriteTokens": 0,
+            "inputSha256": "c6cc46cfcfc8cb9721de7c740f0961fa8983c64490fa371195c4a7a358227aba",
+            "stableFieldsSha256": "a14c5ec273c6d149b81a6e9524153b2c7163f6be5f68432e4c510d33bd283f2f",
+            "comparisonResponseId": "resp_REDACTED_0018",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          },
+          {
+            "role": "recovery",
+            "utc": "2026-10-17T18:33:21.483Z",
+            "logicalRequestId": "lr-mvcqiqzp-1k",
+            "responseId": "resp_REDACTED_0019",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 145029,
+            "cachedTokens": 144256,
+            "uncachedTokens": 773,
+            "cacheWriteTokens": 0,
+            "inputSha256": "841061e6ed5e581b49a7f141418b5b2f40fc3d97f52fd669590a5c792ec0d799",
+            "stableFieldsSha256": "a14c5ec273c6d149b81a6e9524153b2c7163f6be5f68432e4c510d33bd283f2f",
+            "comparisonResponseId": "resp_REDACTED_0003",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          },
+          {
+            "role": "post_recovery_1",
+            "utc": "2026-10-17T18:33:28.859Z",
+            "logicalRequestId": "lr-mvcqiwok-1n",
+            "responseId": "resp_REDACTED_0020",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 145116,
+            "cachedTokens": 0,
+            "uncachedTokens": 145116,
+            "cacheWriteTokens": 0,
+            "inputSha256": "aec939f241bd33ea9c03b523ffef98f019172cd6738feb82fba968c204eb3131",
+            "stableFieldsSha256": "a14c5ec273c6d149b81a6e9524153b2c7163f6be5f68432e4c510d33bd283f2f",
+            "comparisonResponseId": "resp_REDACTED_0019",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          },
+          {
+            "role": "post_recovery_2",
+            "utc": "2026-10-17T18:33:37.544Z",
+            "logicalRequestId": "lr-mvcqj3dy-1p",
+            "responseId": "resp_REDACTED_0021",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 145957,
+            "cachedTokens": 0,
+            "uncachedTokens": 145957,
+            "cacheWriteTokens": 0,
+            "inputSha256": "bcc8af172445ba19ebf53fa4c4b5026db219ef3a8dd1b5fdb96a1933ea6cf8a4",
+            "stableFieldsSha256": "a14c5ec273c6d149b81a6e9524153b2c7163f6be5f68432e4c510d33bd283f2f",
+            "comparisonResponseId": "resp_REDACTED_0020",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          }
+        ],
+        "recoveryObserved": true,
+        "twoPostRecoveryRequests": true,
+        "orderedPrefixAndConfigChecks": [
+          {
+            "orderedInputPrefix": true,
+            "stableNonInputConfig": true
+          },
+          {
+            "orderedInputPrefix": true,
+            "stableNonInputConfig": true
+          },
+          {
+            "orderedInputPrefix": true,
+            "stableNonInputConfig": true
+          },
+          {
+            "orderedInputPrefix": true,
+            "stableNonInputConfig": true
+          },
+          {
+            "orderedInputPrefix": true,
+            "stableNonInputConfig": true
+          }
+        ]
+      },
+      {
+        "chainId": "luna-chain-5",
+        "captureFile": "<capture-root>/requests-1792261959127.jsonl",
+        "classification": "INCONCLUSIVE",
+        "additionalUncachedTokensVsPriorWarmReference": 264064,
+        "coldTurnUncachedTokens": 265538,
+        "sequence": [
+          {
+            "role": "warm",
+            "utc": "2026-10-17T18:33:48.398Z",
+            "logicalRequestId": "lr-mvcqjbr0-1s",
+            "responseId": "resp_REDACTED_0054",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 264471,
+            "cachedTokens": 228096,
+            "uncachedTokens": 36375,
+            "cacheWriteTokens": 0,
+            "inputSha256": "34b5f61f3ef202ea30f4be309c8ee47b5ae02c4838bbced798ba0b4f552b079c",
+            "stableFieldsSha256": "2645cd5fc82f5d0b6982e8b6952f6799bc7d7a99af65de8f07013ec0bf568dac",
+            "comparisonResponseId": "resp_REDACTED_0055",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          },
+          {
+            "role": "warm",
+            "utc": "2026-10-17T18:33:54.882Z",
+            "logicalRequestId": "lr-mvcqjgqu-1u",
+            "responseId": "resp_REDACTED_0056",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 264642,
+            "cachedTokens": 264064,
+            "uncachedTokens": 578,
+            "cacheWriteTokens": 0,
+            "inputSha256": "bb2f7c8cb3f0a882f56033fc39e0b57d4ffde5c6b675ffa15f9631a067ef8d83",
+            "stableFieldsSha256": "2645cd5fc82f5d0b6982e8b6952f6799bc7d7a99af65de8f07013ec0bf568dac",
+            "comparisonResponseId": "resp_REDACTED_0054",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          },
+          {
+            "role": "cold",
+            "utc": "2026-10-17T18:34:04.308Z",
+            "logicalRequestId": "lr-mvcqjo10-1w",
+            "responseId": "resp_REDACTED_0057",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 265538,
+            "cachedTokens": 0,
+            "uncachedTokens": 265538,
+            "cacheWriteTokens": 0,
+            "inputSha256": "1bb9a42de24fc2589913a99dae19bdf9c8d8cb6e40da4daa5b8a8a85163900cd",
+            "stableFieldsSha256": "2645cd5fc82f5d0b6982e8b6952f6799bc7d7a99af65de8f07013ec0bf568dac",
+            "comparisonResponseId": "resp_REDACTED_0056",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          }
+        ],
+        "recoveryObserved": false,
+        "twoPostRecoveryRequests": false,
+        "orderedPrefixAndConfigChecks": [
+          {
+            "orderedInputPrefix": true,
+            "stableNonInputConfig": true
+          },
+          {
+            "orderedInputPrefix": true,
+            "stableNonInputConfig": true
+          }
+        ]
+      },
+      {
+        "chainId": "luna-chain-9",
+        "captureFile": "<capture-root>/requests-1792261959127.jsonl",
+        "classification": "INCONCLUSIVE",
+        "additionalUncachedTokensVsPriorWarmReference": 252672,
+        "coldTurnUncachedTokens": 285132,
+        "sequence": [
+          {
+            "role": "warm",
+            "utc": "2026-10-17T18:36:06.487Z",
+            "logicalRequestId": "lr-mvcqmaav-2e",
+            "responseId": "resp_REDACTED_0058",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 280834,
+            "cachedTokens": 259200,
+            "uncachedTokens": 21634,
+            "cacheWriteTokens": 0,
+            "inputSha256": "6b98c0e47b3fffcdbddb220031b4e22d49dc7b9261a09a6ceb45fcd10fdf55d9",
+            "stableFieldsSha256": "2645cd5fc82f5d0b6982e8b6952f6799bc7d7a99af65de8f07013ec0bf568dac",
+            "comparisonResponseId": null,
+            "diagnostics": null,
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          },
+          {
+            "role": "warm",
+            "utc": "2026-10-17T18:36:14.525Z",
+            "logicalRequestId": "lr-mvcqmgi1-2f",
+            "responseId": "resp_REDACTED_0059",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 284852,
+            "cachedTokens": 252672,
+            "uncachedTokens": 32180,
+            "cacheWriteTokens": 0,
+            "inputSha256": "7c2666f386e27d11836e7addf64f000371156c1f65f3618406510e769610e327",
+            "stableFieldsSha256": "2645cd5fc82f5d0b6982e8b6952f6799bc7d7a99af65de8f07013ec0bf568dac",
+            "comparisonResponseId": "resp_REDACTED_0058",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          },
+          {
+            "role": "cold",
+            "utc": "2026-10-17T18:36:25.246Z",
+            "logicalRequestId": "lr-mvcqmorx-2i",
+            "responseId": "resp_REDACTED_0060",
+            "responseStatus": 200,
+            "responseTransport": "codex-websocket",
+            "xRequestId": null,
+            "model": "gpt-6-luna",
+            "responseModel": "gpt-6-luna",
+            "inputTokens": 285132,
+            "cachedTokens": 0,
+            "uncachedTokens": 285132,
+            "cacheWriteTokens": 0,
+            "inputSha256": "9f42e216487ccf9c44a8ed6d5ea6bdbd26b0d04e14640ecb6e79a7d61b7d8e78",
+            "stableFieldsSha256": "2645cd5fc82f5d0b6982e8b6952f6799bc7d7a99af65de8f07013ec0bf568dac",
+            "comparisonResponseId": "resp_REDACTED_0059",
+            "diagnostics": {
+              "type": "unavailable"
+            },
+            "physicalAttempt": 1,
+            "compactionRequest": false,
+            "conversationKeyHash": null
+          }
+        ],
+        "recoveryObserved": false,
+        "twoPostRecoveryRequests": false,
+        "orderedPrefixAndConfigChecks": [
+          {
+            "orderedInputPrefix": true,
+            "stableNonInputConfig": true
+          },
+          {
+            "orderedInputPrefix": true,
+            "stableNonInputConfig": true
+          }
+        ]
+      }
+    ]
+  },
+  "collectorDeployment": {
+    "captureSourceCommit": "2cce4fa8c885011d3dcfcad2e406744d4f950b4c",
+    "fixedSourceCommit": "62909c3c90f0d0f5c2205b4c515132324e09004b",
+    "activeArtifact": "<local-runtime-artifact>",
+    "activeArtifactTreeSha256": "03064b09e0fdba523271ac09b30b2f5da41b306a154f4b7862387a6a5a133eec",
+    "packageSha256": "f31d554d7c84cf7e3b9f6d81b74cd5bd19362e07fe4a384b2997d9c2b502ef63",
+    "deployedHealthAndReadiness": 200,
+    "fixedCollectorWasLiveForThisCapture": false
+  },
+  "privacy": {
+    "rawRequestBodiesContainPrompts": true,
+    "mayContainUserProvidedSourceCodeOrToolData": true,
+    "credentialsOrAuthorizationHeadersCaptured": false,
+    "credentialLikePatternMatchCountInBodies": 27,
+    "note": "The raw bodies remain local and are excluded from this report. Pattern matches are counted only; no matched values are emitted."
+  },
+  "findings": {
+    "upstreamCacheUsageDropConfirmed": true,
+    "lunaWarmColdWarmConfirmedInFinal12": false,
+    "serverEvictionOrRoutingCauseConfirmed": false,
+    "creditsOverbillingConfirmed": false,
+    "xRequestIdMissingFromVisibleResponseObjects": true,
+    "xRequestIdAbsentAtOriginConfirmed": false
+  }
+}

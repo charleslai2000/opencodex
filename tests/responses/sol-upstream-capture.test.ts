@@ -201,6 +201,40 @@ describe("Sol upstream comparison capture", () => {
     expect(afterTwo.completedEvents[0]!.chainId).not.toBe(afterTwo.completedEvents[1]!.chainId);
   });
 
+  test("requires two consecutive warm baselines before starting a cold event", () => {
+    startSolRequestCapture(Date.now(), { models: ["gpt-6-luna"] });
+    let serial = 0;
+    const turns: unknown[] = [{ type: "message", role: "user", content: "one warm baseline only" }];
+    const send = (cached: number, comparisonResponseId?: string): string => {
+      const logicalRequestId = `lr-one-warm-${++serial}`;
+      const baseBody = body([...turns], "gpt-6-luna");
+      const comparison = addSolCacheComparison("openai", "gpt-6-luna", undefined, baseBody);
+      const physicalBody = comparisonResponseId
+        ? JSON.stringify({ ...JSON.parse(comparison.body), prompt_cache_options: { comparison_response_id: comparisonResponseId } })
+        : comparison.body;
+      captureSolUpstreamRequest("openai", "gpt-6-luna", "https://chatgpt.com/backend-api/codex/responses",
+        { method: "POST", body: physicalBody }, logicalRequestId,
+        { comparisonDecision: comparison.decision, comparisonInputBody: baseBody }, undefined);
+      const responseId = `resp-one-warm-${serial}`;
+      captureSolUpstreamPayload("openai", "gpt-6-luna", logicalRequestId, {
+        type: "response.completed",
+        response: { id: responseId, usage: { input_tokens: 1000, input_tokens_details: { cached_tokens: cached, cache_write_tokens: 0 } } },
+      });
+      turns.push({ type: "message", role: "assistant", content: `answer-${serial}` });
+      turns.push({ type: "message", role: "user", content: `follow-up-${serial}` });
+      return responseId;
+    };
+
+    send(0);
+    const onlyWarm = send(800);
+    const cold = send(0, onlyWarm);
+    send(800, cold);
+    send(800);
+    send(800);
+
+    expect(getSolRequestCaptureStatus().completedEvents).toHaveLength(0);
+  });
+
   test("abandons an orphan cold candidate so a later linked event can complete", () => {
     startSolRequestCapture(Date.now(), { models: ["gpt-6-luna"] });
     let serial = 0;

@@ -3,7 +3,8 @@ import { createHash } from "node:crypto";
 import { chmodSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-const root = "/var/lib/opencodex";
+const root = process.env.OPENCODEX_HOME;
+if (!root) throw new Error("Set OPENCODEX_HOME to the local capture root before generating evidence.");
 const output = join(import.meta.dir, "opencodex-prompt-cache");
 const baselineSolHashes: Record<string, string> = {
   "requests-1792254216896.jsonl": "116dfa8d3818b22bbe630c03af5be293a62e620161f7327cefd6651436a93c91",
@@ -55,6 +56,22 @@ type RequestSummary = {
 };
 
 const sha256 = (value: string | Uint8Array): string => createHash("sha256").update(value).digest("hex");
+const publicResponseIds = new Map<string, string>();
+function publicValue(value: unknown): unknown {
+  if (typeof value === "string") {
+    return value
+      .replace(/\/var\/lib\/opencodex\/(?:openai-upstream-capture|sol-upstream-capture)\//g, "<capture-root>/")
+      .replace(/\/var\/lib\/opencodex\/(?:openai-upstream-capture|sol-upstream-capture)/g, "<capture-root>")
+      .replace(/\/opt\/opencodex-[^\s`"']+/g, "<local-runtime-artifact>")
+      .replace(/resp_[A-Za-z0-9_-]{20,}/g, id => {
+        if (!publicResponseIds.has(id)) publicResponseIds.set(id, `resp_REDACTED_${String(publicResponseIds.size + 1).padStart(4, "0")}`);
+        return publicResponseIds.get(id)!;
+      });
+  }
+  if (Array.isArray(value)) return value.map(publicValue);
+  if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, publicValue(item)]));
+  return value;
+}
 const files = [
   ...readdirSync(join(root, "sol-upstream-capture")).filter(name => name.endsWith(".jsonl")).map(name => ({ group: "sol", name, path: join(root, "sol-upstream-capture", name) })),
   ...readdirSync(join(root, "openai-upstream-capture")).filter(name => name.endsWith(".jsonl")).map(name => ({ group: "luna", name, path: join(root, "openai-upstream-capture", name) })),
@@ -420,7 +437,7 @@ const machineReport = {
   collectorDeployment: {
     captureSourceCommit: "2cce4fa8c885011d3dcfcad2e406744d4f950b4c",
     fixedSourceCommit: "62909c3c90f0d0f5c2205b4c515132324e09004b",
-    activeArtifact: "/opt/opencodex-2.59.0-62909c3c",
+    activeArtifact: "local runtime artifact",
     activeArtifactTreeSha256: "03064b09e0fdba523271ac09b30b2f5da41b306a154f4b7862387a6a5a133eec",
     packageSha256: "f31d554d7c84cf7e3b9f6d81b74cd5bd19362e07fe4a384b2997d9c2b502ef63",
     deployedHealthAndReadiness: 200,
@@ -503,9 +520,9 @@ Generated: ${machineReport.generatedUtc} (offline analysis; the script initiated
 
 ## Evidence scope and preservation
 
-${manifestFiles.length} raw JSONL files were reviewed: ${manifestFiles.filter(file => file.group === "sol").length} Sol files and ${manifestFiles.filter(file => file.group === "luna").length} Luna/OpenAI files. Their absolute paths, byte sizes, modes, SHA-256 hashes, request counts, and UTC ranges are in evidence-manifest.json. The raw files remain in place with mode 0400; no prompt body was copied into this package or committed.
+${manifestFiles.length} raw JSONL files were reviewed: ${manifestFiles.filter(file => file.group === "sol").length} Sol files and ${manifestFiles.filter(file => file.group === "luna").length} Luna/OpenAI files. Their capture filenames, byte sizes, modes, SHA-256 hashes, request counts, and UTC ranges are in evidence-manifest.json. The raw files remain in place with mode 0400; no prompt body was copied into this package or committed.
 
-The five original Sol SHA-256 values match the prior recorded hashes. Original evidence is preserved at /var/lib/opencodex/sol-upstream-capture/; the Luna captures are under /var/lib/opencodex/openai-upstream-capture/.
+The five original Sol SHA-256 values match the prior recorded hashes. Original captures remain in the local capture archive and are not copied into this package.
 
 ## Independent request and usage counts
 
@@ -584,7 +601,7 @@ Raw request bodies contain prompts, tool definitions, and may contain user-provi
 
 ## Collector and test status
 
-The original captures were made by OpenCodeX source commit 7dd65c5cef62535b1b98fae2e3558585342b9681, release artifact /opt/opencodex-2.59.0-7dd65c5c. The first event capture ran commit 2cce4fa8c885011d3dcfcad2e406744d4f950b4c; the second ran commit 5dc21abb95b159db04a1fde2577a35e468bf6b85. The current fix is deployed as commit 62909c3c90f0d0f5c2205b4c515132324e09004b at /opt/opencodex-2.59.0-62909c3c (artifact tree SHA-256 ${machineReport.collectorDeployment.activeArtifactTreeSha256}). Deployment health/readiness both returned 200. The current event stop logic passed unit regression tests but has not yet been re-observed on live Luna traffic. This report generator performed offline parsing only and did not initiate any model requests.
+The original captures and deployed artifacts were checked on the operator's host. Deployment health/readiness both returned 200. The current event stop logic was not yet re-observed on live Luna traffic at report generation time. This report generator performed offline parsing only and did not initiate any model requests.
 
 ## English summary for OpenAI Support
 
@@ -593,12 +610,12 @@ ${supportEnglish}
 
 mkdirSync(output, { recursive: true, mode: 0o700 });
 chmodSync(output, 0o755);
-writeFileSync(join(output, "evidence-manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`, { mode: 0o644 });
-writeFileSync(join(output, "support-evidence.json"), `${JSON.stringify(machineReport, null, 2)}\n`, { mode: 0o644 });
-writeFileSync(join(output, "support-evidence.md"), report, { mode: 0o644 });
+writeFileSync(join(output, "evidence-manifest.json"), `${JSON.stringify(publicValue(manifest), null, 2)}\n`, { mode: 0o644 });
+writeFileSync(join(output, "support-evidence.json"), `${JSON.stringify(publicValue(machineReport), null, 2)}\n`, { mode: 0o644 });
+writeFileSync(join(output, "support-evidence.md"), publicValue(report) as string, { mode: 0o644 });
 
 const sums = [
-  ...manifestFiles.map(file => `${file.sha256}  ${file.absolutePath}`),
+  ...manifestFiles.map(file => `${file.sha256}  <capture-root>/${file.absolutePath.split("/").at(-1)}`),
   ...["evidence-manifest.json", "support-evidence.json", "support-evidence.md"].map(name => `${sha256(readFileSync(join(output, name)))}  ${join(output, name)}`),
 ].join("\n") + "\n";
 writeFileSync(join(output, "SHA256SUMS"), sums, { mode: 0o644 });
