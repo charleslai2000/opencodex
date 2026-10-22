@@ -222,12 +222,27 @@ describe("the two wrappers still differ", () => {
 });
 
 describe("loopback binds", () => {
-  test("admit without reading a token, and say so", () => {
+  test("admit anonymous local calls, but retain only a configured voluntary Bearer", () => {
     const config = loopbackConfig();
     expect(resolveApiAuth(request(), config)).toEqual({ kind: "loopback", source: "loopback" });
     expect(resolveResponsesApiAuth(request(), config)).toEqual({ kind: "loopback", source: "loopback" });
     expect(hasValidApiAuth(request(), config)).toBe(true);
     expect(requireResponsesApiAuth(request(), config)).toBeNull();
+
+    const validBearer = request({ authorization: "Bearer ocx_data_firstsecret" });
+    expect(resolveApiAuth(validBearer, config)).toMatchObject({ kind: "configured", keyId: "first-key", source: "bearer" });
+    expect(resolveResponsesApiAuth(validBearer, config)).toMatchObject({ kind: "configured", keyId: "first-key", source: "bearer" });
+    for (const headers of [
+      { authorization: "Bearer not-a-configured-key" },
+      { authorization: "Bearer ocx_data_secondsecret".slice(0, -1) },
+    ]) {
+      expect(resolveApiAuth(request(headers), config)).toEqual({ kind: "loopback", source: "loopback" });
+      expect(resolveResponsesApiAuth(request(headers), config)).toEqual({ kind: "loopback", source: "loopback" });
+    }
+    expect(resolveApiAuth(request({ authorization: "Bearer ocx_data_firstsecret", "x-api-key": "invalid" }), config))
+      .toMatchObject({ kind: "configured", keyId: "first-key", source: "bearer" });
+    expect(resolveResponsesApiAuth(request({ "x-opencodex-api-key": "invalid", authorization: "Bearer ocx_data_firstsecret" }), config))
+      .toMatchObject({ kind: "configured", keyId: "first-key", source: "bearer" });
   });
 
   test("still let a context caller name itself with a real key", () => {
