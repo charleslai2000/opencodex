@@ -193,6 +193,16 @@ async function apply(name: RoutingPresetName): Promise<void> {
   const next = applyRoutingPreset(structuredClone(current.config), name) as OcxConfig;
   if (next.providerContextCaps?.openai !== undefined) { next.providerContextCaps = { ...next.providerContextCaps }; delete next.providerContextCaps.openai; if (Object.keys(next.providerContextCaps).length === 0) delete next.providerContextCaps; }
   validatePreset(next, name);
+  // The runtime snapshot fingerprints a preset, not just the route matrix. Persist it exactly
+  // as compiled (including aliases/evidence policy) so reload and rollback compare identically.
+  const compiled = buildRoutingRuntimeSnapshot(next);
+  next.routingProfiles = structuredClone(compiled.routingProfiles) as Record<string, OcxRoutingProfileConfig>;
+  if (next.providers.openrouter) {
+    const projection = compiled.openrouterRoutingMetadata;
+    next.providers.openrouter.models = [...new Set([...(next.providers.openrouter.models ?? []), ...(projection?.models ?? [])])];
+    if (projection?.modelReasoningEfforts) next.providers.openrouter.modelReasoningEfforts = { ...(next.providers.openrouter.modelReasoningEfforts ?? {}), ...projection.modelReasoningEfforts };
+    if (projection?.modelReasoningEffortMap) next.providers.openrouter.modelReasoningEffortMap = { ...(next.providers.openrouter.modelReasoningEffortMap ?? {}), ...projection.modelReasoningEffortMap };
+  }
   const nextBytes = Buffer.from(`${JSON.stringify(next, null, 2)}\n`);
   if (dryRun) {
     console.log(`Dry run: OpenCodeX preset would switch to ${name}.`);
