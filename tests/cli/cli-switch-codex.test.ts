@@ -1,10 +1,41 @@
 import { describe, expect, test } from "bun:test";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { formatSwitchError, SwitchApplyError } from "../../scripts/switch-codex";
+import { canonicalPresetConfig, formatSwitchError, SwitchApplyError } from "../../scripts/switch-codex";
+import type { OcxConfig } from "../../src/types";
 import { repoPath } from "../helpers/repo-root";
 
 describe("switch-codex CLI output", () => {
+  test("canonicalizes a target from a legacy prior profile and preserves unrelated config", () => {
+    const config = {
+      port: 3456,
+      defaultProvider: "openai",
+      providers: {
+        openai: { adapter: "openai-responses", baseUrl: "https://openai.invalid", models: ["gpt-6-luna"] },
+        "openai-apikey": { adapter: "openai-responses", baseUrl: "https://api.openai.com/v1", models: ["gpt-6-luna", "gpt-6.1-sol"], apiKey: "fixture" },
+        openrouter: { adapter: "openai-chat", baseUrl: "https://openrouter.invalid", models: ["@preset/lstack-ling-3-0-flash"] },
+        deepseek: { adapter: "openai-chat", baseUrl: "https://deepseek.invalid", models: ["deepseek-flash"] },
+      },
+      combos: { untouched: { members: [] } },
+      apiKeys: [{ id: "admission", name: "test", key: "admission-secret", createdAt: "now" }],
+      routingProfiles: {
+        lead: { alias: "lead", routes: { low: [{ candidates: [{ provider: "openai-apikey", model: "gpt-6-luna" }] }] } },
+      },
+    } as unknown as OcxConfig;
+
+    const next = canonicalPresetConfig(config, "openai-api");
+
+    expect(next.routingPreset).toBe("openai-api");
+    expect(next.routingProfiles?.lead?.unknownEvidence).toEqual({ capability: "allow", health: "penalize", quota: "penalize", cost: "penalize" });
+    expect(next.routingProfiles?.expert?.routes?.low?.[0]?.candidates).toEqual([{ provider: "openai-apikey", model: "gpt-6-luna", upstreamEffort: "xhigh" }]);
+    expect(next.routingProfiles?.expert?.routes?.medium?.[0]?.candidates).toEqual([{ provider: "openai-apikey", model: "gpt-6.1-sol", upstreamEffort: "medium" }]);
+    expect(next.routingProfiles?.expert?.routes?.high?.[0]?.candidates).toEqual([{ provider: "openai-apikey", model: "gpt-6.1-sol", upstreamEffort: "xhigh" }]);
+    expect(next.routingProfiles?.bot?.routes?.low?.flatMap(step => step.candidates).map(candidate => candidate.provider)).toEqual(["openrouter", "deepseek"]);
+    expect(next.providers["openai-apikey"]?.apiKey).toBe("fixture");
+    expect(next.apiKeys).toEqual(config.apiKeys);
+    expect(next.combos).toEqual(config.combos);
+  });
+
   test("formats a successful switch as a concise route summary instead of opaque hashes", () => {
     const source = readFileSync(repoPath("scripts", "switch-codex.ts"), "utf8");
     expect(source).toContain("OpenCodeX preset switched to ${name}.");

@@ -123,6 +123,24 @@ function validatePreset(config: OcxConfig, name: RoutingPresetName): void {
     }
   }
 }
+export function canonicalPresetConfig(config: OcxConfig, name: RoutingPresetName): OcxConfig {
+  const next = applyRoutingPreset(structuredClone(config), name) as OcxConfig;
+  if (next.providerContextCaps?.openai !== undefined) { next.providerContextCaps = { ...next.providerContextCaps }; delete next.providerContextCaps.openai; if (Object.keys(next.providerContextCaps).length === 0) delete next.providerContextCaps; }
+  const compiled = buildRoutingRuntimeSnapshot(next);
+  next.routingProfiles = structuredClone(compiled.routingProfiles) as Record<string, OcxRoutingProfileConfig>;
+  const projection = compiled.openrouterRoutingMetadata;
+  if (next.providers.openrouter && projection) {
+    const prior = next.providers.openrouter;
+    next.providers.openrouter = {
+      ...prior,
+      models: [...new Set([...(prior.models ?? []), ...(projection.models ?? [])])],
+      ...(projection.modelReasoningEfforts ? { modelReasoningEfforts: { ...(prior.modelReasoningEfforts ?? {}), ...projection.modelReasoningEfforts } } : {}),
+      ...(projection.modelReasoningEffortMap ? { modelReasoningEffortMap: { ...(prior.modelReasoningEffortMap ?? {}), ...projection.modelReasoningEffortMap } } : {}),
+    };
+  }
+  validatePreset(next, name);
+  return next;
+}
 function token(): string | undefined {
   const explicit = process.env.OCX_SWITCH_ADMIN_TOKEN; if (explicit) return explicit;
   const path = process.env.OCX_SWITCH_ADMIN_TOKEN_FILE ?? join(home, "admin-api-token");
@@ -189,20 +207,14 @@ function printRollbackSuccess(name: string, config: OcxConfig): void {
   console.log("Verified: health, readiness, and runtime routing snapshot.");
 }
 async function apply(name: RoutingPresetName): Promise<void> {
-  const current = readConfig();
-  const next = applyRoutingPreset(structuredClone(current.config), name) as OcxConfig;
-  if (next.providerContextCaps?.openai !== undefined) { next.providerContextCaps = { ...next.providerContextCaps }; delete next.providerContextCaps.openai; if (Object.keys(next.providerContextCaps).length === 0) delete next.providerContextCaps; }
-  // The runtime snapshot fingerprints a preset, not just the route matrix. Persist it exactly
-  // as compiled (including aliases/evidence policy) so reload and rollback compare identically.
-  const compiled = buildRoutingRuntimeSnapshot(next);
-  next.routingProfiles = structuredClone(compiled.routingProfiles) as Record<string, OcxRoutingProfileConfig>;
-  if (next.providers.openrouter) {
-    const projection = compiled.openrouterRoutingMetadata;
-    next.providers.openrouter.models = [...new Set([...(next.providers.openrouter.models ?? []), ...(projection?.models ?? [])])];
-    if (projection?.modelReasoningEfforts) next.providers.openrouter.modelReasoningEfforts = { ...(next.providers.openrouter.modelReasoningEfforts ?? {}), ...projection.modelReasoningEfforts };
-    if (projection?.modelReasoningEffortMap) next.providers.openrouter.modelReasoningEffortMap = { ...(next.providers.openrouter.modelReasoningEffortMap ?? {}), ...projection.modelReasoningEffortMap };
-  }
-  validatePreset(next, name);
+  const disk = readConfig();
+  const priorPreset = disk.config.routingPreset;
+  const currentConfig = priorPreset === "openai" || priorPreset === "openai-api" || priorPreset === "deepseek"
+    ? canonicalPresetConfig(disk.config, priorPreset)
+    : disk.config;
+  const currentBytes = Buffer.from(`${JSON.stringify(currentConfig, null, 2)}\n`);
+  const current = { config: currentConfig, bytes: currentBytes };
+  const next = canonicalPresetConfig(current.config, name);
   const nextBytes = Buffer.from(`${JSON.stringify(next, null, 2)}\n`);
   if (dryRun) {
     console.log(`Dry run: OpenCodeX preset would switch to ${name}.`);
@@ -210,13 +222,26 @@ async function apply(name: RoutingPresetName): Promise<void> {
     for (const line of describePreset(next, name)) console.log(line);
     return;
   }
-  const snap = snapshot(current.bytes, current.config.routingPreset);
+  const snap = snapshot(disk.bytes, disk.config.routingPreset);
   const target = await findLiveProxy(PROXY_DISCOVERY);
   if (!target) throw new Error("could not attest the running OpenCodeX process after three bounded health probes; configuration was not changed");
   try { writeAtomic(nextBytes); await requestBoundLocalRoutingReload(target, { readConfigBytes: () => readFileSync(configPath), timeoutMs: MANAGEMENT_TIMEOUT_MS }); const runtime = await requestBoundLocalRoutingState(target, { timeoutMs: MANAGEMENT_TIMEOUT_MS }); const expected = buildRoutingRuntimeSnapshot(next); await verify(sha256(nextBytes), expected, { ...runtime, expectedPid: target.pid! }); printApplySuccess(name, next, snap); }
   catch (error) {
+    // Restore the complete prior config, canonicalized for its prior preset so the running
+    // runtime can validate and load that schema while preserving every unrelated field.
     writeAtomic(current.bytes);
-    try { const target = await findLiveProxy(PROXY_DISCOVERY); if (!target) throw new Error("could not attest the running OpenCodeX process after three probes while restoring the previous runtime route"); await requestBoundLocalRoutingReload(target, { readConfigBytes: () => readFileSync(configPath), timeoutMs: MANAGEMENT_TIMEOUT_MS }); const runtime = await requestBoundLocalRoutingState(target, { timeoutMs: MANAGEMENT_TIMEOUT_MS }); const expected = buildRoutingRuntimeSnapshot(current.config); await verify(sha256(current.bytes), expected, { ...runtime, expectedPid: target.pid! }); }
+    try {
+      const target = await findLiveProxy(PROXY_DISCOVERY);
+      if (!target) throw new Error("could not attest the running OpenCodeX process after three probes while restoring the previous runtime route");
+      await requestBoundLocalRoutingReload(target, { readConfigBytes: () => readFileSync(configPath), timeoutMs: MANAGEMENT_TIMEOUT_MS });
+      const runtime = await requestBoundLocalRoutingState(target, { timeoutMs: MANAGEMENT_TIMEOUT_MS });
+      const priorPreset = current.config.routingPreset;
+      const expected = priorPreset === "openai" || priorPreset === "openai-api" || priorPreset === "deepseek"
+        ? buildRoutingRuntimeSnapshot(canonicalPresetConfig(current.config, priorPreset))
+        : buildRoutingRuntimeSnapshot(current.config);
+      await verify(sha256(current.bytes), expected, { ...runtime, expectedPid: target.pid! });
+      if (runtime.routingPreset !== priorPreset) throw new Error("restored runtime preset mismatch");
+    }
     catch (rollbackError) { throw new SwitchApplyError(error, rollbackError); }
     throw new SwitchApplyError(error);
   }
@@ -225,7 +250,22 @@ async function rollback(): Promise<void> {
   const entries = (await import("node:fs/promises")).readdir(snapshotDir).then(xs => xs.filter(x => x.startsWith("config-") && x.endsWith(".json")).sort()).catch(() => [] as string[]);
   const names = await entries; const name = names.at(-1); if (!name) throw new Error("no preset snapshot available");
   const target = await findLiveProxy(PROXY_DISCOVERY); if (!target) throw new Error("could not attest the running OpenCodeX process after three probes; rollback was not applied");
-  const bytes = readFileSync(join(snapshotDir, name)); const restored = JSON.parse(bytes.toString()) as OcxConfig; writeAtomic(bytes); await requestBoundLocalRoutingReload(target, { readConfigBytes: () => readFileSync(configPath), timeoutMs: MANAGEMENT_TIMEOUT_MS }); const runtime = await requestBoundLocalRoutingState(target, { timeoutMs: MANAGEMENT_TIMEOUT_MS }); const expected = buildRoutingRuntimeSnapshot(restored); await verify(sha256(bytes), expected, { ...runtime, expectedPid: target.pid! }); printRollbackSuccess(name, restored);
+  const bytes = readFileSync(join(snapshotDir, name));
+  const restored = JSON.parse(bytes.toString()) as OcxConfig;
+  const priorPreset = restored.routingPreset;
+  const effective = priorPreset === "openai" || priorPreset === "openai-api" || priorPreset === "deepseek"
+    ? canonicalPresetConfig(restored, priorPreset)
+    : restored;
+  const effectiveBytes = priorPreset === "openai" || priorPreset === "openai-api" || priorPreset === "deepseek"
+    ? Buffer.from(`${JSON.stringify(effective, null, 2)}\n`)
+    : bytes;
+  const expected = buildRoutingRuntimeSnapshot(effective);
+  writeAtomic(effectiveBytes);
+  await requestBoundLocalRoutingReload(target, { readConfigBytes: () => readFileSync(configPath), timeoutMs: MANAGEMENT_TIMEOUT_MS });
+  const runtime = await requestBoundLocalRoutingState(target, { timeoutMs: MANAGEMENT_TIMEOUT_MS });
+  await verify(sha256(effectiveBytes), expected, { ...runtime, expectedPid: target.pid! });
+  if (runtime.routingPreset !== priorPreset) throw new Error("restored runtime preset mismatch");
+  printRollbackSuccess(name, restored);
 }
 async function status(): Promise<void> {
   const current = readConfig();
