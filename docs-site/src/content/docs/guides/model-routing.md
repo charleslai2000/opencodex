@@ -73,6 +73,12 @@ Whatever route is chosen, the provider's `apiKey` is resolved through `resolveEn
 `${OPENAI_API_KEY}` or `$OPENAI_API_KEY` is expanded from the environment at request time, so secrets
 never need to live in `config.json`.
 
+The built-in `openai` routing preset uses the Codex-authenticated `openai` provider. The separate
+`openai-api` preset uses the OpenAI API Platform key-authenticated `openai-apikey` provider for its
+lead, worker, and expert profiles; the bot keeps its OpenRouter then DeepSeek fallback. Configure
+`providers.openai-apikey.apiKey` with an environment reference such as `${OPENAI_API_KEY}`. Key-file
+paths are not read as API key values.
+
 ## Catalog visibility and context caps
 
 Routing and catalog visibility are separate controls:

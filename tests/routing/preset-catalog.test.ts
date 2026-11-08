@@ -6,6 +6,7 @@ import type { OcxConfig } from "../../src/types";
 
 const providers = {
   openai: { adapter: "openai-responses", baseUrl: "https://openai.test", models: ["gpt-6-luna", "gpt-5.6-terra", "gpt-6-sol", "gpt-6.1-sol"] },
+  "openai-apikey": { adapter: "openai-responses", baseUrl: "https://api.openai.com/v1", models: ["gpt-6-luna", "gpt-5.6-terra", "gpt-6-sol", "gpt-6.1-sol"] },
   openrouter: { adapter: "openai-chat", baseUrl: "https://openrouter.test", models: ["@preset/lstack-ling-3-0-flash"] },
   deepseek: { adapter: "openai-chat", baseUrl: "https://deepseek.test", models: ["deepseek-flash"] },
   "deepseek-worker": { adapter: "openai-chat", baseUrl: "https://deepseek.test", models: ["deepseek-flash"] },
@@ -77,6 +78,23 @@ describe("production routing preset compiler", () => {
     expect(route(preset.expert, "low")).toEqual([{ provider: "openai", model: "gpt-6-luna", upstreamEffort: "max" }]);
     expect(route(preset.expert, "medium")).toEqual([{ provider: "openai", model: "gpt-6.1-sol", upstreamEffort: "medium" }]);
     expect(route(preset.expert, "high")).toEqual([{ provider: "openai", model: "gpt-6.1-sol", upstreamEffort: "xhigh" }]);
+  });
+
+  test("openai-api uses the API-key provider and keeps the Codex provider separate", () => {
+    const preset = compileRoutingPreset("openai-api");
+    for (const id of ["lead", "worker", "expert"]) {
+      for (const candidates of Object.values(preset[id]!.routes!)) {
+        expect(candidates.flatMap(step => step.candidates).every(candidate => candidate.provider === "openai-apikey")).toBe(true);
+      }
+    }
+    expect(route(preset.expert, "low")).toEqual([
+      { provider: "openai-apikey", model: "gpt-6-luna", upstreamEffort: "max" },
+    ]);
+    const applied = applyRoutingPreset(config(), "openai-api");
+    expect(applied.routingPreset).toBe("openai-api");
+    expect(routeModel(applied, "policy/lead", { reasoningEffort: "high" }).providerName).toBe("openai-apikey");
+    expect(buildRoutingRuntimeSnapshot(applied).routingPreset).toBe("openai-api");
+    expect(routeModel(applyRoutingPreset(config(), "openai"), "policy/lead", { reasoningEffort: "high" }).providerName).toBe("openai");
   });
 
   test("deepseek maps logical efforts onto the canonical low/high/max ladder", () => {

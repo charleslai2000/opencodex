@@ -48,8 +48,11 @@ export function buildRoutingRuntimeSnapshot(config: OcxConfig): RoutingRuntimeSn
   const preset = config.routingPreset ?? null;
   const projectedConfig = config;
   if (preset !== null) {
-    if (preset !== "openai" && preset !== "deepseek") throw new Error("unknown routing preset");
-    for (const provider of ["openai", "openrouter", "deepseek"]) {
+    if (preset !== "openai" && preset !== "openai-api" && preset !== "deepseek") throw new Error("unknown routing preset");
+    const requiredProviders = preset === "openai-api"
+      ? ["openai-apikey", "openrouter", "deepseek"]
+      : ["openai", "openrouter", "deepseek"];
+    for (const provider of requiredProviders) {
       if (!config.providers[provider]) throw new Error(`required provider ${provider} missing for ${preset} preset`);
     }
     const compiled = applyRoutingPreset(config, preset);
@@ -89,7 +92,7 @@ export function buildRoutingRuntimeSnapshotFromRaw(raw: unknown, startupConfig: 
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new Error("routing config must be an object");
   const root = raw as Record<string, unknown>;
   const preset = root.routingPreset;
-  if (preset !== undefined && preset !== "openai" && preset !== "deepseek") throw new Error("routingPreset is invalid");
+  if (preset !== undefined && preset !== "openai" && preset !== "openai-api" && preset !== "deepseek") throw new Error("routingPreset is invalid");
   const profileMap = root.routingProfiles;
   if (profileMap !== undefined && (!profileMap || typeof profileMap !== "object" || Array.isArray(profileMap))) throw new Error("routingProfiles must be an object");
   const providersRaw = root.providers;

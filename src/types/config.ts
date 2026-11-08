@@ -1055,7 +1055,7 @@ export interface OcxConfig {
    */
   routingProfiles?: Record<string, OcxRoutingProfileConfig>;
   /** Active isolated/production preset name; absent preserves legacy behavior. */
-  routingPreset?: "openai" | "deepseek";
+  routingPreset?: "openai" | "openai-api" | "deepseek";
   /** Background proactive token refresh ("Token Guardian"). Off by default; see OcxTokenGuardianConfig. */
   tokenGuardian?: OcxTokenGuardianConfig;
   /** Additional exact origins allowed for CORS (e.g. HTTPS or chrome-extension://<id>). Loopback origins are always allowed. */

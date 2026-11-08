@@ -238,10 +238,10 @@ async function status(): Promise<void> {
 }
 export async function main(args: readonly string[] = process.argv.slice(2)): Promise<number> {
   const command = args[0];
-  if (command === "openai" || command === "deepseek") await apply(command);
+  if (command === "openai" || command === "openai-api" || command === "deepseek") await apply(command);
   else if (command === "status") await status();
   else if (command === "rollback") await rollback();
-  else { console.error("usage: switch-codex openai|deepseek|status|rollback"); return 2; }
+  else { console.error("usage: switch-codex openai|openai-api|deepseek|status|rollback"); return 2; }
   return 0;
 }
 

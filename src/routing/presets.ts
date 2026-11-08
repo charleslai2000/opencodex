@@ -3,7 +3,7 @@ import { getRoutingProfile, routingProfileIssues } from "./profile";
 
 export const LOGICAL_MODEL_IDS = ["lead", "bot", "worker", "expert"] as const;
 export const LOGICAL_EFFORTS = ["low", "medium", "high"] as const;
-export type RoutingPresetName = "openai" | "deepseek";
+export type RoutingPresetName = "openai" | "openai-api" | "deepseek";
 
 const POLICY_CONTEXT = 400_000;
 const POLICY_OUTPUT = 128_000;
@@ -36,23 +36,24 @@ function profile(routes: Route, advertisedContextWindow = POLICY_CONTEXT, alias?
 
 export function compileRoutingPreset(name: RoutingPresetName): Record<string, OcxRoutingProfileConfig> {
   const bot = profile(botRoutes(), POLICY_CONTEXT, "bot");
-  if (name === "openai") {
+  if (name === "openai" || name === "openai-api") {
+    const provider = name === "openai-api" ? "openai-apikey" : "openai";
     return {
       lead: profile({
-        low: [candidate("openai", "gpt-6-luna", "low")],
-        medium: [candidate("openai", "gpt-6-luna", "medium")],
-        high: [candidate("openai", "gpt-6-luna", "high")],
+        low: [candidate(provider, "gpt-6-luna", "low")],
+        medium: [candidate(provider, "gpt-6-luna", "medium")],
+        high: [candidate(provider, "gpt-6-luna", "high")],
       }),
       bot,
       worker: profile({
-        low: [candidate("openai", "gpt-6-luna", "low")],
-        medium: [candidate("openai", "gpt-6-luna", "medium")],
-        high: [candidate("openai", "gpt-6-luna", "high")],
+        low: [candidate(provider, "gpt-6-luna", "low")],
+        medium: [candidate(provider, "gpt-6-luna", "medium")],
+        high: [candidate(provider, "gpt-6-luna", "high")],
       }),
       expert: profile({
-        low: [candidate("openai", "gpt-6-luna", "max")],
-        medium: [candidate("openai", "gpt-6.1-sol", "medium")],
-        high: [candidate("openai", "gpt-6.1-sol", "xhigh")],
+        low: [candidate(provider, "gpt-6-luna", "max")],
+        medium: [candidate(provider, "gpt-6.1-sol", "medium")],
+        high: [candidate(provider, "gpt-6.1-sol", "xhigh")],
       }),
     };
   }
@@ -77,7 +78,10 @@ export function compileRoutingPreset(name: RoutingPresetName): Record<string, Oc
 }
 
 function applyPresetRequiredProviderMetadata(config: OcxConfig, name: RoutingPresetName): OcxConfig {
-  for (const providerName of REQUIRED_PRESET_PROVIDERS) {
+  const requiredProviders = name === "openai-api"
+    ? ["openai-apikey", "openrouter", "deepseek"] as const
+    : REQUIRED_PRESET_PROVIDERS;
+  for (const providerName of requiredProviders) {
     if (!config.providers?.[providerName]) throw new Error(`required provider ${providerName} missing for ${name} preset`);
   }
   const openrouter = config.providers.openrouter!;
