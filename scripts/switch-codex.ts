@@ -225,7 +225,27 @@ async function apply(name: RoutingPresetName): Promise<void> {
   const snap = snapshot(disk.bytes, disk.config.routingPreset);
   const target = await findLiveProxy(PROXY_DISCOVERY);
   if (!target) throw new Error("could not attest the running OpenCodeX process after three bounded health probes; configuration was not changed");
-  try { writeAtomic(nextBytes); await requestBoundLocalRoutingReload(target, { readConfigBytes: () => readFileSync(configPath), timeoutMs: MANAGEMENT_TIMEOUT_MS }); const runtime = await requestBoundLocalRoutingState(target, { timeoutMs: MANAGEMENT_TIMEOUT_MS }); const expected = buildRoutingRuntimeSnapshot(next); await verify(sha256(nextBytes), expected, { ...runtime, expectedPid: target.pid! }); printApplySuccess(name, next, snap); }
+  try {
+    writeAtomic(nextBytes);
+    const diskAfterWrite = readFileSync(configPath);
+    const diskJson = JSON.parse(diskAfterWrite.toString()) as OcxConfig;
+    const diskSnapshot = buildRoutingRuntimeSnapshot(diskJson);
+    await requestBoundLocalRoutingReload(target, { readConfigBytes: () => readFileSync(configPath), timeoutMs: MANAGEMENT_TIMEOUT_MS });
+    const runtime = await requestBoundLocalRoutingState(target, { timeoutMs: MANAGEMENT_TIMEOUT_MS });
+    const expected = buildRoutingRuntimeSnapshot(next);
+    if (sha256(diskAfterWrite) !== sha256(nextBytes)) throw new Error("disk bytes differ from normalized target bytes");
+    if (stable(diskJson) !== stable(next)) throw new Error("disk JSON differs from normalized target config");
+    if (diskSnapshot.routingFingerprint !== expected.routingFingerprint) throw new Error("disk snapshot differs from normalized target snapshot");
+    try { await verify(sha256(diskAfterWrite), diskSnapshot, { ...runtime, expectedPid: target.pid! }); }
+    catch (verifyError) {
+      const expectedProfiles = diskSnapshot.routingProfiles as Record<string, unknown>;
+      const actualProfiles = runtime.routingProfiles as Record<string, unknown>;
+      const mismatch = roles.find(role => stable(expectedProfiles[role]) !== stable(actualProfiles?.[role]));
+      if (mismatch) throw new Error(`disk/runtime first mismatch at ${mismatch}: disk=${stable(expectedProfiles[mismatch])} runtime=${stable(actualProfiles?.[mismatch])}`);
+      throw new Error(`disk/runtime snapshot mismatch: preset disk=${diskSnapshot.routingPreset} runtime=${runtime.routingPreset}; fingerprint disk=${diskSnapshot.routingFingerprint} runtime=${runtime.routingFingerprint}; ${errorMessage(verifyError)}`);
+    }
+    printApplySuccess(name, next, snap);
+  }
   catch (error) {
     // Restore the complete prior config, canonicalized for its prior preset so the running
     // runtime can validate and load that schema while preserving every unrelated field.
