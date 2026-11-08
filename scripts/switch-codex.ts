@@ -146,12 +146,9 @@ async function verify(expectedConfigHash?: string, expectedSnapshot?: ReturnType
   const profiles = await get("/api/routing-profiles"); if (!profiles.response.ok) throw new Error(`routing profiles ${profiles.response.status}`);
   const listed = (profiles.body as any)?.profiles; if (!Array.isArray(listed)) throw new Error("routing profiles response malformed");
   for (const role of roles) if (!listed.some((p: any) => p.id === role)) throw new Error(`catalog missing profile ${role}`);
-  const models = await get("/v1/models"); if (!models.response.ok) throw new Error(`models ${models.response.status}`);
-  const rows = (models.body as any)?.data; if (!Array.isArray(rows)) throw new Error("models response malformed");
-  for (const role of roles) {
-    const row = rows.find((item: any) => item.id === role);
-    if (!row || row.context_window !== 400_000 || row.max_output_tokens !== 128_000 || JSON.stringify(row.opencodex_logical_efforts) !== JSON.stringify(["low", "medium", "high"])) throw new Error(`catalog policy mismatch for ${role}`);
-  }
+  // Preset switching is verified against the authenticated runtime routing snapshot below.
+  // /v1/models also resolves Codex OAuth entitlements and may fail for unrelated account-token
+  // refresh reasons; coupling preset application to that endpoint can reject a valid route switch.
   const configHash = sha256(readFileSync(configPath)); if (expectedConfigHash && configHash !== expectedConfigHash) throw new Error("config hash mismatch");
   if (expectedSnapshot && runtimeState) {
     if (runtimeState.routingFingerprint !== expectedSnapshot.routingFingerprint
@@ -160,7 +157,7 @@ async function verify(expectedConfigHash?: string, expectedSnapshot?: ReturnType
       || stable(runtimeState.catalog) !== stable(expectedSnapshot.logicalCatalog)) throw new Error("runtime routing snapshot mismatch");
     if (runtimeState.pid !== runtimeState.expectedPid) throw new Error("runtime PID changed");
   }
-  return { configHash, catalogHash: sha256(JSON.stringify(models.body)), profileHash: sha256(stable(listed.filter((p: any) => roles.includes(p.id)))), routingFingerprint: runtimeState?.routingFingerprint ?? "" };
+  return { configHash, catalogHash: sha256(stable(expectedSnapshot?.logicalCatalog ?? [])), profileHash: sha256(stable(listed.filter((p: any) => roles.includes(p.id)))), routingFingerprint: runtimeState?.routingFingerprint ?? "" };
 }
 function snapshot(bytes: Buffer, oldPreset: unknown): string { mkdirSync(snapshotDir, { recursive: true, mode: 0o700 }); const path = join(snapshotDir, `config-${Date.now()}-${String(oldPreset ?? "unknown")}.json`); writeFileSync(path, bytes, { mode: 0o600 }); chmodSync(path, 0o600); return path; }
 function describePreset(config: OcxConfig, name: RoutingPresetName): string[] {
@@ -182,14 +179,14 @@ function printApplySuccess(name: RoutingPresetName, config: OcxConfig, snapshotP
   console.log(`OpenCodeX preset switched to ${name}.`);
   console.log("Logical routes:");
   for (const line of describePreset(config, name)) console.log(line);
-  console.log(`Verified: health, readiness, catalog, and runtime routing snapshot.`);
+  console.log(`Verified: health, readiness, and runtime routing snapshot.`);
   console.log(`Rollback snapshot saved: ${snapshotPath.split(/[\\/]/).at(-1)}`);
 }
 function printRollbackSuccess(name: string, config: OcxConfig): void {
   console.log(`OpenCodeX preset restored from snapshot ${name}.`);
   console.log("Logical routes:");
   for (const line of describePreset(config, (config.routingPreset ?? "openai") as RoutingPresetName)) console.log(line);
-  console.log("Verified: health, readiness, catalog, and runtime routing snapshot.");
+  console.log("Verified: health, readiness, and runtime routing snapshot.");
 }
 async function apply(name: RoutingPresetName): Promise<void> {
   const current = readConfig();
@@ -232,7 +229,7 @@ async function status(): Promise<void> {
   console.log(`Active preset: ${activePreset ?? "custom / unset"}`);
   console.log(`Runtime: ${runtime}`);
   if (checks.error) console.log(`Verification issue: ${checks.error}`);
-  else console.log("Verified: health, readiness, and logical model catalog.");
+  else console.log("Verified: health, readiness, and persisted logical routing configuration.");
   console.log("Logical routes:");
   for (const line of describePreset(current.config, (activePreset ?? "openai") as RoutingPresetName)) console.log(line);
 }

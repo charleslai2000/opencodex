@@ -31,6 +31,9 @@ function profile(routes: Route, advertisedContextWindow = POLICY_CONTEXT, alias?
     routes,
     advertisedContextWindow,
     advertisedMaxOutputTokens: POLICY_OUTPUT,
+    // A preset is an explicit operator-selected route. Registry/catalog evidence may be absent
+    // for a configured API model until discovery completes; do not make that route unselectable.
+    unknownEvidence: { capability: "allow", health: "penalize", quota: "penalize", cost: "penalize" },
   };
 }
 

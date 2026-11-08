@@ -96,6 +96,7 @@ describe("production routing preset compiler", () => {
     expect(route(preset.expert, "high")).toEqual([
       { provider: "openai-apikey", model: "gpt-6.1-sol", upstreamEffort: "xhigh" },
     ]);
+    expect(preset.lead.unknownEvidence).toEqual({ capability: "allow", health: "penalize", quota: "penalize", cost: "penalize" });
     const applied = applyRoutingPreset(config(), "openai-api");
     expect(applied.routingPreset).toBe("openai-api");
     expect(routeModel(applied, "policy/lead", { reasoningEffort: "high" }).providerName).toBe("openai-apikey");

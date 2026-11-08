@@ -9,13 +9,15 @@ describe("switch-codex CLI output", () => {
     const source = readFileSync(repoPath("scripts", "switch-codex.ts"), "utf8");
     expect(source).toContain("OpenCodeX preset switched to ${name}.");
     expect(source).toContain("Logical routes:");
-    expect(source).toContain("Verified: health, readiness, catalog, and runtime routing snapshot.");
+    expect(source).toContain("Verified: health, readiness, and runtime routing snapshot.");
+    expect(source).not.toContain("const models = await get(\"/v1/models\")");
     expect(source).toContain("Rollback snapshot saved:");
     expect(source).not.toContain("console.log(JSON.stringify({ preset: name, snapshot: snap");
     expect(source).not.toContain("console.log(JSON.stringify({");
     expect(source).toContain("OpenCodeX status: ");
     expect(source).toContain("configuration was not changed");
     expect(source).toContain("const PROXY_DISCOVERY = { timeoutMs: 5_000, attempts: 3 }");
+    expect(source).toContain("/v1/models also resolves Codex OAuth entitlements");
     expect(source).toContain("const MANAGEMENT_TIMEOUT_MS = 20_000;");
   });
 
