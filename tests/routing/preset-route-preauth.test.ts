@@ -56,7 +56,8 @@ async function request(config: OcxConfig, logical: string, effort: string): Prom
   let capture: Capture | undefined;
   globalThis.fetch = (async (input, init) => {
     const url = input instanceof Request ? input.url : String(input);
-    if (!url.startsWith(canonicalUrl)) throw new Error(`unexpected route-preauth destination: ${url}`);
+    const expectedDestination = config.routingPreset === "openai-api" ? "https://api.openai.com/v1" : canonicalUrl;
+    if (!url.startsWith(expectedDestination)) throw new Error(`unexpected route-preauth destination: ${url}`);
     const headers = new Headers(init?.headers);
     const body = JSON.parse(String(init?.body)) as { model?: string; reasoning?: { effort?: string } };
     capture = { model: String(body.model), effort: body.reasoning?.effort, authorization: headers.get("authorization") };
@@ -80,7 +81,7 @@ describe("frozen OpenAI preset route-preauth qualification", () => {
   const expected: Record<string, Record<string, [string, string]>> = {
     lead: { low: ["gpt-6-luna", "low"], medium: ["gpt-6-luna", "medium"], high: ["gpt-6-luna", "high"] },
     worker: { low: ["gpt-6-luna", "low"], medium: ["gpt-6-luna", "medium"], high: ["gpt-6-luna", "high"] },
-    // Luna's logical max route is preserved on the OpenAI Responses wire.
+    // openai retains Luna max; openai-api's complete ladder is asserted below.
     expert: { low: ["gpt-6-luna", "max"], medium: ["gpt-6.1-sol", "medium"], high: ["gpt-6.1-sol", "xhigh"] },
     bot: { low: ["@preset/lstack-ling-3-0-flash", "low"], medium: ["@preset/lstack-ling-3-0-flash", "medium"], high: ["@preset/lstack-ling-3-0-flash", "high"] },
   };
@@ -90,6 +91,26 @@ describe("frozen OpenAI preset route-preauth qualification", () => {
       const result = await request(applyRoutingPreset(baseConfig(), "openai"), logical, effort);
       const [model, wireEffort] = expected[logical]![effort]!;
       expect(result).toMatchObject({ model, effort: wireEffort, authorization: `Bearer ${fakeChatGptJwt({ chatgpt_account_id: "synthetic-account", email: "route-test@example.test" })}` });
+    });
+  }
+
+  const apiExpected = {
+    lead: { low: ["gpt-6-luna", "low"], medium: ["gpt-6-luna", "medium"], high: ["gpt-6-luna", "high"] },
+    worker: { low: ["gpt-6-luna", "low"], medium: ["gpt-6-luna", "medium"], high: ["gpt-6-luna", "high"] },
+    expert: { low: ["gpt-6-luna", "xhigh"], medium: ["gpt-6.1-sol", "medium"], high: ["gpt-6.1-sol", "xhigh"] },
+  } as const;
+  for (const logical of ["lead", "worker", "expert"] as const) for (const effort of ["low", "medium", "high"] as const) {
+    test(`${logical}/${effort} is canonical openai-api ROUTE_PREAUTH`, async () => {
+      const result = await request(applyRoutingPreset({
+        ...baseConfig(),
+        providers: { ...baseConfig().providers, "openai-apikey": {
+          adapter: "openai-responses", baseUrl: "https://api.openai.com/v1", authMode: "key",
+          apiKey: "fixture-api-key", models: ["gpt-6-luna", "gpt-6.1-sol"], liveModels: false,
+          modelReasoningEfforts: { "gpt-6-luna": ["low", "medium", "high", "xhigh"], "gpt-6.1-sol": ["low", "medium", "high", "xhigh"] },
+        } },
+      }, "openai-api"), logical, effort);
+      const [model, wireEffort] = apiExpected[logical][effort];
+      expect(result).toMatchObject({ model, effort: wireEffort, authorization: "Bearer fixture-api-key" });
     });
   }
 });

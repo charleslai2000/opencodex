@@ -88,7 +88,13 @@ describe("production routing preset compiler", () => {
       }
     }
     expect(route(preset.expert, "low")).toEqual([
-      { provider: "openai-apikey", model: "gpt-6-luna", upstreamEffort: "max" },
+      { provider: "openai-apikey", model: "gpt-6-luna", upstreamEffort: "xhigh" },
+    ]);
+    expect(route(preset.expert, "medium")).toEqual([
+      { provider: "openai-apikey", model: "gpt-6.1-sol", upstreamEffort: "medium" },
+    ]);
+    expect(route(preset.expert, "high")).toEqual([
+      { provider: "openai-apikey", model: "gpt-6.1-sol", upstreamEffort: "xhigh" },
     ]);
     const applied = applyRoutingPreset(config(), "openai-api");
     expect(applied.routingPreset).toBe("openai-api");
